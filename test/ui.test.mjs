@@ -37,6 +37,11 @@ test('@ai.all/ui init scaffolds theme-base.css, pages/ui.vue and aiall-pack.json
   const cfg = JSON.parse(fs.readFileSync(path.join(tmp, '.ai', 'aiall.json'), 'utf8'));
   assert.ok(cfg.packs.includes('ui/aiall-pack.json'));
 
+  // aiall check follows every doc link of the pack: each must exist in the project
+  const pack = JSON.parse(fs.readFileSync(path.join(tmp, 'ui', 'aiall-pack.json'), 'utf8'));
+  for (const d of pack.directives)
+    assert.ok(fs.existsSync(path.join(tmp, d.doc)), `${d.doc} exists`);
+
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 

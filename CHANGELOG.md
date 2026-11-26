@@ -4,6 +4,9 @@ All notable changes to @ai.all/ui are recorded here. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+### Fixed
+- `ui init`: the AI-ALL pack points at the files init puts in the project (`app/assets/css/theme-base.css`, `app/pages/ui.vue`, `ui/ALL.md`), so `aiall check` passes; before, it linked to paths inside the package.
+
 ## [0.2.0-beta.0] — 2026-11-26
 
 ### Added

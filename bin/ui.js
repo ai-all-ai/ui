@@ -295,8 +295,18 @@ if (cmd === '--version' || cmd === '-v') {
   const packSrc = path.join(ROOT, 'aiall-pack.json');
   const packDest = path.join(uiPackDir, 'aiall-pack.json');
   if (fs.existsSync(packSrc)) {
-    fs.copyFileSync(packSrc, packDest);
-    console.log(`Scaffolded AI-ALL Pack: ${path.relative(CWD, packDest)}`);
+    // The pack's docs point at the files init puts in the project (aiall check follows every link), not at this
+    // package's own paths: theme-base.css under app/assets/css, the brandbook page and a copy of the rules.
+    fs.copyFileSync(path.join(ROOT, 'ALL.md'), path.join(uiPackDir, 'ALL.md'));
+    const docs = {
+      'tokens/theme-base.css': 'app/assets/css/theme-base.css',
+      'templates/ui.vue': 'app/pages/ui.vue',
+      'ALL.md': 'ui/ALL.md',
+    };
+    const pack = JSON.parse(fs.readFileSync(packSrc, 'utf8'));
+    for (const d of pack.directives ?? []) d.doc = docs[d.doc] ?? d.doc;
+    fs.writeFileSync(packDest, JSON.stringify(pack, null, 2) + '\n');
+    console.log(`Scaffolded AI-ALL Pack: ${path.relative(CWD, packDest)} and ui/ALL.md`);
   }
 
   // Register in .ai/aiall.json if present
