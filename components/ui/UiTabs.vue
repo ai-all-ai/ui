@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // TABS-01 · Tabs: switch between views of one block (madera, velo). Underline (a line under the active tab) or pill
 // (a track with a filled active tab); small or medium; `onDark`. Arrow keys move between tabs. Panels stay with the
-// page: give each panel id="<idPrefix>-<tab id>" (pass idPrefix) and role="tabpanel". is-hover/is-focus force a state for the brandbook.
+// page: give each panel id="<idPrefix>-<tab id>" (pass idPrefix) and role="tabpanel". -hover/-focus force a state for the brandbook.
 const props = withDefaults(
   defineProps<{
     tabs: { id: string; label: string }[];
@@ -87,16 +87,16 @@ const move = (d: number) => {
   cursor: pointer;
 }
 .tabs__tab:hover,
-.tabs.is-hover .tabs__tab:not([aria-selected='true']) {
+.tabs.-hover .tabs__tab:not([aria-selected='true']) {
   color: var(--tabs-ink);
 }
 .tabs__tab:focus-visible,
-.tabs.is-focus .tabs__tab[aria-selected='true'] {
+.tabs.-focus .tabs__tab[aria-selected='true'] {
   outline: 2px solid var(--focus-ring);
   outline-offset: -2px;
 }
 .tabs.-on-dark .tabs__tab:focus-visible,
-.tabs.-on-dark.is-focus .tabs__tab[aria-selected='true'] {
+.tabs.-on-dark.-focus .tabs__tab[aria-selected='true'] {
   outline-color: var(--color-inverse-ink);
 }
 .tabs.-underline {

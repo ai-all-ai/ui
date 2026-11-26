@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // SLIDERNAV-01 · Slider controls: dots (or numbers) and previous/next arrows for any slider. The model is the index.
-// Variants by props: dots + arrows, numbered, arrows only, dots only; small; `onDark`. is-hover and is-focus force
+// Variants by props: dots + arrows, numbered, arrows only, dots only; small; `onDark`. -hover and -focus force
 // a state on the next arrow for the brandbook only.
 const props = withDefaults(
   defineProps<{
@@ -46,7 +46,7 @@ const go = (index: number) => {
         :key="i"
         type="button"
         class="slider-nav__dot"
-        :class="{ 'is-active': model === i - 1 }"
+        :class="{ '-active': model === i - 1 }"
         :aria-label="`${goToLabel} ${i}`"
         :aria-current="model === i - 1 ? 'true' : undefined"
         @click="go(i - 1)"
@@ -106,7 +106,7 @@ const go = (index: number) => {
     width 180ms ease,
     background-color 180ms ease;
 }
-.slider-nav__dot.is-active {
+.slider-nav__dot.-active {
   width: 1.6rem;
   background: var(--color-brand);
 }
@@ -121,7 +121,7 @@ const go = (index: number) => {
   font-size: var(--text-sm);
   font-weight: 600;
 }
-.slider-nav.-numbered .slider-nav__dot.is-active {
+.slider-nav.-numbered .slider-nav__dot.-active {
   border-color: var(--color-brand);
   background: var(--color-brand);
   color: var(--color-brand-contrast);
@@ -139,7 +139,7 @@ const go = (index: number) => {
   cursor: pointer;
 }
 .slider-nav__arrow:hover:not(:disabled),
-.slider-nav.is-hover .slider-nav__arrow:last-child {
+.slider-nav.-hover .slider-nav__arrow:last-child {
   border-color: var(--color-ink);
   background: var(--color-accent-soft);
 }
@@ -156,7 +156,7 @@ const go = (index: number) => {
 }
 .slider-nav__dot:focus-visible,
 .slider-nav__arrow:focus-visible,
-.slider-nav.is-focus .slider-nav__arrow:last-child {
+.slider-nav.-focus .slider-nav__arrow:last-child {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
@@ -172,7 +172,7 @@ const go = (index: number) => {
 .slider-nav.-on-dark .slider-nav__dot {
   background: var(--color-inverse-line);
 }
-.slider-nav.-on-dark .slider-nav__dot.is-active {
+.slider-nav.-on-dark .slider-nav__dot.-active {
   background: var(--color-inverse-ink);
 }
 .slider-nav.-on-dark.-numbered .slider-nav__dot {
@@ -180,7 +180,7 @@ const go = (index: number) => {
   background: transparent;
   color: var(--color-inverse-ink);
 }
-.slider-nav.-on-dark.-numbered .slider-nav__dot.is-active {
+.slider-nav.-on-dark.-numbered .slider-nav__dot.-active {
   background: var(--color-inverse-ink);
   color: var(--color-inverse);
 }
@@ -190,12 +190,12 @@ const go = (index: number) => {
   color: var(--color-inverse-ink);
 }
 .slider-nav.-on-dark .slider-nav__arrow:hover:not(:disabled),
-.slider-nav.-on-dark.is-hover .slider-nav__arrow:last-child {
+.slider-nav.-on-dark.-hover .slider-nav__arrow:last-child {
   border-color: var(--color-inverse-ink);
   background: var(--color-inverse-soft);
 }
 .slider-nav.-on-dark :is(.slider-nav__dot, .slider-nav__arrow):focus-visible,
-.slider-nav.-on-dark.is-focus .slider-nav__arrow:last-child {
+.slider-nav.-on-dark.-focus .slider-nav__arrow:last-child {
   outline-color: var(--color-inverse-ink);
 }
 @media (prefers-reduced-motion: reduce) {

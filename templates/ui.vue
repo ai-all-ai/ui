@@ -597,10 +597,9 @@ const hlOn = (e: Event) => {
   chip
     .closest('.bb__tagged')
     ?.querySelectorAll<HTMLElement>(`.bb__sample ${chip.dataset.tag}`)
-    .forEach((el) => el.classList.add('is-hl'));
+    .forEach((el) => el.classList.add('-hl'));
 };
-const hlOff = () =>
-  document.querySelectorAll('.is-hl').forEach((el) => el.classList.remove('is-hl'));
+const hlOff = () => document.querySelectorAll('.-hl').forEach((el) => el.classList.remove('-hl'));
 
 // Components: one entry per pattern ID. Name, description, classes and usage are what the copy buttons give.
 type Level = 'atom' | 'molecule' | 'organism';
@@ -926,7 +925,7 @@ const btnStates = [
     id: 'hover',
     code: ':hover',
     label: 'Hover',
-    cls: 'is-hover',
+    cls: '-hover',
     attrs: '',
     note: 'Pointer over: fill or border shifts one step.',
   },
@@ -934,7 +933,7 @@ const btnStates = [
     id: 'active',
     code: ':active',
     label: 'Active',
-    cls: 'is-active',
+    cls: '-active',
     attrs: '',
     note: 'Pressed: moves 1 px down, 98% scale.',
   },
@@ -942,7 +941,7 @@ const btnStates = [
     id: 'focus',
     code: ':focus-visible',
     label: 'Focus',
-    cls: 'is-focus',
+    cls: '-focus',
     attrs: '',
     note: 'Keyboard focus: 2 px ring, 2 px offset.',
   },
@@ -1264,8 +1263,8 @@ const standard = (sizes = true): CellSpec[] => [
         ['Small', 'Compact size for dense blocks.', { size: 'small' }, ' size="small"'],
       ] as CellSpec[])
     : []),
-  ['Hover', 'Pointer over: border or fill shifts one step.', {}, '', 'is-hover'],
-  ['Focus', 'Keyboard focus: 2 px ring.', {}, '', 'is-focus'],
+  ['Hover', 'Pointer over: border or fill shifts one step.', {}, '', '-hover'],
+  ['Focus', 'Keyboard focus: 2 px ring.', {}, '', '-focus'],
 ];
 const onDark: CellSpec = [
   'On dark',
@@ -1318,13 +1317,13 @@ const tagMatrix: MVariant[] = (['solid', 'outline', 'muted'] as const).map((id) 
       ['Medium', 'Default size.', {}, ''],
       ['Small', 'Inside cards and tables.', { size: 'small' }, ' size="small"'],
       ['Link', 'A tag that links to its category.', { href: '#TAG-01' }, ' href="/category"'],
-      ['Hover', 'Pointer over a link tag.', { href: '#TAG-01' }, ' href="/category"', 'is-hover'],
+      ['Hover', 'Pointer over a link tag.', { href: '#TAG-01' }, ' href="/category"', '-hover'],
       [
         'Focus',
         'Keyboard focus on a link tag.',
         { href: '#TAG-01' },
         ' href="/category"',
-        'is-focus',
+        '-focus',
       ],
       onDark,
     ],
@@ -3618,8 +3617,8 @@ const icons = [
 .bb__sample.-code {
   margin: 0;
 }
-.bb__sample :deep(.is-hl),
-.bb__sample .is-hl {
+.bb__sample :deep(.-hl),
+.bb__sample .-hl {
   outline: 2px solid var(--color-brand);
   outline-offset: 3px;
   border-radius: var(--radius-sm);

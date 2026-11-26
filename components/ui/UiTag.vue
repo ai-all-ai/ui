@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// TAG-01 · Tag: a short label or category; small or medium. is-hover and is-focus force a state for the brandbook.
+// TAG-01 · Tag: a short label or category; small or medium. -hover and -focus force a state for the brandbook.
 // Tag: Solid, outline or muted; a link when `href` is set; `onDark` for dark bands.
 withDefaults(
   defineProps<{
@@ -67,12 +67,12 @@ withDefaults(
   font-size: 0.6875rem;
 }
 a.tag:focus-visible,
-.tag.is-focus {
+.tag.-focus {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 a.tag:hover,
-.tag.is-hover {
+.tag.-hover {
   border-color: var(--color-ink);
 }
 </style>

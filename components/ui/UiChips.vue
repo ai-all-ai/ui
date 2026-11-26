@@ -3,7 +3,7 @@
 // Variants from the sites: pill (outlined pills), soft (quiet, no border), segment (all options in one shared
 // track, like a segmented control) and tile (equal tiles with an icon over the label, for category bars).
 // Sizes small and md; `onDark` for dark bands; `hideLegend` keeps the legend for screen readers only.
-// States: hover, selected (-on), focus, disabled; is-hover and is-focus force a state for the brandbook only.
+// States: hover, selected (-on), focus, disabled; -hover and -focus force a state for the brandbook only.
 // Icons for tiles come through the `icon` slot: <template #icon="{ option }"><UiIcon :name="option.icon" /></template>.
 type Option = string | { value: string; label: string; icon?: string };
 const props = withDefaults(
@@ -132,7 +132,7 @@ const toggle = (value: string) => {
     color 160ms ease;
 }
 .chips__chip:hover:not(:disabled),
-.chips.is-hover .chips__chip:not(.-on) {
+.chips.-hover .chips__chip:not(.-on) {
   border-color: var(--chip-ink);
 }
 .chips__chip.-on {
@@ -141,7 +141,7 @@ const toggle = (value: string) => {
   color: var(--chip-on-ink);
 }
 .chips__chip:focus-visible,
-.chips.is-focus .chips__chip.-on {
+.chips.-focus .chips__chip.-on {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
@@ -150,7 +150,7 @@ const toggle = (value: string) => {
   cursor: not-allowed;
 }
 .chips.-on-dark .chips__chip:focus-visible,
-.chips.-on-dark.is-focus .chips__chip.-on {
+.chips.-on-dark.-focus .chips__chip.-on {
   outline-color: var(--color-inverse-ink);
 }
 .chips__icon {
@@ -165,7 +165,7 @@ const toggle = (value: string) => {
   background: transparent;
 }
 .chips.-soft .chips__chip:hover:not(:disabled),
-.chips.-soft.is-hover .chips__chip:not(.-on) {
+.chips.-soft.-hover .chips__chip:not(.-on) {
   background: var(--chip-hover);
 }
 .chips.-soft .chips__chip.-on {
@@ -190,7 +190,7 @@ const toggle = (value: string) => {
   background: transparent;
 }
 .chips.-segment .chips__chip:hover:not(:disabled),
-.chips.-segment.is-hover .chips__chip:not(.-on) {
+.chips.-segment.-hover .chips__chip:not(.-on) {
   background: var(--chip-hover);
 }
 .chips.-segment .chips__chip.-on {
@@ -220,7 +220,7 @@ const toggle = (value: string) => {
   background: transparent;
 }
 .chips.-tile .chips__chip:hover:not(:disabled),
-.chips.-tile.is-hover .chips__chip:not(.-on) {
+.chips.-tile.-hover .chips__chip:not(.-on) {
   background: var(--chip-hover);
 }
 .chips.-tile .chips__chip.-on {

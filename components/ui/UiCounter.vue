@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // COUNTER-01 · Counter: a bounded number with − and + (as in velo). Outline (buttons outside the value) or inner
 // (one pill, buttons inside); small or medium; `onDark`. Arrow keys change the value; typing is clamped to min/max.
-// The is-hover and is-focus classes force a state for the brandbook only.
+// The -hover and -focus classes force a state for the brandbook only.
 const props = withDefaults(
   defineProps<{
     label: string;
@@ -135,17 +135,17 @@ const onChange = (e: Event) => {
   stroke-linecap: round;
 }
 .counter__btn:hover:not(:disabled),
-.counter.is-hover .counter__btn:last-child {
+.counter.-hover .counter__btn:last-child {
   border-color: var(--counter-ink);
   background: var(--counter-hover);
 }
 .counter__btn:focus-visible,
-.counter.is-focus .counter__btn:last-child {
+.counter.-focus .counter__btn:last-child {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 .counter.-on-dark .counter__btn:focus-visible,
-.counter.-on-dark.is-focus .counter__btn:last-child {
+.counter.-on-dark.-focus .counter__btn:last-child {
   outline-color: var(--color-inverse-ink);
 }
 .counter__btn:disabled {

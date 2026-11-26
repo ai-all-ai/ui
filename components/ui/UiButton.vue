@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // BTN-01..05 · Button: primary, secondary, outline, ghost or link; small, medium or big; `onDark` for dark bands.
-// States: hover, active (pressed), focus-visible, disabled, loading. The is-hover, is-active and is-focus
+// States: hover, active (pressed), focus-visible, disabled, loading. The -hover, -active and -focus
 // classes force a state for the brandbook only. Icons go in the slot (UiIcon); `square` makes an icon-only button.
 withDefaults(
   defineProps<{
@@ -178,17 +178,17 @@ withDefaults(
 
 /* States */
 .btn:hover,
-.btn.is-hover {
+.btn.-hover {
   border-color: var(--btn-line-hover);
   background: var(--btn-bg-hover);
   color: var(--btn-ink-hover);
 }
 .btn:active,
-.btn.is-active {
+.btn.-active {
   transform: translateY(1px) scale(0.98);
 }
 .btn:focus-visible,
-.btn.is-focus {
+.btn.-focus {
   outline: 2px solid var(--btn-ring);
   outline-offset: 2px;
 }
@@ -220,7 +220,7 @@ withDefaults(
     transition: none;
   }
   .btn:active,
-  .btn.is-active {
+  .btn.-active {
     transform: none;
   }
   .btn__spinner {
