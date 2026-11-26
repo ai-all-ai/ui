@@ -18,11 +18,12 @@ withDefaults(defineProps<{ tone?: 'info' | 'success' | 'warning' | 'danger'; tit
   display: grid;
   gap: 0.25rem;
   padding: 0.9rem 1rem;
+  border: 1px solid var(--color-line);
   border-left: 4px solid var(--color-ink-500);
   border-radius: var(--radius-ui);
-  background: var(--color-sand);
+  background: var(--color-surface);
   color: var(--color-ink);
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
 }
 .alert__title {
   margin: 0;

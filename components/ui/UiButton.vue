@@ -1,21 +1,28 @@
 <script setup lang="ts">
+// BTN-01..05 · Button: primary, secondary, outline, ghost or link; small, medium or big; `onDark` for dark bands.
+// States: hover, active (pressed), focus-visible, disabled, loading. The is-hover, is-active and is-focus
+// classes force a state for the brandbook only. Icons go in the slot (UiIcon); `square` makes an icon-only button.
 withDefaults(
   defineProps<{
     href?: string;
-    variant?: 'bright' | 'outline' | 'green' | 'black' | 'white';
-    size?: 'md' | 'small' | 'big';
-    arrow?: string | false;
-    crown?: boolean;
-    prime?: boolean;
-    type?: 'button' | 'submit';
+    variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'link';
+    size?: 'small' | 'md' | 'big';
+    onDark?: boolean;
+    block?: boolean;
+    square?: boolean;
+    loading?: boolean;
+    disabled?: boolean;
+    type?: 'button' | 'submit' | 'reset';
   }>(),
   {
     href: undefined,
-    variant: 'bright',
+    variant: 'primary',
     size: 'md',
-    arrow: '↗',
-    crown: false,
-    prime: false,
+    onDark: false,
+    block: false,
+    square: false,
+    loading: false,
+    disabled: false,
     type: 'button',
   },
 );
@@ -26,25 +33,198 @@ withDefaults(
     :is="href ? 'a' : 'button'"
     class="btn"
     :class="[
-      variant === 'bright' ? '' : `-${variant}`,
-      { '-small': size === 'small', '-big': size === 'big', '-crown': crown, '-prime': prime },
+      `-${variant}`,
+      size === 'md' ? '' : `-${size}`,
+      { '-on-dark': onDark, '-block': block, '-square': square, '-loading': loading },
     ]"
-    :href="asset(href)"
+    :href="href && !disabled ? href : undefined"
     :type="href ? undefined : type"
+    :disabled="href ? undefined : disabled || loading"
+    :aria-disabled="href && disabled ? 'true' : undefined"
+    :aria-busy="loading || undefined"
   >
-    <UiCrown v-if="crown" class="btn__crown" />
+    <span v-if="loading" class="btn__spinner" aria-hidden="true" />
     <slot />
-    <span v-if="arrow" aria-hidden="true">{{ arrow }}</span>
-    <svg
-      v-if="prime"
-      class="btn-crown"
-      viewBox="143 199 102 48"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        d="M 240.9 246.2 L 146.6 246.2 C 146.6 246.2 143.7 245.4 143.7 241.5 L 143.7 214.8 C 143.7 214.8 143.6 211.8 149.4 214.8 C 155.2 217.8 173.4 228.3 173.4 228.3 C 173.4 228.3 175.7 230.6 176.9 228.3 C 178 226.1 190.6 204.9 190.6 204.9 C 190.6 204.9 193.4 199.6 196 205 C 198.6 210.3 208.7 227.8 208.7 227.8 C 208.7 227.8 210.5 230.7 213.6 228.5 C 216.6 226.4 238.4 214.1 238.4 214.1 C 238.4 214.1 243.5 211.5 243.5 217.1 C 243.5 222.6 243.7 242.9 243.7 242.9 C 243.7 242.9 244.6 246.2 240.9 246.2"
-      />
-    </svg>
   </component>
 </template>
+
+<style scoped>
+.btn {
+  --btn-bg: var(--color-brand);
+  --btn-ink: var(--color-brand-contrast);
+  --btn-line: transparent;
+  --btn-bg-hover: var(--color-brand-hover);
+  --btn-ink-hover: var(--btn-ink);
+  --btn-line-hover: var(--btn-line);
+  --btn-ring: var(--focus-ring);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-6);
+  border: 1px solid var(--btn-line);
+  border-radius: var(--radius-pill);
+  background: var(--btn-bg);
+  color: var(--btn-ink);
+  font: inherit;
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 120ms ease;
+}
+.btn :deep(svg) {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+}
+
+/* Variants on light surfaces */
+.btn.-secondary {
+  --btn-bg: var(--color-accent-soft);
+  --btn-ink: var(--color-ink);
+  --btn-bg-hover: var(--color-line);
+}
+.btn.-outline {
+  --btn-bg: var(--color-surface);
+  --btn-ink: var(--color-ink);
+  --btn-line: var(--color-line-strong);
+  --btn-bg-hover: var(--color-surface);
+  --btn-line-hover: var(--color-ink);
+}
+.btn.-ghost {
+  --btn-bg: transparent;
+  --btn-ink: var(--color-ink);
+  --btn-bg-hover: var(--color-accent-soft);
+}
+.btn.-link {
+  --btn-bg: transparent;
+  --btn-ink: var(--color-brand);
+  --btn-bg-hover: transparent;
+  --btn-ink-hover: var(--color-brand-hover);
+  min-height: auto;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* Variants on dark surfaces */
+.btn.-on-dark {
+  --btn-ring: var(--color-inverse-ink);
+}
+.btn.-primary.-on-dark {
+  --btn-bg: var(--color-inverse-ink);
+  --btn-ink: var(--color-inverse);
+  --btn-bg-hover: var(--color-inverse-ink-600);
+}
+.btn.-secondary.-on-dark {
+  --btn-bg: var(--color-inverse-soft);
+  --btn-ink: var(--color-inverse-ink);
+  --btn-bg-hover: var(--color-inverse-line);
+}
+.btn.-outline.-on-dark {
+  --btn-bg: transparent;
+  --btn-ink: var(--color-inverse-ink);
+  --btn-line: var(--color-inverse-line);
+  --btn-bg-hover: var(--color-inverse-soft);
+  --btn-line-hover: var(--color-inverse-ink);
+}
+.btn.-ghost.-on-dark {
+  --btn-ink: var(--color-inverse-ink);
+  --btn-bg-hover: var(--color-inverse-soft);
+}
+.btn.-link.-on-dark {
+  --btn-ink: var(--color-inverse-ink);
+  --btn-ink-hover: var(--color-inverse-ink-600);
+}
+
+/* Sizes and shapes */
+.btn.-small {
+  min-height: 2.25rem;
+  padding: 0 var(--space-4);
+  font-size: var(--text-sm);
+}
+.btn.-big {
+  min-height: 3.25rem;
+  padding: 0 var(--space-8);
+  font-size: var(--text-lead);
+}
+.btn.-link.-small,
+.btn.-link.-big {
+  min-height: auto;
+  padding: 0;
+}
+.btn.-block {
+  width: 100%;
+}
+.btn.-square {
+  width: var(--control-height);
+  padding: 0;
+}
+.btn.-square.-small {
+  width: 2.25rem;
+}
+.btn.-square.-big {
+  width: 3.25rem;
+}
+
+/* States */
+.btn:hover,
+.btn.is-hover {
+  border-color: var(--btn-line-hover);
+  background: var(--btn-bg-hover);
+  color: var(--btn-ink-hover);
+}
+.btn:active,
+.btn.is-active {
+  transform: translateY(1px) scale(0.98);
+}
+.btn:focus-visible,
+.btn.is-focus {
+  outline: 2px solid var(--btn-ring);
+  outline-offset: 2px;
+}
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.btn.-loading {
+  opacity: 1;
+  cursor: progress;
+}
+.btn__spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 700ms linear infinite;
+}
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+  .btn:active,
+  .btn.is-active {
+    transform: none;
+  }
+  .btn__spinner {
+    animation-duration: 2s;
+  }
+}
+</style>

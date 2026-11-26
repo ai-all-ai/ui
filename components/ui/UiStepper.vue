@@ -1,5 +1,5 @@
-<!-- STEPPER-01: numbered steps of a flow; the current step is a filled green circle with its label in a pill, done steps show a check. -->
 <script setup lang="ts">
+// STEPPER-01 · Stepper: numbered steps of a flow. Done steps show a check; the current step is filled.
 defineProps<{ steps: string[]; current: number; label: string }>();
 </script>
 
@@ -7,14 +7,17 @@ defineProps<{ steps: string[]; current: number; label: string }>();
   <ol class="stepper" :aria-label="label">
     <li
       v-for="(s, i) in steps"
-      :key="i"
+      :key="s"
       class="stepper__step"
+      :class="{ '-done': i < current }"
       :aria-current="i === current ? 'step' : undefined"
-      :data-done="i < current || undefined"
     >
-      <span class="stepper__num"
-        ><UiIcon v-if="i < current" name="check" /><template v-else>{{ i + 1 }}</template></span
-      >
+      <span class="stepper__num">
+        <svg v-if="i < current" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M5 12.5l4.5 4.5L19 7.5" />
+        </svg>
+        <template v-else>{{ i + 1 }}</template>
+      </span>
       <span class="stepper__label">{{ s }}</span>
     </li>
   </ol>
@@ -29,7 +32,6 @@ defineProps<{ steps: string[]; current: number; label: string }>();
   padding: 0;
   overflow-x: auto;
   list-style: none;
-  counter-reset: step;
   scrollbar-width: none;
 }
 .stepper__step {
@@ -37,7 +39,8 @@ defineProps<{ steps: string[]; current: number; label: string }>();
   flex: none;
   align-items: center;
   gap: var(--space-2);
-  padding: 0.3rem 0.9rem 0.3rem 0.3rem;
+  margin: 0;
+  padding: var(--space-1) var(--space-4) var(--space-1) var(--space-1);
   border-radius: var(--radius-pill);
   color: var(--color-ink-600);
   font-size: var(--text-sm);
@@ -56,22 +59,29 @@ defineProps<{ steps: string[]; current: number; label: string }>();
   height: 1.9rem;
   border: 1px solid var(--color-line-strong);
   border-radius: 50%;
-  background: var(--color-white);
+  background: var(--color-surface);
   font-weight: 600;
 }
-.stepper__step[data-done] .stepper__num {
-  border-color: var(--color-forest);
-  color: var(--color-forest);
+.stepper__num svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+.stepper__step.-done .stepper__num {
+  border-color: var(--color-brand);
+  color: var(--color-brand);
 }
 .stepper__step[aria-current='step'] {
-  background: var(--color-sage-100);
-  color: var(--color-forest-950);
+  background: var(--color-accent-soft);
+  color: var(--color-ink);
   font-weight: 600;
 }
 .stepper__step[aria-current='step'] .stepper__num {
-  border-color: var(--color-forest);
-  background: var(--color-forest);
-  color: var(--color-white);
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
 }
 @media (max-width: 640px) {
   .stepper__step:not([aria-current='step']) .stepper__label {

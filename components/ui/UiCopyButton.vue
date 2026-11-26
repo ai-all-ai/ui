@@ -1,5 +1,6 @@
 <script setup lang="ts">
-const props = defineProps<{ value: string; label: string }>();
+// COPY-01 · Copy button: copies `value` to the clipboard and announces the result. `label` names what is copied.
+const props = defineProps<{ value: string; label: string; text?: string }>();
 
 const state = ref<'idle' | 'copied' | 'error'>('idle');
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -10,50 +11,44 @@ const copy = async () => {
     await navigator.clipboard.writeText(props.value);
     success = true;
   } catch {
-    const textarea = document.createElement('textarea');
-    textarea.value = props.value;
-    textarea.setAttribute('readonly', '');
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
+    // Fallback for pages without clipboard permission (http, old browsers).
+    const area = document.createElement('textarea');
+    area.value = props.value;
+    area.setAttribute('readonly', '');
+    area.style.position = 'fixed';
+    area.style.opacity = '0';
+    document.body.appendChild(area);
     try {
-      textarea.select();
+      area.select();
       success = document.execCommand('copy');
     } catch {
       success = false;
     } finally {
-      textarea.remove();
+      area.remove();
     }
   }
-
   state.value = success ? 'copied' : 'error';
   if (timer) clearTimeout(timer);
-  timer = setTimeout(() => {
-    state.value = 'idle';
-  }, 1600);
+  timer = setTimeout(() => (state.value = 'idle'), 1600);
 };
 
-onBeforeUnmount(() => {
-  if (timer) clearTimeout(timer);
-});
+onBeforeUnmount(() => timer && clearTimeout(timer));
 </script>
 
 <template>
   <button
     class="copy-button"
+    :class="{ '-text': text, '-done': state === 'copied' }"
     type="button"
-    :aria-label="
-      state === 'copied'
-        ? `${label} copied`
-        : state === 'error'
-          ? `Could not copy ${label}`
-          : `Copy ${label}`
-    "
-    :title="state === 'copied' ? 'Copied' : state === 'error' ? 'Could not copy' : `Copy ${label}`"
+    :title="state === 'copied' ? 'Copied' : `Copy ${label}`"
+    :aria-label="text ? undefined : `Copy ${label}`"
     @click="copy"
   >
-    <UiIcon v-if="state !== 'copied'" name="copy" />
-    <UiIcon v-else name="check-small" />
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path v-if="state === 'copied'" d="M5 12.5l4.5 4.5L19 7.5" />
+      <path v-else d="M9 9h10v10H9zM5 15V5h10" />
+    </svg>
+    <span v-if="text">{{ text }}</span>
     <span class="copy-button__status" role="status" aria-live="polite">
       {{
         state === 'copied' ? `${label} copied` : state === 'error' ? `Could not copy ${label}` : ''
@@ -65,38 +60,49 @@ onBeforeUnmount(() => {
 <style scoped>
 .copy-button {
   position: relative;
-  display: inline-grid;
-  flex: 0 0 auto;
-  width: 1.65rem;
-  height: 1.65rem;
-  place-items: center;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: 1.75rem;
+  height: 1.75rem;
   padding: 0;
   border: 1px solid transparent;
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--color-ink-600);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
   cursor: pointer;
   transition:
     background-color 160ms ease,
-    border-color 160ms ease,
     color 160ms ease;
 }
+.copy-button.-text {
+  height: 1.5rem;
+  padding: 0 var(--space-2) 0 0.4rem;
+  border-color: var(--color-line);
+}
 .copy-button svg {
-  width: 0.78rem;
-  height: 0.78rem;
+  width: 0.9rem;
+  height: 0.9rem;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.35;
+  stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 .copy-button:hover {
-  border-color: transparent;
-  background: var(--color-sun);
+  background: var(--color-accent-soft);
   color: var(--color-ink);
 }
+.copy-button.-done {
+  color: var(--color-success);
+}
 .copy-button:focus-visible {
-  outline: 2px solid var(--color-ink);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 .copy-button__status {
@@ -104,8 +110,7 @@ onBeforeUnmount(() => {
   width: 1px;
   height: 1px;
   overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
   clip-path: inset(50%);
+  white-space: nowrap;
 }
 </style>

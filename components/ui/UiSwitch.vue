@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// SWITCH-01 · Switch atom: on/off toggle with role="switch". On and disabled are modifiers.
+// SWITCH-01 · Switch: on/off toggle with role="switch". On and disabled are modifiers.
 defineProps<{ label: string; disabled?: boolean }>();
 const model = defineModel<boolean>({ default: false });
 </script>
@@ -12,7 +12,6 @@ const model = defineModel<boolean>({ default: false });
       type="checkbox"
       role="switch"
       :disabled="disabled"
-      :aria-checked="model"
     />
     <span class="switch__track" aria-hidden="true"><span class="switch__thumb" /></span>
     <span class="switch__label">{{ label }}</span>
@@ -24,26 +23,27 @@ const model = defineModel<boolean>({ default: false });
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.7rem;
-  cursor: pointer;
-  font-size: 0.95rem;
+  gap: var(--space-3);
   color: var(--color-ink);
+  font-size: var(--text-base);
+  font-weight: 400;
+  cursor: pointer;
 }
 .switch__input {
   position: absolute;
-  opacity: 0;
   width: 1px;
   height: 1px;
   margin: 0;
+  opacity: 0;
 }
 .switch__track {
   position: relative;
+  flex: none;
   width: 2.6rem;
   height: 1.5rem;
-  flex: 0 0 2.6rem;
-  border-radius: 999px;
-  background: var(--color-sand);
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted);
   transition: background-color 180ms ease;
 }
 .switch__thumb {
@@ -53,13 +53,14 @@ const model = defineModel<boolean>({ default: false });
   width: 1rem;
   height: 1rem;
   border-radius: 50%;
-  background: var(--color-white);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
   transform: translateY(-50%);
   transition: left 180ms ease;
 }
 .switch.-on .switch__track {
-  background: var(--color-champagne);
-  border-color: var(--color-champagne);
+  border-color: var(--color-brand);
+  background: var(--color-brand);
 }
 .switch.-on .switch__thumb {
   left: calc(100% - 1.2rem);
@@ -71,5 +72,11 @@ const model = defineModel<boolean>({ default: false });
 .switch.-disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+@media (prefers-reduced-motion: reduce) {
+  .switch__track,
+  .switch__thumb {
+    transition: none;
+  }
 }
 </style>

@@ -1,37 +1,244 @@
 <script setup lang="ts">
-// CHIPS-01 · Chips molecule: a legend and a row of pills to pick from. One choice by default; `multiple` allows several (the model is then a list).
+// CHIPS-01 · Chips: a legend and options to pick one (default) or several (`multiple`).
+// Variants from the sites: pill (outlined pills), soft (quiet, no border), segment (all options in one shared
+// track, like a segmented control) and tile (equal tiles with an icon over the label, for category bars).
+// Sizes small and md; `onDark` for dark bands; `hideLegend` keeps the legend for screen readers only.
+// States: hover, selected (-on), focus, disabled; is-hover and is-focus force a state for the brandbook only.
+// Icons for tiles come through the `icon` slot: <template #icon="{ option }"><UiIcon :name="option.icon" /></template>.
+type Option = string | { value: string; label: string; icon?: string };
 const props = withDefaults(
-  defineProps<{ legend: string; options: string[]; multiple?: boolean }>(),
-  { multiple: false },
+  defineProps<{
+    legend: string;
+    options: Option[];
+    multiple?: boolean;
+    variant?: 'pill' | 'soft' | 'segment' | 'tile';
+    size?: 'small' | 'md';
+    onDark?: boolean;
+    hideLegend?: boolean;
+    disabled?: boolean;
+  }>(),
+  {
+    multiple: false,
+    variant: 'pill',
+    size: 'md',
+    onDark: false,
+    hideLegend: false,
+    disabled: false,
+  },
 );
 const model = defineModel<string | string[]>({ default: '' });
-const isOn = (option: string) =>
-  props.multiple ? (model.value as string[]).includes(option) : model.value === option;
-const toggle = (option: string) => {
+const items = computed(() =>
+  props.options.map((o) => (typeof o === 'string' ? { value: o, label: o, icon: undefined } : o)),
+);
+const isOn = (value: string) =>
+  props.multiple ? (model.value as string[]).includes(value) : model.value === value;
+const toggle = (value: string) => {
   if (!props.multiple) {
-    model.value = isOn(option) ? '' : option;
+    // A segment always has one choice; other variants can be cleared by a second click.
+    model.value = isOn(value) && props.variant !== 'segment' ? '' : value;
     return;
   }
   const list = model.value as string[];
-  model.value = list.includes(option) ? list.filter((o) => o !== option) : [...list, option];
+  model.value = list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 };
 </script>
 
 <template>
-  <fieldset class="chips">
-    <legend class="chips__legend">{{ legend }}</legend>
+  <fieldset
+    class="chips"
+    :class="[`-${variant}`, { '-small': size === 'small', '-on-dark': onDark }]"
+  >
+    <legend class="chips__legend" :class="{ '-hidden': hideLegend }">{{ legend }}</legend>
     <div class="chips__row">
       <button
-        v-for="option in options"
-        :key="option"
+        v-for="it in items"
+        :key="it.value"
         type="button"
         class="chips__chip"
-        :class="{ '-on': isOn(option) }"
-        :aria-pressed="isOn(option)"
-        @click="toggle(option)"
+        :class="{ '-on': isOn(it.value) }"
+        :aria-pressed="isOn(it.value)"
+        :disabled="disabled"
+        @click="toggle(it.value)"
       >
-        {{ option }}
+        <span v-if="$slots.icon" class="chips__icon"><slot name="icon" :option="it" /></span>
+        <span>{{ it.label }}</span>
       </button>
     </div>
   </fieldset>
 </template>
+
+<style scoped>
+.chips {
+  --chip-ink: var(--color-ink);
+  --chip-line: var(--color-line-strong);
+  --chip-bg: var(--color-surface);
+  --chip-hover: var(--color-accent-soft);
+  --chip-on-bg: var(--color-brand);
+  --chip-on-ink: var(--color-brand-contrast);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.chips.-on-dark {
+  --chip-ink: var(--color-inverse-ink);
+  --chip-line: var(--color-inverse-line);
+  --chip-bg: transparent;
+  --chip-hover: var(--color-inverse-soft);
+  --chip-on-bg: var(--color-inverse-ink);
+  --chip-on-ink: var(--color-inverse);
+}
+.chips__legend {
+  margin-bottom: var(--space-2);
+  padding: 0;
+  color: var(--color-ink-700);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.chips.-on-dark .chips__legend {
+  color: var(--color-inverse-ink-600);
+}
+.chips__legend.-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.chips__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.chips__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 2.25rem;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--chip-line);
+  border-radius: var(--radius-pill);
+  background: var(--chip-bg);
+  color: var(--chip-ink);
+  font: inherit;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+.chips__chip:hover:not(:disabled),
+.chips.is-hover .chips__chip:not(.-on) {
+  border-color: var(--chip-ink);
+}
+.chips__chip.-on {
+  border-color: var(--chip-on-bg);
+  background: var(--chip-on-bg);
+  color: var(--chip-on-ink);
+}
+.chips__chip:focus-visible,
+.chips.is-focus .chips__chip.-on {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.chips__chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.chips.-on-dark .chips__chip:focus-visible,
+.chips.-on-dark.is-focus .chips__chip.-on {
+  outline-color: var(--color-inverse-ink);
+}
+.chips__icon {
+  display: inline-grid;
+  place-items: center;
+}
+
+/* soft: no border, quiet hover */
+.chips.-soft .chips__chip {
+  border-color: transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+}
+.chips.-soft .chips__chip:hover:not(:disabled),
+.chips.-soft.is-hover .chips__chip:not(.-on) {
+  background: var(--chip-hover);
+}
+.chips.-soft .chips__chip.-on {
+  background: var(--chip-on-bg);
+}
+
+/* segment: one shared track, options share its height */
+.chips.-segment .chips__row {
+  display: inline-flex;
+  gap: var(--space-1);
+  max-width: 100%;
+  padding: var(--space-1);
+  overflow-x: auto;
+  border: 1px solid var(--chip-line);
+  border-radius: var(--radius-pill);
+  background: var(--chip-hover);
+  scrollbar-width: none;
+}
+.chips.-segment .chips__chip {
+  flex: none;
+  border-color: transparent;
+  background: transparent;
+}
+.chips.-segment .chips__chip:hover:not(:disabled),
+.chips.-segment.is-hover .chips__chip:not(.-on) {
+  background: var(--chip-hover);
+}
+.chips.-segment .chips__chip.-on {
+  background: var(--chip-on-bg);
+  box-shadow: var(--shadow-card);
+}
+
+/* tile: equal tiles, icon over label, in one card */
+.chips.-tile .chips__row {
+  flex-wrap: nowrap;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  overflow-x: auto;
+  border: 1px solid var(--chip-line);
+  border-radius: var(--radius-lg);
+  background: var(--chip-bg);
+  scrollbar-width: none;
+}
+.chips.-tile .chips__chip {
+  flex: 1 0 6.5rem;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-height: 4.5rem;
+  padding: var(--space-3) var(--space-2);
+  border-color: transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+}
+.chips.-tile .chips__chip:hover:not(:disabled),
+.chips.-tile.is-hover .chips__chip:not(.-on) {
+  background: var(--chip-hover);
+}
+.chips.-tile .chips__chip.-on {
+  background: var(--chip-on-bg);
+}
+
+/* small */
+.chips.-small .chips__chip {
+  min-height: 1.85rem;
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
+}
+.chips.-small.-tile .chips__chip {
+  min-height: 3.5rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chips__chip {
+    transition: none;
+  }
+}
+</style>

@@ -1,5 +1,5 @@
-<!-- TIMELINE-01: numbered green circles joined by a line, each with a title and a short text. Wraps to two rows on tablets, a column on phones. -->
 <script setup lang="ts">
+// TIMELINE-01 · Timeline: numbered circles joined by a line, each with a title and a short text. Rows on tablets, a column on phones.
 defineProps<{ items: { title: string; text: string }[] }>();
 </script>
 
@@ -25,6 +25,7 @@ defineProps<{ items: { title: string; text: string }[] }>();
 }
 .tline__step {
   position: relative;
+  margin: 0;
   display: grid;
   justify-items: center;
   gap: var(--space-2);
@@ -37,7 +38,7 @@ defineProps<{ items: { title: string; text: string }[] }>();
   right: calc(50% + 1.4rem);
   width: calc(100% + var(--space-4) - 2.8rem);
   height: 1px;
-  background: var(--color-forest);
+  background: var(--color-line-strong);
 }
 .tline__num {
   display: grid;
@@ -46,13 +47,13 @@ defineProps<{ items: { title: string; text: string }[] }>();
   height: 2rem;
   margin-bottom: var(--space-2);
   border-radius: 50%;
-  background: var(--gradient-forest);
-  color: var(--color-white);
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
   font-size: var(--text-sm);
   font-weight: 600;
 }
 .tline__title {
-  color: var(--color-forest-950);
+  color: var(--color-ink);
   font-size: var(--text-sm);
   font-weight: 600;
 }

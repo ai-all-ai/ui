@@ -1,34 +1,33 @@
 <script setup lang="ts">
-import messages from '~~/i18n/locales/es';
+// SLIDERNAV-01 · Slider controls: dots (or numbers) and previous/next arrows for any slider. The model is the index.
+// Variants by props: dots + arrows, numbered, arrows only, dots only; small; `onDark`. is-hover and is-focus force
+// a state on the next arrow for the brandbook only.
 const props = withDefaults(
   defineProps<{
     count: number;
     arrows?: boolean;
     dots?: boolean;
     loop?: boolean;
-    hideDisabledArrows?: boolean;
-    progress?: number;
-    paused?: boolean;
-    large?: boolean;
     numbered?: boolean;
-    pausable?: boolean;
+    size?: 'small' | 'md';
+    onDark?: boolean;
+    prevLabel?: string;
+    nextLabel?: string;
+    goToLabel?: string;
   }>(),
   {
     arrows: true,
     dots: true,
     loop: true,
-    hideDisabledArrows: false,
-    progress: 0,
-    paused: false,
-    large: false,
     numbered: false,
+    size: 'md',
+    onDark: false,
+    prevLabel: 'Previous',
+    nextLabel: 'Next',
+    goToLabel: 'Go to slide',
   },
 );
-const emit = defineEmits<{ done: [] }>();
-const m = messages.ui.slider;
 const model = defineModel<number>({ default: 0 });
-const stopped = defineModel<boolean>('stopped', { default: false });
-
 const go = (index: number) => {
   model.value = props.loop
     ? (index + props.count) % props.count
@@ -39,61 +38,44 @@ const go = (index: number) => {
 <template>
   <div
     class="slider-nav"
-    :class="{ '-large': large, '-numbered': numbered }"
-    :role="numbered ? 'group' : undefined"
+    :class="{ '-numbered': numbered, '-small': size === 'small', '-on-dark': onDark }"
   >
-    <div v-if="dots" class="slider-dots" :class="{ 'nav-set -circle -white': numbered }">
+    <div v-if="dots" class="slider-nav__dots">
       <button
-        v-for="index in count"
-        :key="index"
-        class="slider-dot"
-        :class="{ '-active': model === index - 1, on: numbered && model === index - 1 }"
+        v-for="i in count"
+        :key="i"
         type="button"
-        :aria-label="`${m.goTo} ${index}`"
-        :aria-current="model === index - 1 ? 'true' : undefined"
-        :aria-pressed="numbered ? model === index - 1 : undefined"
-        @click="go(index - 1)"
+        class="slider-nav__dot"
+        :class="{ 'is-active': model === i - 1 }"
+        :aria-label="`${goToLabel} ${i}`"
+        :aria-current="model === i - 1 ? 'true' : undefined"
+        @click="go(i - 1)"
       >
-        <span v-if="numbered">{{ index }}</span>
-        <span
-          v-if="progress > 0 && model === index - 1"
-          :key="`${model}-${progress}`"
-          class="slider-fill"
-          :class="{ '-paused': paused }"
-          :style="{ animationDuration: `${progress}ms` }"
-          @animationend="emit('done')"
-        />
+        <span v-if="numbered" aria-hidden="true">{{ i }}</span>
       </button>
     </div>
-    <button
-      v-if="pausable"
-      class="slider-pause"
-      type="button"
-      :aria-pressed="stopped"
-      :aria-label="stopped ? m.play : m.pause"
-      :data-label="stopped ? 'go' : 'stop'"
-      @click="stopped = !stopped"
-    />
-    <div v-if="arrows" class="slider-arrows">
+    <div v-if="arrows" class="slider-nav__arrows">
       <button
-        v-if="!hideDisabledArrows || loop || model > 0"
-        class="slider-arrow"
         type="button"
-        :aria-label="m.prev"
+        class="slider-nav__arrow"
+        :aria-label="prevLabel"
         :disabled="!loop && model === 0"
         @click="go(model - 1)"
       >
-        <UiIcon name="slider-prev" />
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M15 6l-6 6 6 6" />
+        </svg>
       </button>
       <button
-        v-if="!hideDisabledArrows || loop || model < count - 1"
-        class="slider-arrow slider-arrow-next"
         type="button"
-        :aria-label="m.next"
+        class="slider-nav__arrow"
+        :aria-label="nextLabel"
         :disabled="!loop && model === count - 1"
         @click="go(model + 1)"
       >
-        <UiIcon name="slider-next" />
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M9 6l6 6-6 6" />
+        </svg>
       </button>
     </div>
   </div>
@@ -103,236 +85,122 @@ const go = (index: number) => {
 .slider-nav {
   display: flex;
   flex-wrap: wrap;
-  max-width: 100%;
+  align-items: center;
+  gap: var(--space-4);
+}
+.slider-nav__dots,
+.slider-nav__arrows {
+  display: flex;
   align-items: center;
   gap: var(--space-2);
 }
-.slider-nav.-numbered {
-  flex-wrap: nowrap;
-  gap: 0.2rem;
-}
-.slider-nav.-numbered .slider-dots {
-  flex-wrap: nowrap;
-  gap: 0.15rem;
-}
-.slider-nav.-numbered .slider-dot {
-  display: grid;
-  width: 2rem;
-  height: 2rem;
-  min-height: 2rem;
-  flex: 0 0 2rem;
-  padding: var(--space-half) 0.58rem;
-  border: 1px solid transparent;
-  border-radius: var(--radius-pill);
-  place-items: center;
-  background: transparent;
-  color: var(--color-ink);
-  font: inherit;
-  font-size: 0.72rem;
-  cursor: pointer;
-}
-.slider-nav.-numbered .slider-dot::before {
-  display: none;
-}
-.slider-nav.-numbered .slider-dot:hover {
-  background: var(--color-dim-soft);
-}
-.slider-nav.-numbered .slider-dot[aria-pressed='true'] {
-  border-color: var(--color-ink);
-  background: var(--color-ink);
-  color: var(--color-white);
-}
-.slider-nav.-numbered .slider-dot:focus-visible {
-  outline: 2px solid var(--color-ink);
-  outline-offset: 2px;
-}
-
-.slider-dots,
-.slider-arrows {
-  display: flex;
-  align-items: center;
-}
-.slider-dots {
-  flex-wrap: wrap;
-  min-width: 0;
-  gap: var(--space-1);
-}
-.slider-arrows {
-  gap: var(--space-1);
-}
-.slider-dot {
-  position: relative;
-  display: grid;
-  width: 2rem;
-  height: 2rem;
-  flex: 0 0 2rem;
+.slider-nav__dot {
+  width: 0.6rem;
+  height: 0.6rem;
   padding: 0;
   border: 0;
-  place-items: center;
-  background: transparent;
-  cursor: pointer;
-}
-.slider-dot::before {
-  width: 0.5rem;
-  height: 0.5rem;
   border-radius: var(--radius-pill);
-  background: var(--color-dim);
-  box-shadow: 0 0 0 1px var(--color-veil);
-  content: '';
+  background: var(--color-line-strong);
+  cursor: pointer;
   transition:
-    width 240ms ease,
-    background-color 240ms ease;
+    width 180ms ease,
+    background-color 180ms ease;
 }
-.slider-dot.-active::before {
+.slider-nav__dot.is-active {
   width: 1.6rem;
-  background: var(--color-sun);
+  background: var(--color-brand);
 }
-.slider-dot:focus-visible {
-  outline: none;
-}
-.slider-arrow {
+.slider-nav.-numbered .slider-nav__dot {
   display: grid;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2rem;
+  height: 2rem;
   place-items: center;
-  border: 1px solid var(--line);
-  border-radius: 50%;
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-surface);
   color: var(--color-ink);
-  background: var(--color-glass);
-  cursor: pointer;
-  transition:
-    background-color 160ms ease,
-    transform 160ms ease;
+  font-size: var(--text-sm);
+  font-weight: 600;
 }
-.slider-arrow-next {
-  border-color: transparent;
-  background: var(--color-sun);
+.slider-nav.-numbered .slider-nav__dot.is-active {
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-brand-contrast);
 }
-.slider-arrow:hover {
-  transform: translateY(-2px);
-  background: var(--color-white);
-}
-.slider-arrow-next:hover {
-  background: var(--color-sun-strong);
-}
-.slider-arrow svg {
-  width: 1.15rem;
-  height: 1.15rem;
-  fill: none;
-  stroke: currentcolor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-</style>
-
-<style scoped>
-.slider-nav.-large {
-  gap: 0;
-  --ind-w: 6.2rem;
-  --ind-h: 0.8rem;
-  max-width: 100%;
-}
-.slider-nav.-large .slider-dots {
-  flex-wrap: nowrap;
-  gap: var(--space-1);
-  max-width: 100%;
-}
-.slider-nav.-large .slider-dot {
-  width: var(--ind-w);
-  min-width: 0;
-  flex: 0 1 var(--ind-w);
-  height: 2.4rem;
-}
-.slider-nav.-large .slider-dot::before {
-  box-sizing: border-box;
-  width: 100%;
-  height: var(--ind-h);
-  border: 1.5px solid transparent;
-  background: var(--color-dim);
-  box-shadow: none;
-  transition: border-color 160ms ease;
-}
-.slider-nav.-large .slider-dot.-active::before {
-  width: 100%;
-  background: var(--color-dim);
-}
-.slider-nav.-large .slider-dot:hover::before,
-.slider-nav.-large .slider-dot:focus-visible::before {
-  border-color: var(--color-ink);
-}
-.slider-pause {
-  position: relative;
-  flex: none;
-  width: 2.6rem;
-  height: max(var(--ind-h, 0.8rem), 1.5rem);
-  min-width: 1.5rem;
-  margin-left: var(--space-1);
+.slider-nav__arrow {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
   padding: 0;
-  border: 1.5px solid transparent;
-  border-radius: var(--radius-pill);
-  background: var(--color-dim);
-  color: var(--color-white);
-  font: inherit;
-  font-size: 0.55rem;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition:
-    border-color 160ms ease,
-    background 160ms ease;
-}
-.slider-pause::before {
-  content: attr(data-label);
-}
-.slider-pause::after {
-  position: absolute;
-  inset: -0.8rem -0.4rem;
-  content: '';
-}
-.slider-pause:hover,
-.slider-pause:focus-visible {
-  border-color: var(--color-ink);
-}
-.slider-pause[aria-pressed='true'] {
-  background: var(--color-sun);
+  border: 1px solid var(--color-line-strong);
+  border-radius: 50%;
+  background: var(--color-surface);
   color: var(--color-ink);
+  cursor: pointer;
 }
-.slider-fill {
-  position: absolute;
-  top: 50%;
-  left: 1.5px;
-  width: 0;
-  height: calc(var(--ind-h, 0.5rem) - 3px);
-  border-radius: var(--radius-pill);
-  background: var(--color-sun);
-  transform: translateY(-50%);
-  animation: slider-fill linear forwards;
+.slider-nav__arrow:hover:not(:disabled),
+.slider-nav.is-hover .slider-nav__arrow:last-child {
+  border-color: var(--color-ink);
+  background: var(--color-accent-soft);
 }
-.slider-nav:not(.-large) .slider-fill {
-  left: 50%;
-  height: 0.5rem;
-  margin-left: -0.8rem;
-  animation-name: slider-fill-sm;
+.slider-nav__arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
-.slider-fill.-paused {
-  animation-play-state: paused;
+.slider-nav__arrow svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
 }
-@keyframes slider-fill {
-  to {
-    width: calc(100% - 3px);
-  }
+.slider-nav__dot:focus-visible,
+.slider-nav__arrow:focus-visible,
+.slider-nav.is-focus .slider-nav__arrow:last-child {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
-@keyframes slider-fill-sm {
-  to {
-    width: 1.6rem;
-  }
+.slider-nav.-small .slider-nav__arrow {
+  width: 2rem;
+  height: 2rem;
+}
+.slider-nav.-small.-numbered .slider-nav__dot {
+  width: 1.6rem;
+  height: 1.6rem;
+  font-size: var(--text-xs);
+}
+.slider-nav.-on-dark .slider-nav__dot {
+  background: var(--color-inverse-line);
+}
+.slider-nav.-on-dark .slider-nav__dot.is-active {
+  background: var(--color-inverse-ink);
+}
+.slider-nav.-on-dark.-numbered .slider-nav__dot {
+  border-color: var(--color-inverse-line);
+  background: transparent;
+  color: var(--color-inverse-ink);
+}
+.slider-nav.-on-dark.-numbered .slider-nav__dot.is-active {
+  background: var(--color-inverse-ink);
+  color: var(--color-inverse);
+}
+.slider-nav.-on-dark .slider-nav__arrow {
+  border-color: var(--color-inverse-line);
+  background: transparent;
+  color: var(--color-inverse-ink);
+}
+.slider-nav.-on-dark .slider-nav__arrow:hover:not(:disabled),
+.slider-nav.-on-dark.is-hover .slider-nav__arrow:last-child {
+  border-color: var(--color-inverse-ink);
+  background: var(--color-inverse-soft);
+}
+.slider-nav.-on-dark :is(.slider-nav__dot, .slider-nav__arrow):focus-visible,
+.slider-nav.-on-dark.is-focus .slider-nav__arrow:last-child {
+  outline-color: var(--color-inverse-ink);
 }
 @media (prefers-reduced-motion: reduce) {
-  .slider-fill {
-    display: none;
+  .slider-nav__dot {
+    transition: none;
   }
 }
 </style>

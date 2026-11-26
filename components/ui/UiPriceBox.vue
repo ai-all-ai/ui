@@ -1,30 +1,42 @@
-<!-- PRICEBOX-01: base price and extras lines over a sage box with the estimated total and its tax note. -->
 <script setup lang="ts">
-defineProps<{
-  baseLabel: string;
-  base: number;
-  extrasLabel: string;
-  extras: number;
-  totalLabel: string;
-  total: number;
-  note: string;
-}>();
+// PRICEBOX-01 · Price box: base and extras lines over a box with the total and a note. Money is formatted with Intl.
+const props = withDefaults(
+  defineProps<{
+    baseLabel: string;
+    base: number;
+    extrasLabel: string;
+    extras: number;
+    totalLabel: string;
+    total: number;
+    note?: string;
+    currency?: string;
+    locale?: string;
+  }>(),
+  { note: '', currency: 'EUR', locale: undefined },
+);
+const money = (value: number, sign = false) =>
+  new Intl.NumberFormat(props.locale, {
+    style: 'currency',
+    currency: props.currency,
+    maximumFractionDigits: 0,
+    signDisplay: sign ? 'always' : 'auto',
+  }).format(value);
 </script>
 
 <template>
   <div class="pbox">
     <p class="pbox__line">
       <span>{{ baseLabel }}</span
-      ><span>{{ formatEuro(base) }}</span>
+      ><span>{{ money(base) }}</span>
     </p>
     <p class="pbox__line">
       <span>{{ extrasLabel }}</span
-      ><span>{{ formatEuro(extras, true) }}</span>
+      ><span>{{ money(extras, true) }}</span>
     </p>
     <p class="pbox__total" aria-live="polite">
       <span class="pbox__total-label">{{ totalLabel }}</span>
-      <span class="pbox__total-value">{{ formatEuro(total) }}</span>
-      <span class="pbox__note">{{ note }}</span>
+      <span class="pbox__total-value">{{ money(total) }}</span>
+      <span v-if="note" class="pbox__note">{{ note }}</span>
     </p>
   </div>
 </template>
@@ -37,6 +49,7 @@ defineProps<{
 .pbox__line {
   display: flex;
   justify-content: space-between;
+  margin: 0;
   color: var(--color-ink-700);
   font-size: var(--text-sm);
 }
@@ -45,19 +58,18 @@ defineProps<{
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
   gap: 0 var(--space-3);
-  margin-top: var(--space-2);
+  margin: var(--space-2) 0 0;
   padding: var(--space-4);
   border-radius: var(--radius-md);
-  background: var(--color-sage-100);
+  background: var(--color-accent-soft);
 }
 .pbox__total-label {
-  color: var(--color-forest-950);
   font-weight: 600;
 }
 .pbox__total-value {
-  color: var(--color-forest-950);
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   font-size: var(--text-2xl);
+  font-weight: var(--font-weight-heading);
 }
 .pbox__note {
   grid-column: 2;

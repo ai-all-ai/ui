@@ -1,76 +1,57 @@
-<!-- MEDIA-01: a photo, or a neutral placeholder of the same size while the real photo is not there yet (src empty).
-     ratio sets the box (e.g. "16 / 10"); -fill stretches to the parent height; -round adds the md radius.
-     Placeholder: an empty grey box with the house icon (MEDIA-01). scene="<name>" draws a SCENE-01 illustration instead, only where a block asks for one. -->
 <script setup lang="ts">
-import type { SceneName } from '~/data/scenes';
-
-const props = withDefaults(
-  defineProps<{
-    src?: string;
-    alt: string;
-    ratio?: string;
-    width?: number;
-    height?: number;
-    priority?: boolean;
-    scene?: SceneName | 'none';
-  }>(),
-  { src: '', ratio: '16 / 10', width: 1200, height: 750, priority: false, scene: undefined },
+// MEDIA-01 · Media frame: a photo cropped to a fixed ratio, or a grey placeholder with an icon until the photo exists.
+withDefaults(
+  defineProps<{ src?: string; alt: string; ratio?: string; priority?: boolean; round?: boolean }>(),
+  { src: undefined, ratio: '4 / 3', priority: false, round: false },
 );
-// Placeholders stay empty grey boxes with the house icon. A drawn scene only when a block asks for one by name.
-const sceneName = computed(() => (props.scene === 'none' ? undefined : props.scene));
 </script>
 
 <template>
-  <img
-    v-if="src"
-    class="media"
-    :src="src"
-    :alt="alt"
-    :width="width"
-    :height="height"
-    :style="ratio === 'auto' ? undefined : { aspectRatio: ratio }"
-    :loading="priority ? 'eager' : 'lazy'"
-    :fetchpriority="priority ? 'high' : undefined"
-    decoding="async"
-  />
-  <div
-    v-else
-    class="media -empty"
-    role="img"
-    :aria-label="alt"
-    :style="ratio === 'auto' ? undefined : { aspectRatio: ratio }"
-  >
-    <UiScene v-if="sceneName" :name="sceneName" />
-    <UiIcon v-else name="house" class="media__icon" />
+  <div class="media" :class="{ '-empty': !src, '-round': round }" :style="{ aspectRatio: ratio }">
+    <img
+      v-if="src"
+      class="media__img"
+      :src="src"
+      :alt="alt"
+      :loading="priority ? 'eager' : 'lazy'"
+      :fetchpriority="priority ? 'high' : undefined"
+      decoding="async"
+    />
+    <span v-else class="media__empty" role="img" :aria-label="alt">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M4 5h16v14H4zM4 16l5-5 4 4 2-2 5 5M15 9.5a1 1 0 100-.01" />
+      </svg>
+    </span>
   </div>
 </template>
 
 <style scoped>
 .media {
-  display: block;
-  width: 100%;
-  object-fit: cover;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
   background: var(--color-placeholder);
 }
-.media.-empty {
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  color: var(--color-ink-500);
+.media.-round {
+  border-radius: var(--radius-lg);
 }
-.media.-empty > .scene {
-  grid-area: 1 / 1;
+.media__img {
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
-.media__icon {
-  font-size: clamp(1.5rem, 8%, 3rem);
-  opacity: 0.55;
-}
-.media.-fill {
+.media__empty {
+  display: grid;
+  width: 100%;
   height: 100%;
+  place-items: center;
+  color: var(--color-ink-400);
 }
-.media.-round {
-  border-radius: var(--radius-md);
+.media__empty svg {
+  width: 2.5rem;
+  height: 2.5rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
 }
 </style>
