@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onBeforeUnmount, ref } from 'vue';
+
 // COPY-01 · Copy button: copies `value` to the clipboard and announces the result. `label` names what is copied.
 const props = defineProps<{ value: string; label: string; text?: string }>();
 

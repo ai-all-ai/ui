@@ -7,7 +7,8 @@
 > **Tokens first, then components, then the brandbook.** A monochrome UI kit for DS7 web projects: tokens, base HTML styles, self-contained Vue components and a living `/ui` brandbook with developer tools.
 
 ```bash
-npx @ai.all/ui init
+npm install @ai.all/ui
+npx ui init
 ```
 
 ---
@@ -54,22 +55,53 @@ The `@ai.all` ecosystem is organized into three cooperating layers:
 │                   Target Web Project (Nuxt 4 / Vue 3)                  │
 │  1. .ai/aiall.json: registers both packs (ds7 + ui)                    │
 │  2. theme.css: overrides brand variables on top of theme-base.css      │
-│  3. app/components/ui/: components copied or referenced from catalog   │
+│  3. app/components/ui/: optional local component overrides   │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Stand-Alone vs Ecosystem Mode
+### Nuxt 4
 
-1. **Stand-Alone:**
-   Use `@ai.all/ui` as a fast UI kit in any Vue/Nuxt project without AI-ALL:
-   ```bash
-   npx @ai.all/ui init
-   npx @ai.all/ui add UiButton
-   npx @ai.all/ui check --strict
-   ```
+Run `npm install @ai.all/ui` and `npx ui init` in the project. Start Nuxt and open
+`/ui`. The local module entry in `modules/aiall-ui.mjs` loads the package module
+without editing `nuxt.config`. The module registers the catalog from npm, loads the
+package CSS, then loads the project CSS entry in `app/assets/css/main.css`. Put
+token overrides in `app/assets/css/theme-base.css` and custom HTML styles in
+`app/assets/css/base.css`. Keep their imports in a customized `main.css`.
 
-2. **In AI-ALL Ecosystem:**
-   `npx @ai.all/ui init` automatically registers `ui/aiall-pack.json` into `.ai/aiall.json`. Running `npx aiall sync` propagates UI directives and design rules directly into the root `ALL.md` and all agent instruction entrypoints.
+Templates can use `<UiButton />` directly. A matching component under
+`app/components/ui/` takes precedence. Use `npx ui add UiButton` to start an
+override, then restart Nuxt if it was already running.
+
+For a custom Nuxt source or modules directory, register `'@ai.all/ui/nuxt'` in the
+existing `modules` array and place styles and overrides under that source directory.
+The module supplies `/ui` when pages are enabled and there is no local route for
+it. Keep `<NuxtPage />` in a custom app entry and add `<UiDevTools />` once if you
+want the developer overlays.
+
+### Vue 3 with Vite
+
+Use Vue 3.5 or later and Vite's Vue plugin. Import SFCs and styles directly:
+
+```vue
+<script setup>
+import UiButton from '@ai.all/ui/components/ui/UiButton.vue';
+import '@ai.all/ui/tokens/theme-base.css';
+import '@ai.all/ui/tokens/base.css';
+</script>
+
+<template>
+  <UiButton>Get started</UiButton>
+</template>
+```
+
+Import the styles once in the application entry when multiple pages use them.
+The `/ui` route and its URL-based navigation are provided by the Nuxt integration.
+
+### AI-ALL and DS7
+
+Install and initialize these integrations when the project uses them. If
+`.ai/aiall.json` exists with a `packs` array, `npx ui init` registers the UI pack.
+Run `npx aiall sync` and `npx aiall check` after initialization or migration.
 
 ---
 
@@ -97,12 +129,42 @@ npx @ai.all/ui check --strict # Fails with exit code 1 on violations
 
 | Command | Description |
 |---|---|
-| `npx @ai.all/ui init` | Scaffolds `theme-base.css`, `base.css`, `pages/ui.vue`, `ui/aiall-pack.json`, and updates `.ai/aiall.json`. |
+| `npx @ai.all/ui init` | Scaffolds the Nuxt integration, override styles, Brandbook entry, and AI-ALL pack. |
 | `npx @ai.all/ui check` | Runs all UI quality gates. |
 | `npx @ai.all/ui check --strict` | Runs quality gates in CI mode (exit code 1 on issue). |
 | `npx @ai.all/ui list` | Lists all available components in the catalog. |
 | `npx @ai.all/ui add <Component>` | Copies a component from catalog to `app/components/ui/`. |
+| `npx ui status` | Shows the installed and recorded versions plus file decisions. |
+| `npx ui diff` | Shows local files alongside the installed version’s scaffold. |
+| `npx ui update [--dry-run]` | Plans or applies safe scaffold updates. |
+| `npx ui rollback [--dry-run]` | Plans or restores the most recent scaffold transaction. |
 | `npx @ai.all/ui --version` | Prints current package version. |
+
+### Updating a project
+
+Install the desired npm version or tarball first, then run:
+
+```bash
+npx ui status
+npx ui diff
+npx ui update --dry-run
+npx ui update
+```
+
+The package supplies the default styles, components and Brandbook. The update
+command records the installed version and SHA-256 hashes of managed project files
+in `ui/.manifest.json`. It preserves edited files, previously managed files you
+deleted, and local component overrides. It recognizes the unmodified scaffolds
+from 0.2.0-beta.0 and 0.2.0-beta.1. For a customized legacy Brandbook, use the new
+package page as a reference when merging your edits. Customized legacy styles
+are retained in full and can still override the current defaults.
+
+`npx ui rollback` restores the last scaffold transaction and stops if a file was
+edited since that transaction. It only restores project files. Use npm to change
+the installed package version. Keep `ui/.transaction.json` and `ui/.lock` local
+and out of version control. After interruption, check that the CLI has stopped
+before removing a stale lock, then run `npx ui rollback` to restore the pending
+transaction.
 
 ---
 
@@ -122,7 +184,7 @@ npm install
 npm run dev   # http://localhost:3333/ui
 ```
 
-The dev page renders `templates/ui.vue`, the same brandbook that `ui init` copies into a project.
+The dev page renders `templates/ui.vue`, the same package Brandbook that the Nuxt integration renders.
 
 ---
 

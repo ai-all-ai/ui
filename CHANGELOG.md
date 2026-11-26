@@ -4,6 +4,20 @@ All notable changes to @ai.all/ui are recorded here. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+## [0.2.0-beta.2]
+
+### Added
+
+- Nuxt 4 module for package component registration, project overrides, global CSS and the Brandbook route.
+- Versioned scaffold manifest, status, diff, dry-run updates and transaction rollback.
+- Packed-package verification in CI for clean Nuxt, Vue/Vite and optional AI-ALL + DS7 integration.
+
+### Fixed
+
+- Standard Nuxt 4 initialization renders routes in place of the starter welcome screen and preserves the Nuxt config.
+- Kit components import the Vue APIs they use. Developer tools share state per Vue application.
+- Legacy untouched scaffold files migrate to package-backed resources. Modified files and existing component overrides are preserved.
+
 ## [0.2.0-beta.1] — 2026-11-26
 
 ### Changed

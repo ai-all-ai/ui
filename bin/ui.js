@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { projectCommand } from './project.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -114,13 +115,13 @@ function checkKnownTokens(targetDir, tokensFile) {
   const DECL = /(--[a-z0-9-]+)['"]?\s*:/gi;
   const declared = new Set();
   const cssDir = path.dirname(tokensFile);
-  const cssFiles = fs.existsSync(cssDir)
+  const localCssFiles = fs.existsSync(cssDir)
     ? fs
         .readdirSync(cssDir)
         .filter((f) => f.endsWith('.css'))
         .map((f) => path.join(cssDir, f))
     : [];
-  for (const f of cssFiles) {
+  for (const f of [path.join(ROOT, 'tokens', 'theme-base.css'), ...localCssFiles]) {
     for (const m of fs.readFileSync(f, 'utf8').matchAll(DECL)) declared.add(m[1]);
   }
   const issues = [];
@@ -145,7 +146,7 @@ function checkTokenContract(tokensFile) {
   if (!fs.existsSync(tokensFile)) {
     return [`Tokens file not found: ${tokensFile}`];
   }
-  const text = fs.readFileSync(tokensFile, 'utf8');
+  const text = fs.readFileSync(path.join(ROOT, 'tokens', 'theme-base.css'), 'utf8');
   const requiredTokens = [
     '--color-paper',
     '--color-surface',
@@ -257,89 +258,38 @@ if (cmd === '--version' || cmd === '-v') {
   }
   const file = name.endsWith('.vue') ? name : `${name}.vue`;
   const src = path.join(ROOT, 'components', 'ui', file);
-  if (!fs.existsSync(src)) {
+  if (!getAvailableComponents().includes(file)) {
     console.error(`Error: Component "${file}" not found in catalog.`);
     process.exit(1);
   }
   const destDir = path.join(CWD, 'app', 'components', 'ui');
   fs.mkdirSync(destDir, { recursive: true });
   const dest = path.join(destDir, file);
-  fs.copyFileSync(src, dest);
+  try {
+    fs.copyFileSync(src, dest, fs.constants.COPYFILE_EXCL);
+  } catch (error) {
+    if (error.code !== 'EEXIST') throw error;
+    console.log(`Preserved existing ${path.relative(CWD, dest)}`);
+    process.exit(0);
+  }
   console.log(`Added: ${path.relative(CWD, dest)}`);
-} else if (cmd === 'init') {
-  const cssDir = path.join(CWD, 'app', 'assets', 'css');
-  fs.mkdirSync(cssDir, { recursive: true });
-  const cssDest = path.join(cssDir, 'theme-base.css');
-  fs.copyFileSync(path.join(ROOT, 'tokens', 'theme-base.css'), cssDest);
-  console.log(`Scaffolded: ${path.relative(CWD, cssDest)}`);
-  // The project's CSS entry imports both, so they reach every page (and DS7's css check sees them used).
-  const mainCss = path.join(cssDir, 'main.css');
-  const imports = ["@import './theme-base.css';", "@import './base.css';"];
-  const main = fs.existsSync(mainCss) ? fs.readFileSync(mainCss, 'utf8') : '';
-  const missing = imports.filter((line) => !main.includes(line.slice(9, -2)));
-  if (missing.length) {
-    fs.writeFileSync(mainCss, missing.join('\n') + '\n' + main);
-    console.log(
-      `${main ? 'Updated' : 'Scaffolded'}: ${path.relative(CWD, mainCss)} imports the ui tokens and base styles`,
-    );
+} else if (['init', 'status', 'diff', 'update', 'rollback'].includes(cmd)) {
+  try {
+    projectCommand(ROOT, CWD, cmd, args.slice(1));
+  } catch (error) {
+    console.error(`UI: ${error.message}`);
+    process.exitCode = 1;
   }
-  const baseDest = path.join(cssDir, 'base.css');
-  if (!fs.existsSync(baseDest)) {
-    fs.copyFileSync(path.join(ROOT, 'tokens', 'base.css'), baseDest);
-    console.log(`Scaffolded: ${path.relative(CWD, baseDest)}`);
-  }
-
-  const pagesDir = path.join(CWD, 'app', 'pages');
-  fs.mkdirSync(pagesDir, { recursive: true });
-  const uiTemplate = path.join(ROOT, 'templates', 'ui.vue');
-  if (fs.existsSync(uiTemplate)) {
-    const uiDest = path.join(pagesDir, 'ui.vue');
-    if (!fs.existsSync(uiDest)) {
-      fs.copyFileSync(uiTemplate, uiDest);
-      console.log(`Scaffolded Brandbook: ${path.relative(CWD, uiDest)}`);
-    }
-  }
-
-  // AI-ALL integration: scaffold ui/aiall-pack.json
-  const uiPackDir = path.join(CWD, 'ui');
-  fs.mkdirSync(uiPackDir, { recursive: true });
-  const packSrc = path.join(ROOT, 'aiall-pack.json');
-  const packDest = path.join(uiPackDir, 'aiall-pack.json');
-  if (fs.existsSync(packSrc)) {
-    // The pack's docs point at the files init puts in the project (aiall check follows every link), not at this
-    // package's own paths: theme-base.css under app/assets/css, the brandbook page and a copy of the rules.
-    fs.copyFileSync(path.join(ROOT, 'ALL.md'), path.join(uiPackDir, 'ALL.md'));
-    const docs = {
-      'tokens/theme-base.css': 'app/assets/css/theme-base.css',
-      'templates/ui.vue': 'app/pages/ui.vue',
-      'ALL.md': 'ui/ALL.md',
-    };
-    const pack = JSON.parse(fs.readFileSync(packSrc, 'utf8'));
-    for (const d of pack.directives ?? []) d.doc = docs[d.doc] ?? d.doc;
-    fs.writeFileSync(packDest, JSON.stringify(pack, null, 2) + '\n');
-    console.log(`Scaffolded AI-ALL Pack: ${path.relative(CWD, packDest)} and ui/ALL.md`);
-  }
-
-  // Register in .ai/aiall.json if present
-  const aiallConfig = path.join(CWD, '.ai', 'aiall.json');
-  if (fs.existsSync(aiallConfig)) {
-    try {
-      const cfg = JSON.parse(fs.readFileSync(aiallConfig, 'utf8'));
-      if (Array.isArray(cfg.packs) && !cfg.packs.includes('ui/aiall-pack.json')) {
-        cfg.packs.push('ui/aiall-pack.json');
-        fs.writeFileSync(aiallConfig, JSON.stringify(cfg, null, 2) + '\n');
-        console.log('Registered @ai.all/ui pack in .ai/aiall.json');
-      }
-    } catch {}
-  }
-
-  console.log('\n@ai.all/ui initialized successfully!');
 } else {
   console.log(`
 @ai.all/ui - Universal monochrome UI kit and pattern catalog
 
 Usage:
-  npx @ai.all/ui init             Initialize base tokens, brandbook and AI-ALL pack
+  npx @ai.all/ui init             Initialize Nuxt integration and project overrides
+  npx @ai.all/ui status           Show installed and managed versions and file states
+  npx @ai.all/ui diff             Compare local files with this installed package
+  npx @ai.all/ui update [--dry-run] Apply safe changes from this installed package
+  npx @ai.all/ui rollback [--dry-run] Restore the last scaffold transaction
   npx @ai.all/ui check [--strict] Run UI quality gates (tokens, modifiers, anatomy)
   npx @ai.all/ui list             List all available components
   npx @ai.all/ui add <Component>  Add a component to app/components/ui/

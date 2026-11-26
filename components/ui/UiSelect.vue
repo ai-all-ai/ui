@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, ref, useId } from 'vue';
+
 // SELECT-01 · Select: native select with a label, a placeholder option and an error after the field is left.
 const props = withDefaults(
   defineProps<{

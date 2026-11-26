@@ -116,3 +116,48 @@ test('@ai.all/ui components import nothing from a project', () => {
     assert.doesNotMatch(text, /from ['"]~~?\//, `${f} imports from the host project`);
   }
 });
+
+test('init and rollback preserve project changes', (t) => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ui-rollback-'));
+  t.after(() => fs.rmSync(tmp, { recursive: true, force: true }));
+  const run = (...args) =>
+    cp.spawnSync(process.execPath, [CLI, ...args], { cwd: tmp, encoding: 'utf8' });
+  assert.equal(run('init', '--dry-run').status, 0);
+  assert.deepEqual(fs.readdirSync(tmp), []);
+  assert.equal(run('init').status, 0);
+
+  const manifest = path.join(tmp, 'ui', '.manifest.json');
+  const before = fs.readFileSync(manifest, 'utf8');
+  const tokens = path.join(tmp, 'app', 'assets', 'css', 'theme-base.css');
+  const original = fs.readFileSync(tokens, 'utf8');
+  fs.writeFileSync(tokens, ':root { --color-brand: rebeccapurple; }\n');
+  const update = run('update');
+  assert.equal(update.status, 0, update.stderr);
+  assert.match(update.stdout, /Preserve app\/assets\/css\/theme-base.css/);
+  assert.equal(fs.readFileSync(manifest, 'utf8'), before);
+  const refused = run('rollback');
+  assert.equal(refused.status, 1);
+  assert.match(refused.stderr, /would overwrite changes/);
+  assert.match(fs.readFileSync(tokens, 'utf8'), /rebeccapurple/);
+
+  fs.writeFileSync(tokens, original);
+  assert.equal(run('rollback').status, 0);
+  assert.ok(!fs.existsSync(manifest));
+  assert.ok(!fs.existsSync(tokens));
+});
+
+test('add does not overwrite a local override', (t) => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ui-add-local-'));
+  t.after(() => fs.rmSync(tmp, { recursive: true, force: true }));
+  const dir = path.join(tmp, 'app', 'components', 'ui');
+  fs.mkdirSync(dir, { recursive: true });
+  const component = path.join(dir, 'UiButton.vue');
+  const custom = '<template><button>Local button</button></template>\n';
+  fs.writeFileSync(component, custom);
+  const result = cp.spawnSync(process.execPath, [CLI, 'add', 'UiButton'], {
+    cwd: tmp,
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0);
+  assert.equal(fs.readFileSync(component, 'utf8'), custom);
+});

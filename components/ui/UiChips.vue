@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+
 // CHIPS-01 · Chips: a legend and options to pick one (default) or several (`multiple`).
 // Variants from the sites: pill (outlined pills), soft (quiet, no border), segment (all options in one shared
 // track, like a segmented control) and tile (equal tiles with an icon over the label, for category bars).

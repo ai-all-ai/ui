@@ -33,10 +33,9 @@ jobs:
       - run: npm test
       - run: npm pack --dry-run
 
-  # The brandbook and the components are built with Nuxt, the same way a project builds them.
-  build:
+  package:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -44,10 +43,13 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - run: npx nuxt build
-      - name: The brandbook renders
-        run: |
-          set -euo pipefail
-          PORT=4600 node .output/server/index.mjs &
-          for i in $(seq 1 30); do curl -fsS http://localhost:4600/ui -o /tmp/ui.html && break; sleep 1; done
-          grep -q 'Brandbook' /tmp/ui.html
+      - run: npx playwright install --with-deps chromium
+      - run: npm run verify
+        env:
+          UI_TEST_PARENT: ${{ runner.temp }}
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: brandbook-screenshots
+          path: ${{ runner.temp }}/aiall-ui-package-*/*.png
+          if-no-files-found: ignore

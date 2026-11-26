@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref, useId, watch } from 'vue';
+
 // MODAL-01 · Modal: native <dialog>, so focus stays inside, Escape and a click on the backdrop close it, and the page
 // behind is dimmed and blurred (--backdrop-blur) and does not scroll.
 // Types: size small (confirm), md (default), wide (forms), read (long text); placement center (default), side (a

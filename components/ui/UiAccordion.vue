@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref, useId } from 'vue';
+
 // FAQ-01 · Accordion: questions that open one at a time (opening one closes the rest) on native <details>.
 // Variants: card (default), plain (lines between) and accent (the open question is filled). `open` is the index
 // open at start; `exclusive: false` lets several stay open.

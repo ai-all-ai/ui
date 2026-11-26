@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, ref, useId } from 'vue';
+
 // FIELD-01 · Text field: label, input or textarea, hint and an error shown after the field is left.
 // The browser validates (required, type=email, pattern); `error` is the message shown when it fails.
 const props = withDefaults(

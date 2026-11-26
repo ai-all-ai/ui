@@ -1,6 +1,9 @@
 <!-- /ui brandbook: foundations, base HTML elements with their tags, every component with its ID, and a copyable catalog. -->
 <script setup lang="ts">
+import { computed, h, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import type { Component, Ref } from 'vue';
+import { useHead, useRoute, useRouter } from '#imports';
+import { useUiDevTools } from '@ai.all/ui/dev-tools';
 import { UiBreadcrumb, UiChips, UiCounter, UiSliderNav, UiTabs, UiTag } from '#components';
 
 useHead({
@@ -1034,19 +1037,16 @@ onMounted(() => {
   }
 });
 // Developer tools controls: the same shared state UiDevTools uses, so the menu and the page switch it together.
-const gridMode = String(useRuntimeConfig().public.uiDevTools ?? 'dev');
-const gridOn =
-  gridMode === 'always' ||
-  gridMode === 'true' ||
-  (gridMode !== 'off' && gridMode !== 'false' && import.meta.dev);
-const gridCols = useState('ui-dev-grid', () => 0);
-const gridButton = useState('ui-dev-grid-button', () => true);
-const toolState: Record<string, Ref<boolean>> = {
-  rhythm: useState('ui-dev-rhythm', () => false),
-  outlines: useState('ui-dev-outlines', () => false),
-  size: useState('ui-dev-size', () => false),
-  audit: useState('ui-dev-audit', () => false),
-};
+const {
+  visible: gridOn,
+  cols: gridCols,
+  button: gridButton,
+  rhythm,
+  outlines,
+  size,
+  audit,
+} = useUiDevTools();
+const toolState: Record<string, Ref<boolean>> = { rhythm, outlines, size, audit };
 const devTools = [
   {
     id: 'grid',

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+
 // ICON-01 · Line icon on a 24px grid, 1.5 stroke, colour from currentColor. Decorative unless `label` is passed.
 export type UiIconName =
   | 'check'

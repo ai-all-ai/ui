@@ -15,10 +15,11 @@ npm run dev          # the brandbook at http://localhost:3333/ui
 npm test             # the CLI smoke run and every test file
 npm run test:one -- test/ui.test.mjs
 npm run check:strict # the quality gates on components/ui
-npm run verify       # what CI runs: format check, tests, gates, pack; run it before each push
+npx playwright install chromium
+npm run verify       # formatting, unit tests, quality gates and packed-package integration
 ```
 
-CI runs the CLI tests on Linux and macOS with Node 18, 20, 22 and 24 and on Windows with Node 22, and builds the brandbook with Nuxt (`.github/workflows/ci.yml`). Keep `bin/` and `test/` to APIs that Node 18 has: for example no `import.meta.resolve`, `import.meta.dirname` or `Object.groupBy`.
+CI runs the CLI tests on Linux and macOS with Node 18, 20, 22 and 24 and on Windows with Node 22, and verifies the packed archive in independent Nuxt and Vite applications on Node 24 (`.github/workflows/ci.yml`). Keep `bin/` and `test/` to APIs that Node 18 has: for example no `import.meta.resolve`, `import.meta.dirname` or `Object.groupBy`.
 
 ## Rules
 

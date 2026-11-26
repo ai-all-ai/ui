@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, nextTick, ref, useId } from 'vue';
+
 // TABS-01 · Tabs: switch between views of one block (madera, velo). Underline (a line under the active tab) or pill
 // (a track with a filled active tab); small or medium; `onDark`. Arrow keys move between tabs. Panels stay with the
 // page: give each panel id="<idPrefix>-<tab id>" (pass idPrefix) and role="tabpanel". -hover/-focus force a state for the brandbook.

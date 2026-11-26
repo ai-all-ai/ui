@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+
+import { useUiDevTools } from '@ai.all/ui/dev-tools';
 // DEVTOOLS-01 · Developer tools over the page, for checking layout (from miluzsolar's grid):
 // - layout grid: 12 / 16 / 24 columns inside --content-width, a dashed line one base step (--grid-edge) outside (Alt+G);
 // - baseline rhythm: horizontal lines every --rhythm-step to check vertical spacing (Alt+R);
@@ -6,19 +9,11 @@
 // - viewport size: width × height and the breakpoint in a corner badge (Alt+S);
 // - audit: marks in red what a page is missing for accessibility and SEO (no alt, no label, no name, skipped
 //   heading level, several h1, short title or description, no canonical, duplicate ids) and lists it (Alt+A).
-// Put it once in app.vue or the default layout. State is shared (useState), so a settings panel such as the /ui
+// Put it once in app.vue or the default layout. State is shared per Vue app, so a settings panel such as the /ui
 // Tools tab switches the same tools, and it is kept in localStorage.
 // Site setting runtimeConfig.public.uiDevTools (or NUXT_PUBLIC_UI_DEV_TOOLS): 'dev' (default), 'always' or 'off'.
 const STEPS = [0, 12, 16, 24];
-const mode = String(useRuntimeConfig().public.uiDevTools ?? 'dev');
-const visible =
-  mode === 'always' || mode === 'true' || (mode !== 'off' && mode !== 'false' && import.meta.dev);
-const cols = useState('ui-dev-grid', () => 0);
-const button = useState('ui-dev-grid-button', () => true);
-const rhythm = useState('ui-dev-rhythm', () => false);
-const outlines = useState('ui-dev-outlines', () => false);
-const size = useState('ui-dev-size', () => false);
-const audit = useState('ui-dev-audit', () => false);
+const { visible, cols, button, rhythm, outlines, size, audit, routePath } = useUiDevTools();
 const issues = ref<{ el: Element | null; text: string }[]>([]);
 const viewport = ref('');
 const KEY = 'ui-dev-tools';
@@ -167,11 +162,12 @@ onBeforeUnmount(() => {
     document.querySelectorAll('.dev-issue').forEach((el) => el.classList.remove('dev-issue'));
 });
 // Re-check after page changes (route or tab switches) while the audit is on.
-const route = useRoute();
-watch(
-  () => route.fullPath,
-  () => audit.value && setTimeout(runAudit, 300),
-);
+let auditTimer: ReturnType<typeof setTimeout> | undefined;
+watch(routePath, () => {
+  clearTimeout(auditTimer);
+  if (audit.value) auditTimer = setTimeout(runAudit, 300);
+});
+onBeforeUnmount(() => clearTimeout(auditTimer));
 defineExpose({ runAudit });
 </script>
 

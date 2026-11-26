@@ -16,10 +16,11 @@
 3. **Component Anatomy:**
    - Single responsibility, pure props/emits.
    - Script setup with TypeScript: `<script setup lang="ts">`.
+   - Explicitly import Vue APIs and keep core components independent of Nuxt.
    - Never use `!important` in component styles.
 
 4. **Living Brandbook Integration:**
-   Every new or modified component appears on the `/ui` brandbook page (`app/pages/ui.vue`) with a stable pattern ID (`BTN-01`, `MODAL-01`, `CARD-01`), every variant, size, state and the dark version, before a page uses it.
+   Every new or modified component appears on the `/ui` brandbook page (`app/pages/ui.vue`) from the npm package with a stable pattern ID (`BTN-01`, `MODAL-01`, `CARD-01`), every variant, size, state and the dark version, before a page uses it.
 
 5. **Self-Verification:**
    Before committing, run the UI quality gates on the project's UI components:
