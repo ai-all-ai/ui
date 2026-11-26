@@ -28,3 +28,6 @@
    npm test
    npm run format:check
    ```
+
+6. **Developer Tools:**
+   `<UiDevTools />` goes once in `app.vue` or the default layout and covers the whole site: layout grid (`Alt+G`), baseline rhythm (`Alt+R`), outlines (`Alt+O`), viewport size (`Alt+S`) and a visual a11y/SEO check (`Alt+A`). The `/ui` Dev tools tab switches each one. Site setting `runtimeConfig.public.uiDevTools`: `dev` (default), `always` or `off`; env `NUXT_PUBLIC_UI_DEV_TOOLS`. Layout tokens: `--content-width`, `--page-gutter`, `--grid-gutter`, `--grid-edge`, `--rhythm-step`.
