@@ -78,6 +78,8 @@ jobs:
       - if: steps.published.outputs.skip != 'true'
         run: npm install --no-audit --no-fund
       - if: steps.published.outputs.skip != 'true'
+        run: npx playwright install --with-deps chromium
+      - if: steps.published.outputs.skip != 'true'
         run: npm run verify
       - name: Publish with provenance
         if: steps.published.outputs.skip != 'true'
