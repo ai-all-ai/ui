@@ -47,7 +47,7 @@ function fixture(name, deps) {
   return cwd;
 }
 
-async function serve(cwd, args, readyPath) {
+async function serve(cwd, args, readyPath, env = {}) {
   const socket = createServer();
   const port = await new Promise((done, fail) => {
     socket.on('error', fail);
@@ -62,7 +62,13 @@ async function serve(cwd, args, readyPath) {
     args.map((arg) => (arg === '%PORT%' ? String(port) : arg)),
     {
       cwd,
-      env: { ...process.env, HOST: '127.0.0.1', PORT: String(port), NUXT_TELEMETRY_DISABLED: '1' },
+      env: {
+        ...process.env,
+        ...env,
+        HOST: '127.0.0.1',
+        PORT: String(port),
+        NUXT_TELEMETRY_DISABLED: '1',
+      },
       stdio: ['ignore', 'pipe', 'pipe'],
       detached: process.platform !== 'win32',
     },
@@ -221,10 +227,15 @@ try {
   );
   const build = run(app, [process.execPath, nuxtCli, 'build'], { NUXT_TELEMETRY_DISABLED: '1' });
   assert.doesNotMatch(build, /NUXT_B300[1279]/);
-  const preview = await serve(app, [nuxtCli, 'preview'], '/probe');
+  const preview = await serve(app, [nuxtCli, 'preview'], '/probe', {
+    NUXT_PUBLIC_UI_DEV_TOOLS: 'off',
+  });
   await html(preview.origin, '/probe', /Package button[\s\S]*Local trail/);
   await html(preview.origin, '/ui?tab=components', /data-local-breadcrumb/);
   await inspect(preview.origin, 'Nuxt production preview', async (page) => {
+    await page.goto(preview.origin + '/ui?tab=tools');
+    await page.locator('#t-about p').filter({ hasText: 'uiDevTools is off' }).waitFor();
+    assert.equal(await page.locator('.dev-grid').count(), 0);
     await page.goto(preview.origin + '/ui?tab=components');
     await page.locator('#CHIPS-01').waitFor();
     await page.locator('[data-local-breadcrumb]').first().waitFor();
@@ -239,6 +250,31 @@ try {
   });
   preview.stop();
   console.log('PASS Nuxt production build, preview, SSR and local precedence');
+
+  const overlays = await serve(app, ['.output/server/index.mjs'], '/ui', {
+    NUXT_PUBLIC_UI_DEV_TOOLS: 'always',
+  });
+  await inspect(overlays.origin, 'Nuxt production developer tools', async (page) => {
+    await page.goto(overlays.origin + '/ui');
+    await page.waitForFunction(() => {
+      const firstToken = document.querySelector('#c-brand small');
+      return firstToken?.textContent && firstToken.textContent !== '…';
+    });
+    await page.getByRole('tab', { name: 'Dev tools', exact: true }).click();
+    await page.waitForURL('**/ui?tab=tools');
+    await page.getByText('Show width × height and breakpoint', { exact: true }).click();
+    await page.locator('.dev-grid__size').waitFor();
+    await page.reload();
+    await page.locator('.dev-grid__size').waitFor();
+    await page.keyboard.press('Alt+r');
+    await page.locator('.dev-grid__rhythm').waitFor();
+    await page.keyboard.press('Alt+o');
+    await page.locator('html.dev-outlines').waitFor();
+    await page.keyboard.press('Alt+a');
+    await page.getByRole('complementary', { name: 'Page audit' }).waitFor();
+  });
+  overlays.stop();
+  console.log('PASS production overlay modes, shortcuts and persistence');
 
   const previous = process.env.UI_TEST_PREVIOUS || '0.2.0-beta.0';
   const integrated = fixture('ecosystem', { ...nuxt, ...ecosystem, '@ai.all/ui': previous });

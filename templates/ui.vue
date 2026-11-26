@@ -1039,6 +1039,7 @@ onMounted(() => {
 // Developer tools controls: the same shared state UiDevTools uses, so the menu and the page switch it together.
 const {
   visible: gridOn,
+  mode: gridMode,
   cols: gridCols,
   button: gridButton,
   rhythm,

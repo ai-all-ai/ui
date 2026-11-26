@@ -9,6 +9,7 @@ function createState() {
     outlines: ref(false),
     size: ref(false),
     audit: ref(false),
+    mode: 'dev',
     visible: Boolean(import.meta.env?.DEV),
     routePath: () => '',
   };
@@ -29,6 +30,7 @@ export function useUiDevTools() {
 
 export function provideUiDevTools(app: App, mode: string, routePath: () => string) {
   const state = createState();
+  state.mode = mode;
   state.visible =
     mode === 'always' || mode === 'true' || (mode !== 'off' && mode !== 'false' && state.visible);
   state.routePath = routePath;
