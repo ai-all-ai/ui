@@ -4,6 +4,8 @@ All notable changes to @ai.all/ui are recorded here. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+## [0.2.0-beta.3] — 2026-11-27
+
 ### Fixed
 
 - Brandbook shows the configured developer-tools mode when its overlays are disabled.
