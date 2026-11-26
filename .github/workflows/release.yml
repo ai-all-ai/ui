@@ -1,19 +1,87 @@
-name: Release
+name: GitHub release
 
+# For a version tag: the GitHub Release (notes from the CHANGELOG.md section of that version), then the npm package.
+# - npm: trusted publishing with provenance, no token in the repository. Set it up once on npmjs.com (package settings,
+#   "Trusted publisher": this repository, workflow release.yml, environment npm). The environment "npm" can require an
+#   approval in the repository settings, so nothing is published without a click.
 on:
   push:
     tags: ['v*']
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Check the tag matches package.json
+        run: |
+          version="${TAG#v}"
+          package_version="$(node -p "require('./package.json').version")"
+          if [[ "$version" != "$package_version" ]]; then
+            echo "tag $TAG does not match package.json $package_version" >&2
+            exit 1
+          fi
+
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          version="${TAG#v}"
+          awk -v v="$version" '
+            $0 ~ "^## \\[" v "\\]" { on=1; next }
+            on && /^## \[/ { exit }
+            on { print }
+          ' CHANGELOG.md | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' > "$RUNNER_TEMP/notes.md"
+          test -s "$RUNNER_TEMP/notes.md" || { echo "no CHANGELOG section for $version" >&2; exit 1; }
+
+      - name: Create or update the release
+        run: |
+          prerelease=""
+          [[ "$TAG" == *-* ]] && prerelease="--prerelease"
+          title="UI $TAG"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "$title" --notes-file "$RUNNER_TEMP/notes.md" $prerelease
+          else
+            gh release create "$TAG" --title "$title" --notes-file "$RUNNER_TEMP/notes.md" --verify-tag $prerelease
+          fi
+
+  npm:
+    needs: release
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
-      - run: npm run format:check
-      - run: npm test
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Skip a version already on npm (published by hand)
+        id: published
+        run: |
+          if npm view "@ai.all/ui@${GITHUB_REF_NAME#v}" version >/dev/null 2>&1; then
+            echo "already on npm: nothing to publish"; echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.published.outputs.skip != 'true'
+        run: npm install --no-audit --no-fund
+      - if: steps.published.outputs.skip != 'true'
+        run: npm run verify
+      - name: Publish with provenance
+        if: steps.published.outputs.skip != 'true'
+        run: |
+          tag=latest
+          [[ "$GITHUB_REF_NAME" == *-* ]] && tag=next
+          npm publish --provenance --access public --tag "$tag"

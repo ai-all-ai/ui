@@ -9,10 +9,18 @@ on:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    # a full run takes under a minute: a hung job stops here instead of after six hours
+    timeout-minutes: 10
     strategy:
+      # one failing cell does not cancel the others, so every system reports its own result
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         node: [18, 20, 22, 24]
+        # one Windows cell: paths, line ends and links behave differently there
+        include:
+          - os: windows-latest
+            node: 22
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -21,5 +29,25 @@ jobs:
       - name: Check formatting
         if: matrix.os == 'ubuntu-latest'
         run: npm run format:check
+      # the CLI and its tests need no dependencies, so they run on every Node from 18
       - run: npm test
       - run: npm pack --dry-run
+
+  # The brandbook and the components are built with Nuxt, the same way a project builds them.
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx nuxt build
+      - name: The brandbook renders
+        run: |
+          set -euo pipefail
+          PORT=4600 node .output/server/index.mjs &
+          for i in $(seq 1 30); do curl -fsS http://localhost:4600/ui -o /tmp/ui.html && break; sleep 1; done
+          grep -q 'Brandbook' /tmp/ui.html
