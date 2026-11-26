@@ -108,6 +108,37 @@ function checkAnatomy(targetDir) {
   return issues;
 }
 
+// Validator 5: Known Tokens (every var(--x) without a fallback is declared in the token files or the component)
+function checkKnownTokens(targetDir, tokensFile) {
+  // A declaration in CSS (--x: …) or a style binding in the template ('--x': value).
+  const DECL = /(--[a-z0-9-]+)['"]?\s*:/gi;
+  const declared = new Set();
+  const cssDir = path.dirname(tokensFile);
+  const cssFiles = fs.existsSync(cssDir)
+    ? fs
+        .readdirSync(cssDir)
+        .filter((f) => f.endsWith('.css'))
+        .map((f) => path.join(cssDir, f))
+    : [];
+  for (const f of cssFiles) {
+    for (const m of fs.readFileSync(f, 'utf8').matchAll(DECL)) declared.add(m[1]);
+  }
+  const issues = [];
+  for (const file of getAvailableComponents(targetDir)) {
+    const text = fs.readFileSync(path.join(targetDir, file), 'utf8');
+    const local = new Set([...text.matchAll(DECL)].map((m) => m[1]));
+    const used = new Set([...text.matchAll(/var\((--[a-z0-9-]+)\s*\)/gi)].map((m) => m[1]));
+    for (const token of used) {
+      if (!declared.has(token) && !local.has(token)) {
+        issues.push(
+          `${file}: Unknown token "${token}". Declare it in the theme or use a base token.`,
+        );
+      }
+    }
+  }
+  return issues;
+}
+
 // Validator 4: Base Token Contract
 function checkTokenContract(tokensFile) {
   const issues = [];
@@ -140,15 +171,27 @@ function runAllChecks(targetDir, tokensFile, strict = false) {
   const modifierIssues = checkModifiers(targetDir);
   const anatomyIssues = checkAnatomy(targetDir);
   const contractIssues = checkTokenContract(tokensFile);
+  const knownIssues = checkKnownTokens(targetDir, tokensFile);
 
   const total =
-    tokenIssues.length + modifierIssues.length + anatomyIssues.length + contractIssues.length;
+    tokenIssues.length +
+    modifierIssues.length +
+    anatomyIssues.length +
+    contractIssues.length +
+    knownIssues.length;
 
   if (contractIssues.length === 0) {
     console.log('  ✓ Token Contract: Base design tokens define required semantic variables.');
   } else {
     console.log(`  ✗ Token Contract: ${contractIssues.length} issue(s)`);
     for (const i of contractIssues) console.log(`    - ${i}`);
+  }
+
+  if (knownIssues.length === 0) {
+    console.log('  ✓ Known Tokens: Every var(--*) used by components is declared.');
+  } else {
+    console.log(`  ✗ Known Tokens: ${knownIssues.length} unknown token(s)`);
+    for (const i of knownIssues.slice(0, 10)) console.log(`    - ${i}`);
   }
 
   if (tokenIssues.length === 0) {
@@ -185,7 +228,9 @@ function runAllChecks(targetDir, tokensFile, strict = false) {
   }
 }
 
-if (cmd === 'list') {
+if (cmd === '--version' || cmd === '-v') {
+  console.log(JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version);
+} else if (cmd === 'list') {
   const list = getAvailableComponents();
   console.log(`\nAvailable @ai.all/ui components (${list.length}):\n`);
   for (const c of list) {
@@ -227,6 +272,11 @@ if (cmd === 'list') {
   const cssDest = path.join(cssDir, 'theme-base.css');
   fs.copyFileSync(path.join(ROOT, 'tokens', 'theme-base.css'), cssDest);
   console.log(`Scaffolded: ${path.relative(CWD, cssDest)}`);
+  const baseDest = path.join(cssDir, 'base.css');
+  if (!fs.existsSync(baseDest)) {
+    fs.copyFileSync(path.join(ROOT, 'tokens', 'base.css'), baseDest);
+    console.log(`Scaffolded: ${path.relative(CWD, baseDest)}`);
+  }
 
   const pagesDir = path.join(CWD, 'app', 'pages');
   fs.mkdirSync(pagesDir, { recursive: true });
