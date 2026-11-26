@@ -1,0 +1,25 @@
+{
+  "name": "@ai.all/ui",
+  "version": "0.1.0",
+  "title": "UI Kit & Living Pattern Catalog",
+  "directives": [
+    {
+      "id": "ui.tokens",
+      "title": "Monochrome base tokens",
+      "summary": "Read before applying custom styles or modifying base tokens: semantics of ink, paper, surface, line, and brand variables.",
+      "doc": "tokens/theme-base.css"
+    },
+    {
+      "id": "ui.brandbook",
+      "title": "Living Brandbook & Pattern IDs",
+      "summary": "Read when looking up existing components, stable IDs (BTN-01, CARD-01, MODAL-01), or copying code snippets.",
+      "doc": "templates/ui.vue"
+    },
+    {
+      "id": "ui.components",
+      "title": "UI Atoms and Molecules",
+      "summary": "Read before adding or modifying atomic components: BEM + dash-modifier convention, zero raw colors, accessibility standards.",
+      "doc": "ALL.md"
+    }
+  ]
+}
