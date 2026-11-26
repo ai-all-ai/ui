@@ -27,6 +27,9 @@
   "exports": {
     "./components/*": "./components/*",
     "./tokens/*": "./tokens/*",
+    "./templates/*": "./templates/*",
+    "./bin/*": "./bin/*",
+    "./aiall-pack.json": "./aiall-pack.json",
     "./package.json": "./package.json"
   },
   "bin": {
@@ -52,15 +55,20 @@
   },
   "scripts": {
     "dev": "nuxt dev --port 3333",
-    "test": "node --test test/*.test.mjs",
+    "test": "node scripts/test.mjs",
+    "test:one": "node --test",
     "check": "node bin/ui.js check",
     "check:strict": "node bin/ui.js check --strict",
     "format": "npx --yes prettier@3.6.2 --write \"**/*.{js,mjs,cjs,ts,vue,json,yml,yaml}\"",
     "format:check": "npx --yes prettier@3.6.2 --check \"**/*.{js,mjs,cjs,ts,vue,json,yml,yaml}\"",
     "prepublishOnly": "npm run format:check && npm test && npm run check:strict",
-    "verify": "npm run format:check && npm test && npm run check:strict && npm pack --dry-run"
+    "verify": "npm run format:check && npm test && npm run check:strict && npm pack --dry-run",
+    "release:check": "bash scripts/release-check.sh"
   },
   "devDependencies": {
     "nuxt": "^4.0.0"
+  },
+  "overrides": {
+    "vue-router": "5.5.1"
   }
 }
