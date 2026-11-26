@@ -31,6 +31,8 @@ test('@ai.all/ui init scaffolds theme-base.css, pages/ui.vue and aiall-pack.json
   assert.equal(r.status, 0);
   assert.ok(fs.existsSync(path.join(tmp, 'app', 'assets', 'css', 'theme-base.css')));
   assert.ok(fs.existsSync(path.join(tmp, 'app', 'assets', 'css', 'base.css')));
+  const main = fs.readFileSync(path.join(tmp, 'app', 'assets', 'css', 'main.css'), 'utf8');
+  assert.match(main, /@import '\.\/theme-base\.css';\n@import '\.\/base\.css';/);
   assert.ok(fs.existsSync(path.join(tmp, 'app', 'pages', 'ui.vue')));
   assert.ok(fs.existsSync(path.join(tmp, 'ui', 'aiall-pack.json')));
 

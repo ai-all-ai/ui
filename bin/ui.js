@@ -272,6 +272,17 @@ if (cmd === '--version' || cmd === '-v') {
   const cssDest = path.join(cssDir, 'theme-base.css');
   fs.copyFileSync(path.join(ROOT, 'tokens', 'theme-base.css'), cssDest);
   console.log(`Scaffolded: ${path.relative(CWD, cssDest)}`);
+  // The project's CSS entry imports both, so they reach every page (and DS7's css check sees them used).
+  const mainCss = path.join(cssDir, 'main.css');
+  const imports = ["@import './theme-base.css';", "@import './base.css';"];
+  const main = fs.existsSync(mainCss) ? fs.readFileSync(mainCss, 'utf8') : '';
+  const missing = imports.filter((line) => !main.includes(line.slice(9, -2)));
+  if (missing.length) {
+    fs.writeFileSync(mainCss, missing.join('\n') + '\n' + main);
+    console.log(
+      `${main ? 'Updated' : 'Scaffolded'}: ${path.relative(CWD, mainCss)} imports the ui tokens and base styles`,
+    );
+  }
   const baseDest = path.join(cssDir, 'base.css');
   if (!fs.existsSync(baseDest)) {
     fs.copyFileSync(path.join(ROOT, 'tokens', 'base.css'), baseDest);
