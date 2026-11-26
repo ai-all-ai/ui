@@ -1,0 +1,254 @@
+/* @ai.all/ui base element styles: plain HTML tags look finished with tokens only, before any component. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.6;
+}
+:where(h1, h2, h3, h4, h5, h6) {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-heading);
+  line-height: 1.2;
+}
+h1 {
+  font-size: var(--heading-h1);
+}
+h2 {
+  font-size: var(--heading-h2);
+}
+h3 {
+  font-size: var(--heading-h3);
+}
+h4 {
+  font-size: var(--text-lead);
+}
+h5 {
+  font-size: var(--text-base);
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+}
+h6 {
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+:where(p, ul, ol, dl, blockquote, pre, figure, table, address, details, fieldset, menu) {
+  margin: 0 0 var(--space-4);
+}
+.lead {
+  font-size: var(--text-lead);
+  color: var(--color-ink-700);
+}
+a {
+  color: var(--color-brand);
+  text-underline-offset: 0.18em;
+}
+a:hover {
+  color: var(--color-brand-hover);
+}
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+:where(ul, ol, menu) {
+  padding-left: var(--space-6);
+}
+:where(li + li) {
+  margin-top: var(--space-1);
+}
+dt {
+  font-weight: 600;
+}
+dd {
+  margin: 0 0 var(--space-2);
+  color: var(--color-ink-600);
+}
+small {
+  font-size: var(--text-sm);
+}
+mark {
+  padding: 0 0.2em;
+  background: var(--color-line-strong);
+  color: inherit;
+}
+abbr[title] {
+  text-decoration: underline dotted;
+  cursor: help;
+}
+:where(code, kbd, samp, pre) {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+:where(code, samp) {
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+}
+kbd {
+  padding: 0.1em 0.4em;
+  border: 1px solid var(--color-line-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+pre {
+  overflow-x: auto;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+}
+pre code {
+  padding: 0;
+  background: none;
+}
+blockquote {
+  margin-inline: 0;
+  padding: var(--space-2) var(--space-4);
+  border-left: 3px solid var(--color-brand);
+  color: var(--color-ink-700);
+}
+blockquote cite {
+  display: block;
+  margin-top: var(--space-2);
+  color: var(--color-ink-500);
+  font-size: var(--text-sm);
+  font-style: normal;
+}
+hr {
+  height: 0;
+  margin: var(--space-8) 0;
+  border: 0;
+  border-top: 1px solid var(--color-line-strong);
+}
+:where(img, svg, video, canvas, iframe) {
+  max-width: 100%;
+}
+:where(img, video) {
+  height: auto;
+}
+figure {
+  margin-inline: 0;
+}
+figcaption {
+  margin-top: var(--space-2);
+  color: var(--color-ink-500);
+  font-size: var(--text-sm);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+caption {
+  padding-bottom: var(--space-2);
+  color: var(--color-ink-500);
+  text-align: left;
+}
+:where(th, td) {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-line);
+  text-align: left;
+}
+th {
+  font-weight: 600;
+}
+tfoot :where(th, td) {
+  border-bottom: 0;
+  border-top: 1px solid var(--color-line-strong);
+}
+details {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+summary {
+  font-weight: 600;
+  cursor: pointer;
+}
+details[open] summary {
+  margin-bottom: var(--space-2);
+}
+fieldset {
+  padding: var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+}
+legend {
+  padding: 0 var(--space-2);
+  font-weight: 600;
+}
+label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+:where(
+    input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']),
+    select,
+    textarea
+  ) {
+  width: 100%;
+  min-height: var(--control-height);
+  padding: 0 var(--control-pad-x);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-ui);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--control-font);
+}
+/* Native select: the same round chevron badge as UiSelect, drawn with backgrounds so the arrow sits centred in it */
+select:not([multiple], [size]) {
+  padding-right: calc(var(--space-2) + 2.25rem);
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%),
+    radial-gradient(circle, var(--color-accent-soft) 0 70%, transparent 71%);
+  background-position:
+    calc(100% - 1.375rem) 50%,
+    calc(100% - 1.025rem) 50%,
+    calc(100% - 0.5rem) 50%;
+  background-size:
+    0.35rem 0.35rem,
+    0.35rem 0.35rem,
+    1.75rem 1.75rem;
+  background-repeat: no-repeat;
+  appearance: none;
+}
+textarea {
+  min-height: 6rem;
+  padding-block: var(--space-2);
+  resize: vertical;
+}
+::placeholder {
+  color: var(--control-placeholder);
+}
+:where(input[type='checkbox'], input[type='radio'], input[type='range'], progress, meter) {
+  accent-color: var(--color-brand);
+}
+button {
+  font: inherit;
+}
+dialog {
+  padding: var(--space-6);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-modal);
+}
+dialog::backdrop {
+  background: var(--color-dim);
+}
