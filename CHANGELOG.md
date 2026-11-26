@@ -4,7 +4,14 @@ All notable changes to @ai.all/ui are recorded here. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+## [0.2.0-beta.1] — 2026-11-26
+
+### Changed
+- States are dash modifiers, as in DS7: `-active` (slider dot) and the brandbook previews `-hover`, `-active`, `-focus` replace the `is-` classes; the highlight in Base elements is `-hl`.
+- `ALL.md` (copied to `ui/ALL.md` by `ui init`) speaks to a project: the brandbook is `app/pages/ui.vue`, the check is `npx @ai.all/ui check --strict`.
+
 ### Fixed
+- `ui init` adds `@import './theme-base.css'` and `@import './base.css'` to `app/assets/css/main.css` (creates it when missing), so the tokens reach every page and DS7's css check sees the files used.
 - `ui init`: the AI-ALL pack points at the files init puts in the project (`app/assets/css/theme-base.css`, `app/pages/ui.vue`, `ui/ALL.md`), so `aiall check` passes; before, it linked to paths inside the package.
 
 ## [0.2.0-beta.0] — 2026-11-26
