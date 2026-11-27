@@ -55,24 +55,21 @@ const toggle = (value: string) => {
     :role="inline ? 'group' : undefined"
     :aria-label="inline ? legend : undefined"
   >
-    <component
-      :is="inline ? 'span' : 'legend'"
-      class="chips__legend"
-      :class="{ '-hidden': hideLegend }"
-      >{{ legend }}</component
-    >
-    <div class="chips__row">
+    <component :is="inline ? 'span' : 'legend'" class="legend" :class="{ '-hidden': hideLegend }">{{
+      legend
+    }}</component>
+    <div class="row">
       <button
         v-for="it in items"
         :key="it.value"
         type="button"
-        class="chips__chip"
+        class="chip"
         :class="{ '-on': isOn(it.value) }"
         :aria-pressed="isOn(it.value)"
         :disabled="disabled"
         @click="toggle(it.value)"
       >
-        <span v-if="$slots.icon" class="chips__icon"><slot name="icon" :option="it" /></span>
+        <span v-if="$slots.icon" class="icon"><slot name="icon" :option="it" /></span>
         <span>{{ it.label }}</span>
       </button>
     </div>
@@ -92,34 +89,36 @@ const toggle = (value: string) => {
   padding: 0;
   border: 0;
 }
-.chips.-on-dark {
-  --chip-ink: var(--color-inverse-ink);
-  --chip-line: var(--color-inverse-line);
-  --chip-bg: transparent;
-  --chip-hover: var(--color-inverse-soft);
-  --chip-on-bg: var(--color-inverse-ink);
-  --chip-on-ink: var(--color-inverse);
+.chips {
+  &.-on-dark {
+    --chip-ink: var(--color-inverse-ink);
+    --chip-line: var(--color-inverse-line);
+    --chip-bg: transparent;
+    --chip-hover: var(--color-inverse-soft);
+    --chip-on-bg: var(--color-inverse-ink);
+    --chip-on-ink: var(--color-inverse);
+  }
+  &.-inline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  &.-inline .legend {
+    margin: 0;
+    white-space: nowrap;
+  }
+  .legend {
+    margin-bottom: var(--space-2);
+    padding: 0;
+    color: var(--color-ink-700);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+  &.-on-dark .legend {
+    color: var(--color-inverse-ink-600);
+  }
 }
-.chips.-inline {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-.chips.-inline .chips__legend {
-  margin: 0;
-  white-space: nowrap;
-}
-.chips__legend {
-  margin-bottom: var(--space-2);
-  padding: 0;
-  color: var(--color-ink-700);
-  font-size: var(--text-sm);
-  font-weight: 600;
-}
-.chips.-on-dark .chips__legend {
-  color: var(--color-inverse-ink-600);
-}
-.chips__legend.-hidden {
+.legend.-hidden {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -127,138 +126,146 @@ const toggle = (value: string) => {
   clip-path: inset(50%);
   white-space: nowrap;
 }
-.chips__row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+.chips {
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 2.25rem;
+    padding: 0 var(--space-4);
+    border: 1px solid var(--chip-line);
+    border-radius: var(--radius-pill);
+    background: var(--chip-bg);
+    color: var(--chip-ink);
+    font: inherit;
+    font-size: var(--text-sm);
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease;
+  }
 }
-.chips__chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  min-height: 2.25rem;
-  padding: 0 var(--space-4);
-  border: 1px solid var(--chip-line);
-  border-radius: var(--radius-pill);
-  background: var(--chip-bg);
-  color: var(--chip-ink);
-  font: inherit;
-  font-size: var(--text-sm);
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background-color 160ms ease,
-    border-color 160ms ease,
-    color 160ms ease;
-}
-.chips__chip:hover:not(:disabled),
-.chips.-hover .chips__chip:not(.-on) {
+.chip:hover:not(:disabled),
+.chips.-hover .chip:not(.-on) {
   border-color: var(--chip-ink);
 }
-.chips__chip.-on {
+.chip.-on {
   border-color: var(--chip-on-bg);
   background: var(--chip-on-bg);
   color: var(--chip-on-ink);
 }
-.chips__chip:focus-visible,
-.chips.-focus .chips__chip.-on {
+.chip:focus-visible,
+.chips.-focus .chip.-on {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
-.chips__chip:disabled {
+.chip:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
-.chips.-on-dark .chips__chip:focus-visible,
-.chips.-on-dark.-focus .chips__chip.-on {
-  outline-color: var(--color-inverse-ink);
+.chips {
+  &.-on-dark .chip:focus-visible,
+  &.-on-dark.-focus .chip.-on {
+    outline-color: var(--color-inverse-ink);
+  }
+  .icon {
+    display: inline-grid;
+    place-items: center;
+  }
 }
-.chips__icon {
-  display: inline-grid;
-  place-items: center;
-}
-
 /* soft: no border, quiet hover */
-.chips.-soft .chips__chip {
-  border-color: transparent;
-  border-radius: var(--radius-md);
-  background: transparent;
+.chips {
+  &.-soft .chip {
+    border-color: transparent;
+    border-radius: var(--radius-md);
+    background: transparent;
+  }
+  &.-soft .chip:hover:not(:disabled),
+  &.-soft.-hover .chip:not(.-on) {
+    background: var(--chip-hover);
+  }
+  &.-soft .chip.-on {
+    background: var(--chip-on-bg);
+  }
 }
-.chips.-soft .chips__chip:hover:not(:disabled),
-.chips.-soft.-hover .chips__chip:not(.-on) {
-  background: var(--chip-hover);
-}
-.chips.-soft .chips__chip.-on {
-  background: var(--chip-on-bg);
-}
-
 /* segment: one shared track, options share its height */
-.chips.-segment .chips__row {
-  display: inline-flex;
-  gap: var(--space-1);
-  max-width: 100%;
-  padding: var(--space-1);
-  overflow-x: auto;
-  border: 1px solid var(--chip-line);
-  border-radius: var(--radius-pill);
-  background: var(--chip-hover);
-  scrollbar-width: none;
+.chips {
+  &.-segment .row {
+    display: inline-flex;
+    gap: var(--space-1);
+    max-width: 100%;
+    padding: var(--space-1);
+    overflow-x: auto;
+    border: 1px solid var(--chip-line);
+    border-radius: var(--radius-pill);
+    background: var(--chip-hover);
+    scrollbar-width: none;
+  }
+  &.-segment .chip {
+    flex: none;
+    border-color: transparent;
+    background: transparent;
+  }
+  &.-segment .chip:hover:not(:disabled),
+  &.-segment.-hover .chip:not(.-on) {
+    background: var(--chip-hover);
+  }
+  &.-segment .chip.-on {
+    background: var(--chip-on-bg);
+    box-shadow: var(--shadow-card);
+  }
 }
-.chips.-segment .chips__chip {
-  flex: none;
-  border-color: transparent;
-  background: transparent;
-}
-.chips.-segment .chips__chip:hover:not(:disabled),
-.chips.-segment.-hover .chips__chip:not(.-on) {
-  background: var(--chip-hover);
-}
-.chips.-segment .chips__chip.-on {
-  background: var(--chip-on-bg);
-  box-shadow: var(--shadow-card);
-}
-
 /* tile: equal tiles, icon over label, in one card */
-.chips.-tile .chips__row {
-  flex-wrap: nowrap;
-  gap: var(--space-1);
-  padding: var(--space-2);
-  overflow-x: auto;
-  border: 1px solid var(--chip-line);
-  border-radius: var(--radius-lg);
-  background: var(--chip-bg);
-  scrollbar-width: none;
+.chips {
+  &.-tile .row {
+    flex-wrap: nowrap;
+    gap: var(--space-1);
+    padding: var(--space-2);
+    overflow-x: auto;
+    border: 1px solid var(--chip-line);
+    border-radius: var(--radius-lg);
+    background: var(--chip-bg);
+    scrollbar-width: none;
+  }
+  &.-tile .chip {
+    flex: 1 0 6.5rem;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-height: 4.5rem;
+    padding: var(--space-3) var(--space-2);
+    border-color: transparent;
+    border-radius: var(--radius-md);
+    background: transparent;
+  }
+  &.-tile .chip:hover:not(:disabled),
+  &.-tile.-hover .chip:not(.-on) {
+    background: var(--chip-hover);
+  }
+  &.-tile .chip.-on {
+    background: var(--chip-on-bg);
+  }
 }
-.chips.-tile .chips__chip {
-  flex: 1 0 6.5rem;
-  flex-direction: column;
-  gap: var(--space-1);
-  min-height: 4.5rem;
-  padding: var(--space-3) var(--space-2);
-  border-color: transparent;
-  border-radius: var(--radius-md);
-  background: transparent;
-}
-.chips.-tile .chips__chip:hover:not(:disabled),
-.chips.-tile.-hover .chips__chip:not(.-on) {
-  background: var(--chip-hover);
-}
-.chips.-tile .chips__chip.-on {
-  background: var(--chip-on-bg);
-}
-
 /* small */
-.chips.-small .chips__chip {
-  min-height: 1.85rem;
-  padding: 0 var(--space-3);
-  font-size: var(--text-xs);
-}
-.chips.-small.-tile .chips__chip {
-  min-height: 3.5rem;
+.chips {
+  &.-small .chip {
+    min-height: 1.85rem;
+    padding: 0 var(--space-3);
+    font-size: var(--text-xs);
+  }
+  &.-small.-tile .chip {
+    min-height: 3.5rem;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .chips__chip {
+  .chip {
     transition: none;
   }
 }

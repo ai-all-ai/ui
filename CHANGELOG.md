@@ -4,6 +4,18 @@ All notable changes to @ai.all/ui are recorded here. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+## [0.4.0-beta.0] — 2026-11-27
+
+### Changed
+
+- **Breaking (class names):** BEM element names are gone from the components, the brandbook and the gallery. Inner parts are short names scoped under the root: `.counter__btn` becomes `.btn` (`.counter .btn` in plain CSS), `.gallery__card` becomes `.card`, `.btn__spinner` becomes `.spinner`. Element modifiers are dash modifiers on the part: `.gallery-toolbar__row--settings` becomes `.row.-settings`. Projects that override these classes must rename them. Root classes and dash modifiers (`.btn.-primary`, `.tabs.-pill`) do not change.
+- Brandbook page (`templates/ui.vue`): the four classes that collided with component parts are `bb-chip`, `bb-btn`, `bb-tab` and `bb-row`.
+- `ui check` (Gate 3) fails on BEM element names (`block__element`), and the naming rule in `ALL.md` says so.
+- The package test checks that no BEM name is left in the production CSS.
+- Component styles use native CSS nesting: inner parts are written under the root (`& .btn`, `&.-small`). The compiled selectors are the same as before; brandbook screenshots are pixel-identical on desktop.
+- `docs/CSS-CONVENTIONS.md`: the CSS rules that `@ai.all/ui` applies, with its exceptions (`UiDevTools` global block, `:deep()` use, transition names).
+- `UiTag` and `UiDevTools` styles no longer use tag selectors next to classes; the global `html .dev-issue` became `.dev-issue`.
+
 ## [0.3.0-beta.0] — 2026-11-27
 
 ### Added

@@ -165,7 +165,7 @@ Run `npx aiall sync` and `npx aiall check` after initialization or migration.
 | **Gate 1: Token Contract**    | `tokens/theme-base.css`    | Verifies required semantic variables are declared (`--color-paper`, `--color-ink`, `--color-brand`, etc.). |
 | **Gate 1b: Known Tokens**     | Components in `<style>`    | Every `var(--x)` without a fallback is declared in the theme CSS files or in the component itself.         |
 | **Gate 2: Token Discipline**  | Components in `<style>`    | Forbids raw `#hex` or `rgb()` literals in components; enforces `var(--color-*)`.                           |
-| **Gate 3: Modifier Naming**   | Class attributes           | Enforces separate dash-prefixed modifiers (`.-modifier`), forbids compound anti-patterns (`.btn-big`).     |
+| **Gate 3: Modifier Naming**   | Class attributes           | Enforces separate dash-prefixed modifiers (`.-modifier`), forbids compound anti-patterns (`.btn-big`) and BEM elements (`.card__title`). |
 | **Gate 4: Component Anatomy** | Vue Single File Components | Requires `<template>`, `<script setup lang="ts">`, and forbids `!important`.                               |
 
 Run quality gates:

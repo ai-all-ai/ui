@@ -38,41 +38,43 @@ withDefaults(
   text-decoration: none;
   white-space: nowrap;
 }
-.tag.-solid {
-  background: var(--color-brand);
-  color: var(--color-brand-contrast);
-}
-.tag.-outline {
-  border-color: var(--color-line-strong);
-  color: var(--color-ink);
-}
-.tag.-muted {
-  background: var(--color-accent-soft);
-  color: var(--color-ink-700);
-}
-.tag.-solid.-on-dark {
-  background: var(--color-inverse-ink);
-  color: var(--color-inverse);
-}
-.tag.-outline.-on-dark {
-  border-color: var(--color-inverse-line);
-  color: var(--color-inverse-ink);
-}
-.tag.-muted.-on-dark {
-  background: var(--color-inverse-soft);
-  color: var(--color-inverse-ink);
-}
-.tag.-small {
-  padding: 0.05rem 0.5rem;
-  font-size: 0.6875rem;
-}
-a.tag:focus-visible,
-.tag.-focus {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-}
-a.tag:hover,
-.tag.-hover {
-  border-color: var(--color-ink);
+.tag {
+  &.-solid {
+    background: var(--color-brand);
+    color: var(--color-brand-contrast);
+  }
+  &.-outline {
+    border-color: var(--color-line-strong);
+    color: var(--color-ink);
+  }
+  &.-muted {
+    background: var(--color-accent-soft);
+    color: var(--color-ink-700);
+  }
+  &.-solid.-on-dark {
+    background: var(--color-inverse-ink);
+    color: var(--color-inverse);
+  }
+  &.-outline.-on-dark {
+    border-color: var(--color-inverse-line);
+    color: var(--color-inverse-ink);
+  }
+  &.-muted.-on-dark {
+    background: var(--color-inverse-soft);
+    color: var(--color-inverse-ink);
+  }
+  &.-small {
+    padding: 0.05rem 0.5rem;
+    font-size: 0.6875rem;
+  }
+  &:focus-visible,
+  &.-focus {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+  &:hover,
+  &.-hover {
+    border-color: var(--color-ink);
+  }
 }
 </style>

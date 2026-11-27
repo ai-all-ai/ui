@@ -589,7 +589,7 @@ const tagDesc = computed<Record<string, string>>(() =>
 );
 const usageTags = ref<string[][]>([]);
 onMounted(() => {
-  const rows = usage.value?.querySelectorAll<HTMLElement>('.bb__tagged > .bb__sample') ?? [];
+  const rows = usage.value?.querySelectorAll<HTMLElement>('.tagged > .sample') ?? [];
   usageTags.value = [...rows].map((row) => {
     const els = [...row.querySelectorAll<HTMLElement>('*')];
     for (const el of els) {
@@ -605,8 +605,8 @@ const hlOn = (e: Event) => {
   if (!chip) return;
   hlOff();
   chip
-    .closest('.bb__tagged')
-    ?.querySelectorAll<HTMLElement>(`.bb__sample ${chip.dataset.tag}`)
+    .closest('.tagged')
+    ?.querySelectorAll<HTMLElement>(`.sample ${chip.dataset.tag}`)
     .forEach((el) => el.classList.add('-hl'));
 };
 const hlOff = () => document.querySelectorAll('.-hl').forEach((el) => el.classList.remove('-hl'));
@@ -774,7 +774,7 @@ const catalog: Entry[] = [
     name: 'Chips',
     level: 'molecule',
     component: 'UiChips',
-    classes: 'chips -pill, -soft, -segment, -tile, -small, -on-dark; chips__chip -on',
+    classes: 'chips -pill, -soft, -segment, -tile, -small, -on-dark; chip -on',
     description:
       'Pick one or several options: pills, soft chips, a segmented track or icon tiles; small or medium; light or dark.',
     usage: '<UiChips v-model="size" legend="Size" :options="sizes" variant="segment" />',
@@ -813,7 +813,7 @@ const catalog: Entry[] = [
     name: 'Stepper',
     level: 'molecule',
     component: 'UiStepper',
-    classes: 'stepper, stepper__step -done',
+    classes: 'stepper, step -done',
     description: 'Numbered steps of a flow; done steps show a check.',
     usage: '<UiStepper :steps="steps" :current="1" label="Checkout" />',
   },
@@ -831,7 +831,7 @@ const catalog: Entry[] = [
     name: 'Accordion (FAQ)',
     level: 'molecule',
     component: 'UiAccordion',
-    classes: 'faq, -plain, -accent; faq__item, faq__q, faq__a',
+    classes: 'faq, -plain, -accent; item, q, a',
     description:
       'Questions that open one at a time: opening one closes the rest. Native details, keyboard and screen-reader friendly.',
     usage: '<UiAccordion :items="[{ q: \'How long?\', a: \'Same day.\' }]" :open="0" />',
@@ -841,7 +841,7 @@ const catalog: Entry[] = [
     name: 'Counter (− / +)',
     level: 'molecule',
     component: 'UiCounter',
-    classes: 'counter -outline, -inner, -small, -on-dark; counter__btn, counter__input',
+    classes: 'counter -outline, -inner, -small, -on-dark; btn, input',
     description:
       'A bounded number with − and +: guests, quantity, rooms. Arrow keys change it, typing is clamped to min and max.',
     usage: '<UiCounter v-model="guests" label="Guests" :min="0" :max="10" />',
@@ -852,7 +852,7 @@ const catalog: Entry[] = [
     name: 'Tabs',
     level: 'molecule',
     component: 'UiTabs',
-    classes: 'tabs -underline, -pill, -small, -on-dark; tabs__tab',
+    classes: 'tabs -underline, -pill, -small, -on-dark; tab',
     description:
       'Switch between views of one block (plan, specs, photos). Arrow keys move between tabs; panels stay in the page.',
     usage: '<UiTabs v-model="view" :tabs="tabs" label="Product views" />',
@@ -863,7 +863,7 @@ const catalog: Entry[] = [
     name: 'Breadcrumb',
     level: 'molecule',
     component: 'UiBreadcrumb',
-    classes: 'crumbs -plain, -pill, -on-dark; crumbs__link',
+    classes: 'crumbs -plain, -pill, -on-dark; link',
     description:
       'Where the page sits in the site. The last item is the current page and not a link.',
     usage: "<UiBreadcrumb :items=\"[{ label: 'Home', href: '/' }, { label: 'Services' }]\" />",
@@ -874,7 +874,7 @@ const catalog: Entry[] = [
     name: 'Slider controls',
     level: 'molecule',
     component: 'UiSliderNav',
-    classes: 'slider-nav -numbered, -small, -on-dark; slider-nav__dot, slider-nav__arrow',
+    classes: 'slider-nav -numbered, -small, -on-dark; dot, arrow',
     description:
       'Navigation for any slider: dots and arrows, numbers, arrows only or dots only; small; on dark.',
     usage: '<UiSliderNav v-model="index" :count="5" />',
@@ -894,8 +894,7 @@ const catalog: Entry[] = [
     name: 'Modal',
     level: 'organism',
     component: 'UiModal',
-    classes:
-      'modal -small, -wide, -read, -side, -bottom; modal__cover, modal__head, modal__body, modal__foot',
+    classes: 'modal -small, -wide, -read, -side, -bottom; cover, head, body, foot',
     description:
       'Native dialog with a blurred page behind: dialog, confirm, reading, wide form, side panel, bottom sheet and with a photo.',
     usage: '<UiModal :open="open" title="Contact us" @close="open = false">…</UiModal>',
@@ -1682,9 +1681,9 @@ const icons = [
 
 <template>
   <main id="main" class="bb" :class="`-detail-${detail.toLowerCase()}`">
-    <header class="bb__intro">
-      <p class="bb__eyebrow">@ai.all/ui · DS7</p>
-      <h1 class="bb__title">Brandbook</h1>
+    <header class="intro">
+      <p class="eyebrow">@ai.all/ui · DS7</p>
+      <h1 class="title">Brandbook</h1>
       <p class="lead">
         Foundations, base elements and every component with its ID. A block exists here, with all
         its variants, before a page uses it. Every name, description, class and snippet can be
@@ -1692,16 +1691,16 @@ const icons = [
       </p>
     </header>
 
-    <div ref="bar" class="bb__nav">
-      <div class="bb__nav-main">
-        <div class="bb__tabs" role="tablist" aria-label="Brandbook pages">
+    <div ref="bar" class="nav">
+      <div class="nav-main">
+        <div class="tabs" role="tablist" aria-label="Brandbook pages">
           <button
             v-for="x in tabs"
             :id="`tab-${x.id}`"
             :key="x.id"
             type="button"
             role="tab"
-            class="bb__tab"
+            class="tab"
             :aria-selected="tab === x.id"
             :aria-controls="`panel-${x.id}`"
             @click="tab = x.id"
@@ -1709,19 +1708,19 @@ const icons = [
             {{ x.name }}
           </button>
           <!-- the source gallery is a dev-server page of the ui app (see the gallery layer); a link tab, not a panel -->
-          <a v-if="galleryLink" class="bb__tab" href="/ui/ds" role="tab">Source gallery</a>
+          <a v-if="galleryLink" class="tab" href="/ui/ds" role="tab">Source gallery</a>
         </div>
-        <nav class="bb__toc" aria-label="On this page">
+        <nav class="toc" aria-label="On this page">
           <a v-for="x in toc" :key="x.id" :href="`#${x.id}`">{{ x.name }}</a>
         </nav>
       </div>
-      <div class="bb__navend">
-        <div class="bb__navctl">
+      <div class="navend">
+        <div class="navctl">
           <div
-            class="bb__navgrid"
+            class="navgrid"
             title="How much to show: View (demos only), Info (+ names, classes, code), Full (+ copy buttons)"
           >
-            <span class="bb__navgrid-label" aria-hidden="true">Info</span>
+            <span class="navgrid-label" aria-hidden="true">Info</span>
             <UiChips
               v-model="detail"
               legend="How much information to show"
@@ -1731,8 +1730,8 @@ const icons = [
               hide-legend
             />
           </div>
-          <div v-if="gridOn" class="bb__navgrid" title="Layout grid · Alt + G">
-            <span class="bb__navgrid-label" aria-hidden="true">Grid</span>
+          <div v-if="gridOn" class="navgrid" title="Layout grid · Alt + G">
+            <span class="navgrid-label" aria-hidden="true">Grid</span>
             <UiChips
               v-model="gridColsLabel"
               legend="Layout grid columns"
@@ -1745,7 +1744,7 @@ const icons = [
         </div>
         <button
           type="button"
-          class="bb__fab"
+          class="fab"
           popovertarget="bb-menu"
           aria-label="Brandbook menu"
           title="Brandbook menu"
@@ -1756,13 +1755,13 @@ const icons = [
         </button>
       </div>
     </div>
-    <nav id="bb-menu" ref="menu" popover class="bb__menu" aria-label="Brandbook menu">
-      <p class="bb__label">Pages</p>
-      <ul class="bb__menu-list">
+    <nav id="bb-menu" ref="menu" popover class="menu" aria-label="Brandbook menu">
+      <p class="label">Pages</p>
+      <ul class="menu-list">
         <li v-for="x in tabs" :key="x.id">
           <button
             type="button"
-            class="bb__menu-item"
+            class="menu-item"
             :aria-current="tab === x.id ? 'page' : undefined"
             @click="pick(x.id)"
           >
@@ -1770,14 +1769,14 @@ const icons = [
           </button>
         </li>
       </ul>
-      <p class="bb__label">On this page</p>
-      <ul class="bb__menu-list">
+      <p class="label">On this page</p>
+      <ul class="menu-list">
         <li v-for="x in toc" :key="x.id">
-          <a class="bb__menu-item" :href="`#${x.id}`" @click="closeMenu">{{ x.name }}</a>
+          <a class="menu-item" :href="`#${x.id}`" @click="closeMenu">{{ x.name }}</a>
         </li>
       </ul>
-      <p class="bb__label">Show</p>
-      <div class="bb__gridset">
+      <p class="label">Show</p>
+      <div class="gridset">
         <UiChips
           v-model="detail"
           legend="How much information to show"
@@ -1786,13 +1785,11 @@ const icons = [
           size="small"
           hide-legend
         />
-        <p class="bb__hint">
-          View: demos only. Info: + names, classes, code. Full: + copy buttons.
-        </p>
+        <p class="hint">View: demos only. Info: + names, classes, code. Full: + copy buttons.</p>
       </div>
-      <p class="bb__label">Developer</p>
-      <button type="button" class="bb__menu-item" @click="pick('tools')">All dev tools</button>
-      <div v-if="gridOn" class="bb__gridset">
+      <p class="label">Developer</p>
+      <button type="button" class="menu-item" @click="pick('tools')">All dev tools</button>
+      <div v-if="gridOn" class="gridset">
         <UiChips
           v-model="gridColsLabel"
           legend="Layout grid"
@@ -1801,13 +1798,13 @@ const icons = [
           size="small"
         />
         <UiSwitch v-model="gridButton" label="Grid button on the page" />
-        <p class="bb__hint">Alt + G steps the columns. Site setting: <code>uiDevTools</code></p>
+        <p class="hint">Alt + G steps the columns. Site setting: <code>uiDevTools</code></p>
       </div>
-      <p v-else class="bb__hint">
+      <p v-else class="hint">
         Dev tools are off here: <code>uiDevTools</code> is <code>{{ gridMode }}</code
         >.
       </p>
-      <a class="bb__menu-item -top" href="#main" @click="closeMenu">Back to top</a>
+      <a class="menu-item -top" href="#main" @click="closeMenu">Back to top</a>
     </nav>
 
     <div
@@ -1827,32 +1824,32 @@ const icons = [
       role="tabpanel"
       aria-labelledby="tab-foundations"
     >
-      <section id="colours" class="bb__sec">
-        <h2 class="bb__h">Colours</h2>
-        <p class="bb__note">
+      <section id="colours" class="sec">
+        <h2 class="h">Colours</h2>
+        <p class="note">
           Monochrome by default. A project changes the brand block in its <code>theme.css</code>;
           this page reads the live values, so it always shows the current theme. Contrast is
           measured against the page background, inverse colours against the dark band.
         </p>
-        <section v-for="g in colourGroups" :id="g.id" :key="g.id" class="bb__group">
-          <div class="bb__row bb__group-head">
-            <h3 class="bb__h3">{{ g.title }}</h3>
+        <section v-for="g in colourGroups" :id="g.id" :key="g.id" class="group">
+          <div class="row group-head">
+            <h3 class="h3">{{ g.title }}</h3>
             <UiCopyButton
               :value="groupCss(g)"
               :label="`${g.title} colours as CSS`"
               text="Copy group"
             />
           </div>
-          <p class="bb__note">{{ g.note }}</p>
-          <ul class="bb__swatches">
-            <li v-for="c in g.items" :key="c.name" class="bb__swatch">
-              <span class="bb__chip" :style="{ background: `var(${c.name})` }" />
-              <span class="bb__swatch-meta">
-                <span class="bb__row">
+          <p class="note">{{ g.note }}</p>
+          <ul class="swatches">
+            <li v-for="c in g.items" :key="c.name" class="swatch">
+              <span class="chip" :style="{ background: `var(${c.name})` }" />
+              <span class="swatch-meta">
+                <span class="row">
                   <code>{{ c.name }}</code>
                   <UiCopyButton :value="`var(${c.name})`" :label="`variable ${c.name}`" />
                 </span>
-                <span class="bb__row">
+                <span class="row">
                   <small>{{ values[c.name] || '…' }}</small>
                   <UiCopyButton
                     v-if="values[c.name]"
@@ -1861,29 +1858,29 @@ const icons = [
                   />
                   <small
                     v-if="contrast(c.name, g.id === 'c-inverse' ? '--color-inverse' : undefined)"
-                    class="bb__muted"
+                    class="muted"
                     >·
                     {{
                       contrast(c.name, g.id === 'c-inverse' ? '--color-inverse' : undefined)
                     }}</small
                   >
                 </span>
-                <small class="bb__muted">{{ c.role }}</small>
+                <small class="muted">{{ c.role }}</small>
               </span>
             </li>
           </ul>
         </section>
       </section>
 
-      <section id="type" class="bb__sec">
-        <h2 class="bb__h">Type</h2>
-        <p class="bb__note">
+      <section id="type" class="sec">
+        <h2 class="h">Type</h2>
+        <p class="note">
           Font: <code>--font-sans</code> for text, <code>--font-display</code> for headings,
           <code>--font-mono</code> for code.
         </p>
-        <div v-for="t in typeScale" :key="t.token" class="bb__type">
+        <div v-for="t in typeScale" :key="t.token" class="type">
           <p
-            class="bb__type-sample"
+            class="type-sample"
             :style="{
               fontSize: `var(${t.token})`,
               fontWeight: t.tag.startsWith('h') ? 'var(--font-weight-heading)' : undefined,
@@ -1891,41 +1888,39 @@ const icons = [
           >
             {{ t.sample }}
           </p>
-          <span class="bb__row">
+          <span class="row">
             <code>{{ t.tag }} · {{ t.token }}</code>
             <UiCopyButton :value="`var(${t.token})`" :label="`variable ${t.token}`" />
           </span>
         </div>
       </section>
 
-      <section id="space" class="bb__sec">
-        <h2 class="bb__h">Space, radius, shadow</h2>
-        <div class="bb__cols">
+      <section id="space" class="sec">
+        <h2 class="h">Space, radius, shadow</h2>
+        <div class="cols">
           <div>
-            <h3 class="bb__h3">Space</h3>
-            <ul class="bb__list">
+            <h3 class="h3">Space</h3>
+            <ul class="list">
               <li v-for="s in spaces" :key="s">
-                <span class="bb__bar" :style="{ width: `var(${s})` }" /><code>{{ s }}</code>
+                <span class="bar" :style="{ width: `var(${s})` }" /><code>{{ s }}</code>
                 <UiCopyButton :value="`var(${s})`" :label="`variable ${s}`" />
               </li>
             </ul>
           </div>
           <div>
-            <h3 class="bb__h3">Radius</h3>
-            <ul class="bb__list">
+            <h3 class="h3">Radius</h3>
+            <ul class="list">
               <li v-for="r in radii" :key="r">
-                <span class="bb__box" :style="{ borderRadius: `var(${r})` }" /><code>{{ r }}</code>
+                <span class="box" :style="{ borderRadius: `var(${r})` }" /><code>{{ r }}</code>
                 <UiCopyButton :value="`var(${r})`" :label="`variable ${r}`" />
               </li>
             </ul>
           </div>
           <div>
-            <h3 class="bb__h3">Shadow</h3>
-            <ul class="bb__list">
+            <h3 class="h3">Shadow</h3>
+            <ul class="list">
               <li v-for="s in shadows" :key="s">
-                <span class="bb__box -white" :style="{ boxShadow: `var(${s})` }" /><code>{{
-                  s
-                }}</code>
+                <span class="box -white" :style="{ boxShadow: `var(${s})` }" /><code>{{ s }}</code>
                 <UiCopyButton :value="`var(${s})`" :label="`variable ${s}`" />
               </li>
             </ul>
@@ -1942,45 +1937,45 @@ const icons = [
       role="tabpanel"
       aria-labelledby="tab-elements"
     >
-      <section id="el-usage" class="bb__sec">
-        <h2 class="bb__h">In use <code class="bb__id">TEXT-01</code></h2>
-        <p class="bb__note">
+      <section id="el-usage" class="sec">
+        <h2 class="h">In use <code class="id">TEXT-01</code></h2>
+        <p class="note">
           A sample page made only of plain HTML elements and <code>base.css</code>. Every block
           lists its tags in the right margin with what each is for; hover a tag to outline it in the
           text.
         </p>
         <UiSwitch v-model="showTags" label="Outline every element" />
-        <div ref="usage" class="bb__usage" :class="{ '-tags': showTags }">
+        <div ref="usage" class="usage" :class="{ '-tags': showTags }">
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <nav aria-label="Breadcrumb">
-                <ol class="bb__crumbs">
+                <ol class="crumbs">
                   <li><a href="#el-usage">Home</a></li>
                   <li><a href="#el-usage">Services</a></li>
                   <li aria-current="page">Full service</li>
                 </ol>
               </nav>
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[0]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[0]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <hgroup>
                 <h2>Full service in one visit</h2>
                 <p class="lead">
@@ -1989,20 +1984,20 @@ const icons = [
                 </p>
               </hgroup>
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[1]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[1]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <p>
                 A full service is the simplest way to keep things running: one visit, one
                 <dfn>fixed price</dfn>, no surprises. We <strong>check every part</strong>, replace
@@ -2018,20 +2013,20 @@ const icons = [
                 <mark>Booking a day ahead</mark> usually gets you a same-day slot.
               </p>
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[2]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[2]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <p>
                 As one customer put it, <q>it felt like getting a new one back</q>. The
                 <cite>Workshop Guide 2026</cite> recommends a full check every 1,500 km<sup>*</sup>;
@@ -2048,40 +2043,40 @@ const icons = [
                 >
               </p>
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[3]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[3]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <p>
                 <small
                   >Updated <time datetime="2026-11-26">26 November 2026</time> · 4 min read</small
                 >
               </p>
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[4]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[4]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <section aria-labelledby="u-included">
                 <h3 id="u-included">What is included</h3>
                 <p>
@@ -2103,20 +2098,20 @@ const icons = [
                 </ul>
               </section>
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[5]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[5]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <h4>How it works</h4>
               <ol>
                 <li>Book a time online or by phone.</li>
@@ -2124,39 +2119,39 @@ const icons = [
                 <li>Pick it up the same day.</li>
               </ol>
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[6]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[6]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <figure>
                 <img :src="photo" alt="Grey mountains under a pale sun" width="1200" height="800" />
                 <figcaption>A figure: the photo with its caption.</figcaption>
               </figure>
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[7]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[7]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <table>
                 <caption>
                   Prices include tax
@@ -2187,20 +2182,20 @@ const icons = [
                 </tbody>
               </table>
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[8]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[8]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <blockquote cite="https://example.com/reviews">
                 <p>
                   Clear price, done the same day and everything explained.
@@ -2209,20 +2204,20 @@ const icons = [
                 <cite>Anna R., customer since 2024</cite>
               </blockquote>
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[9]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[9]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <details open>
                 <summary>How long does it take?</summary>
                 <p>
@@ -2235,20 +2230,20 @@ const icons = [
                 <p>Yes, the express service takes under an hour.</p>
               </details>
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[10]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[10]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <dl>
                 <dt>Time</dt>
                 <dd>2 hours</dd>
@@ -2258,55 +2253,55 @@ const icons = [
                 <dd>3 months</dd>
               </dl>
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[11]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[11]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <p>
                 Booked this week <meter value="0.7">70%</meter> · code <code>FIRST10</code> · output
                 <samp>OK</samp>
               </p>
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[12]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[12]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <hr />
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[13]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[13]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <form onsubmit="return false" aria-label="Book a visit">
                 <fieldset>
                   <legend>Book a visit</legend>
@@ -2333,20 +2328,20 @@ const icons = [
                 <p><button type="submit">Book</button> <output>Estimated: $80</output></p>
               </form>
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[14]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[14]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
           <div
-            class="bb__tagged"
+            class="tagged"
             @mouseover="hlOn"
             @focusin="hlOn"
             @mouseleave="hlOff"
             @focusout="hlOff"
           >
-            <div class="bb__sample">
+            <div class="sample">
               <footer>
                 <address>
                   Example Workshop<br />1 Main Street<br /><a href="tel:+10000000000"
@@ -2355,31 +2350,31 @@ const icons = [
                 </address>
               </footer>
             </div>
-            <div class="bb__tags">
-              <span v-for="t in usageTags[15]" :key="t" class="bb__tagline"
+            <div class="tags">
+              <span v-for="t in usageTags[15]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
             </div>
           </div>
         </div>
       </section>
-      <section v-for="g in elementGroups" :id="g.id" :key="g.id" class="bb__sec">
-        <h2 class="bb__h">{{ g.title }}</h2>
-        <p class="bb__note">{{ g.note }}</p>
+      <section v-for="g in elementGroups" :id="g.id" :key="g.id" class="sec">
+        <h2 class="h">{{ g.title }}</h2>
+        <p class="note">{{ g.note }}</p>
         <div
           v-for="(it, i) in g.items"
           :key="i"
-          class="bb__tagged"
+          class="tagged"
           @mouseover="hlOn"
           @focusin="hlOn"
           @mouseleave="hlOff"
           @focusout="hlOff"
         >
-          <pre v-if="it.code" class="bb__sample -code"><code>{{ it.html }}</code></pre>
+          <pre v-if="it.code" class="sample -code"><code>{{ it.html }}</code></pre>
           <!-- eslint-disable-next-line vue/no-v-html -- static markup written in this file -->
-          <div v-else class="bb__sample" v-html="it.html" />
-          <div class="bb__tags">
-            <span v-for="[t, d] in it.tags" :key="t" class="bb__tagline"
+          <div v-else class="sample" v-html="it.html" />
+          <div class="tags">
+            <span v-for="[t, d] in it.tags" :key="t" class="tagline"
               ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ d }}</span
             >
             <UiCopyButton :value="it.html" label="HTML of this sample" />
@@ -2387,17 +2382,17 @@ const icons = [
         </div>
       </section>
 
-      <section id="el-index" class="bb__sec">
-        <h2 class="bb__h">All tags <code class="bb__id">TAGS-01</code></h2>
-        <p class="bb__note">
+      <section id="el-index" class="sec">
+        <h2 class="h">All tags <code class="id">TAGS-01</code></h2>
+        <p class="note">
           Every HTML element on this page with what it is for. Copy the tag or its description;
           hover a tag under a sample to outline it there.
         </p>
-        <label class="bb__search">
-          <span class="bb__sr">Filter tags</span>
+        <label class="search">
+          <span class="sr">Filter tags</span>
           <input v-model="tagQuery" type="search" placeholder="Filter: table, link, form…" />
         </label>
-        <table class="bb__table">
+        <table class="table">
           <thead>
             <tr>
               <th scope="col">Tag</th>
@@ -2407,13 +2402,13 @@ const icons = [
           <tbody>
             <tr v-for="r in tagRows" :key="r.tag">
               <td>
-                <span class="bb__row">
+                <span class="row">
                   <code>&lt;{{ r.tag }}&gt;</code>
                   <UiCopyButton :value="`<${r.tag}>`" :label="`tag ${r.tag}`" />
                 </span>
               </td>
               <td>
-                <span class="bb__row">
+                <span class="row">
                   {{ r.desc }}
                   <UiCopyButton
                     :value="`<${r.tag}> — ${r.desc}`"
@@ -2435,21 +2430,21 @@ const icons = [
       role="tabpanel"
       aria-labelledby="tab-components"
     >
-      <section v-for="l in levels" :id="`lvl-${l.id}`" :key="l.id" class="bb__sec">
-        <h2 class="bb__h">{{ l.name }}</h2>
-        <p class="bb__note">{{ l.note }}</p>
+      <section v-for="l in levels" :id="`lvl-${l.id}`" :key="l.id" class="sec">
+        <h2 class="h">{{ l.name }}</h2>
+        <p class="note">{{ l.note }}</p>
         <article
           v-for="e in catalog.filter((x) => x.level === l.id)"
           :id="e.id"
           :key="e.id"
-          class="bb__spec"
+          class="spec"
         >
-          <header class="bb__plate">
-            <div class="bb__plate-top">
-              <code class="bb__id">{{ e.id }}</code>
-              <h3 class="bb__h3">{{ e.name }}</h3>
+          <header class="plate">
+            <div class="plate-top">
+              <code class="id">{{ e.id }}</code>
+              <h3 class="h3">{{ e.name }}</h3>
               <UiTag variant="outline">{{ e.level }}</UiTag>
-              <span class="bb__copies" role="group" :aria-label="`Copy ${e.id}`">
+              <span class="copies" role="group" :aria-label="`Copy ${e.id}`">
                 <UiCopyButton :value="e.id" :label="`ID ${e.id}`" text="ID" />
                 <UiCopyButton
                   :value="`${e.id} · ${e.name}`"
@@ -2464,27 +2459,27 @@ const icons = [
                 <UiCopyButton :value="card(e)" :label="`card of ${e.id}`" text="All" />
               </span>
             </div>
-            <p class="bb__desc">{{ e.description }}</p>
-            <div class="bb__specs">
-              <p class="bb__spec-line">
-                <span class="bb__spec-key">class</span>
+            <p class="desc">{{ e.description }}</p>
+            <div class="specs">
+              <p class="spec-line">
+                <span class="spec-key">class</span>
                 <code>{{ e.classes }}</code>
                 <UiCopyButton :value="e.classes" :label="`classes of ${e.id}`" />
               </p>
-              <p class="bb__spec-line">
-                <span class="bb__spec-key">use</span>
+              <p class="spec-line">
+                <span class="spec-key">use</span>
                 <code>{{ e.usage }}</code>
                 <UiCopyButton :value="e.usage" :label="`usage of ${e.id}`" />
               </p>
             </div>
           </header>
 
-          <div class="bb__stage">
+          <div class="stage">
             <template v-if="e.id === 'ICON-01'">
-              <ul class="bb__icons">
-                <li v-for="n in icons" :key="n" class="bb__icon">
-                  <span class="bb__icon-box"><UiIcon :name="n" /></span>
-                  <span class="bb__icon-name" :title="n"
+              <ul class="icons">
+                <li v-for="n in icons" :key="n" class="icon">
+                  <span class="icon-box"><UiIcon :name="n" /></span>
+                  <span class="icon-name" :title="n"
                     ><code>{{ n }}</code></span
                   >
                   <UiCopyButton :value="`<UiIcon name=&quot;${n}&quot; />`" :label="`icon ${n}`" />
@@ -2492,18 +2487,18 @@ const icons = [
               </ul>
             </template>
             <template v-else-if="e.btn">
-              <div class="bb__btn">
-                <h4 class="bb__label">Sizes</h4>
-                <div class="bb__cells -matrix">
+              <div class="specimen">
+                <h4 class="label">Sizes</h4>
+                <div class="cells -matrix">
                   <figure
                     v-for="z in btnSizes"
                     :key="z.size"
-                    class="bb__cell"
+                    class="cell"
                     :title="z.note"
                     :data-html="`btn-${e.btn}-${z.size}`"
                   >
                     <UiButton :variant="e.btn" :size="z.size">{{ z.label }}</UiButton>
-                    <figcaption class="bb__row">
+                    <figcaption class="row">
                       <code>{{ rendered[`btn-${e.btn}-${z.size}`]?.cls }}</code>
                       <span>{{ z.note.split(',')[0] }}</span>
                       <UiCopyButton
@@ -2524,14 +2519,14 @@ const icons = [
                     </figcaption>
                   </figure>
                 </div>
-                <h4 class="bb__label">
+                <h4 class="label">
                   States on light
-                  <span class="bb__hint"
+                  <span class="hint"
                     >· hover for details, copy gives the selector or attribute</span
                   >
                 </h4>
-                <div class="bb__cells -matrix">
-                  <figure v-for="st in btnStates" :key="st.id" class="bb__cell" :title="st.note">
+                <div class="cells -matrix">
+                  <figure v-for="st in btnStates" :key="st.id" class="cell" :title="st.note">
                     <UiButton
                       :variant="e.btn"
                       :class="st.cls"
@@ -2539,7 +2534,7 @@ const icons = [
                       :loading="st.id === 'loading'"
                       >{{ st.label }}</UiButton
                     >
-                    <figcaption class="bb__row">
+                    <figcaption class="row">
                       <code>{{ st.code || `.-${e.btn}` }}</code>
                       <UiCopyButton
                         :value="stateCopy(e.btn, st)"
@@ -2548,9 +2543,9 @@ const icons = [
                     </figcaption>
                   </figure>
                 </div>
-                <h4 class="bb__label">States on dark</h4>
-                <div class="bb__cells -matrix bb__dark">
-                  <figure v-for="st in btnStates" :key="st.id" class="bb__cell" :title="st.note">
+                <h4 class="label">States on dark</h4>
+                <div class="cells -matrix dark">
+                  <figure v-for="st in btnStates" :key="st.id" class="cell" :title="st.note">
                     <UiButton
                       :variant="e.btn"
                       on-dark
@@ -2559,7 +2554,7 @@ const icons = [
                       :loading="st.id === 'loading'"
                       >{{ st.label }}</UiButton
                     >
-                    <figcaption class="bb__row">
+                    <figcaption class="row">
                       <code>{{ st.code || '.-on-dark' }}</code>
                       <UiCopyButton
                         :value="stateCopy(e.btn, st, true)"
@@ -2571,17 +2566,17 @@ const icons = [
               </div>
             </template>
             <template v-else-if="e.matrix">
-              <div class="bb__btn">
+              <div class="specimen">
                 <template v-for="v in matrices[e.matrix]" :key="v.id">
-                  <h4 class="bb__label">
+                  <h4 class="label">
                     {{ v.name }} <code>{{ v.cls }}</code>
-                    <span class="bb__hint">· {{ v.note }}</span>
+                    <span class="hint">· {{ v.note }}</span>
                   </h4>
-                  <div class="bb__cells -matrix" :class="{ '-wide': v.wide }">
+                  <div class="cells -matrix" :class="{ '-wide': v.wide }">
                     <figure
                       v-for="c in v.cells"
                       :key="c.key"
-                      class="bb__cell"
+                      class="cell"
                       :class="{ '-dark': c.dark }"
                       :title="c.note"
                       :data-html="c.key"
@@ -2593,9 +2588,9 @@ const icons = [
                         </template>
                       </component>
                       <figcaption>
-                        <strong class="bb__cell-name">{{ c.label }}</strong>
+                        <strong class="cell-name">{{ c.label }}</strong>
                         <code>{{ rendered[c.key]?.cls }}</code>
-                        <span class="bb__row">
+                        <span class="row">
                           <UiCopyButton
                             :value="rendered[c.key]?.cls ?? ''"
                             :label="`class of ${v.name} ${c.label}`"
@@ -2617,7 +2612,7 @@ const icons = [
                   </div>
                 </template>
                 <template v-if="e.id === 'CHIPS-01'">
-                  <h4 class="bb__label">Several at once <code>multiple</code></h4>
+                  <h4 class="label">Several at once <code>multiple</code></h4>
                   <UiChips
                     v-model="demo.extras"
                     legend="Extras"
@@ -2628,15 +2623,15 @@ const icons = [
               </div>
             </template>
             <template v-else-if="e.id === 'BTN-06'">
-              <div class="bb__btn">
-                <h4 class="bb__label">Icon before and after</h4>
-                <div class="bb__cells">
+              <div class="specimen">
+                <h4 class="label">Icon before and after</h4>
+                <div class="cells">
                   <UiButton><UiIcon name="plus" />Add item</UiButton>
                   <UiButton variant="outline">Next step<UiIcon name="arrow-right" /></UiButton>
                   <UiButton variant="link">Read more<UiIcon name="chevron-right" /></UiButton>
                 </div>
-                <h4 class="bb__label">Square, icon only (always with aria-label)</h4>
-                <div class="bb__cells">
+                <h4 class="label">Square, icon only (always with aria-label)</h4>
+                <div class="cells">
                   <UiButton square size="small" aria-label="Close"
                     ><UiIcon name="close"
                   /></UiButton>
@@ -2647,10 +2642,10 @@ const icons = [
                     ><UiIcon name="plus"
                   /></UiButton>
                 </div>
-                <h4 class="bb__label">Full width</h4>
-                <div class="bb__narrow"><UiButton block>Send request</UiButton></div>
-                <h4 class="bb__label">On dark</h4>
-                <div class="bb__cells bb__dark">
+                <h4 class="label">Full width</h4>
+                <div class="narrow"><UiButton block>Send request</UiButton></div>
+                <h4 class="label">On dark</h4>
+                <div class="cells dark">
                   <UiButton on-dark><UiIcon name="plus" />Add item</UiButton>
                   <UiButton square variant="outline" on-dark aria-label="Search"
                     ><UiIcon name="search"
@@ -2662,7 +2657,7 @@ const icons = [
               </div>
             </template>
             <template v-else-if="e.id === 'COPY-01'">
-              <span class="bb__row"
+              <span class="row"
                 >hello@example.com <UiCopyButton value="hello@example.com" label="email"
               /></span>
               <UiCopyButton value="npm i @ai.all/ui" label="install command" text="Copy install" />
@@ -2678,7 +2673,7 @@ const icons = [
             </template>
             <template v-else-if="e.id === 'IMG-01'">
               <UiImg
-                class="bb__img"
+                class="img"
                 :src="photo"
                 alt="Grey mountains under a pale sun"
                 :width="1200"
@@ -2687,16 +2682,16 @@ const icons = [
             </template>
             <template v-else-if="e.id === 'MEDIA-01'">
               <UiMedia
-                class="bb__media"
+                class="media"
                 :src="photo"
                 alt="Grey mountains under a pale sun"
                 ratio="16 / 9"
               />
-              <UiMedia class="bb__media" alt="Photo coming soon" ratio="4 / 3" />
-              <UiMedia class="bb__media" :src="photo" alt="Rounded photo" ratio="1 / 1" round />
+              <UiMedia class="media" alt="Photo coming soon" ratio="4 / 3" />
+              <UiMedia class="media" :src="photo" alt="Rounded photo" ratio="1 / 1" round />
             </template>
             <template v-else-if="e.id === 'FIELD-01'">
-              <div class="bb__form">
+              <div class="form">
                 <UiField
                   v-for="f in fieldDemos"
                   :key="f.label"
@@ -2710,12 +2705,12 @@ const icons = [
                   :error="f.error"
                 />
               </div>
-              <div class="bb__wide">
-                <h4 class="bb__label">
+              <div class="wide">
+                <h4 class="label">
                   Placeholders
-                  <span class="bb__hint">· an example of the format, never the label</span>
+                  <span class="hint">· an example of the format, never the label</span>
                 </h4>
-                <table class="bb__table">
+                <table class="table">
                   <thead>
                     <tr>
                       <th scope="col">Field</th>
@@ -2729,18 +2724,18 @@ const icons = [
                         {{ f.label }} <code>{{ f.kind }}</code>
                       </td>
                       <td>
-                        <span class="bb__row"
+                        <span class="row"
                           ><code>{{ f.placeholder }}</code
                           ><UiCopyButton
                             :value="f.placeholder"
                             :label="`placeholder of ${f.label}`"
                         /></span>
                       </td>
-                      <td class="bb__muted">{{ f.why }}</td>
+                      <td class="muted">{{ f.why }}</td>
                     </tr>
                   </tbody>
                 </table>
-                <p class="bb__note">
+                <p class="note">
                   The label stays visible above the field; the placeholder disappears as soon as the
                   user types, so it only shows an example. Placeholder colour is
                   <code>--control-placeholder</code> (4.5:1 or more on the field). Errors appear
@@ -2749,7 +2744,7 @@ const icons = [
               </div>
             </template>
             <template v-else-if="e.id === 'SELECT-01'">
-              <div class="bb__form">
+              <div class="form">
                 <UiSelect
                   v-model="demo.plan"
                   label="Plan"
@@ -2764,25 +2759,25 @@ const icons = [
                   :options="cities"
                 />
               </div>
-              <p class="bb__note">
+              <p class="note">
                 Native select with a round chevron badge on the right; the first option is the
                 placeholder, disabled, in the placeholder colour until a value is chosen. Leave it
                 empty and move on to see the required error.
               </p>
             </template>
             <template v-else-if="e.id === 'FAQ-01'">
-              <div class="bb__btn">
+              <div class="specimen">
                 <template v-for="v in faqVariants" :key="v.id">
-                  <h4 class="bb__label">
+                  <h4 class="label">
                     {{ v.name }} <code>{{ v.id === 'card' ? 'default' : `.-${v.id}` }}</code>
                     <UiCopyButton :value="v.usage" :label="`${v.name} accordion`" />
-                    <span class="bb__hint">· {{ v.note }}</span>
+                    <span class="hint">· {{ v.note }}</span>
                   </h4>
                   <div :data-html="`faq-${v.id}`">
                     <UiAccordion :items="faqItems" :variant="v.id" :open="0" />
                   </div>
-                  <p class="bb__spec-line">
-                    <span class="bb__spec-key">html</span>
+                  <p class="spec-line">
+                    <span class="spec-key">html</span>
                     <code>{{ rendered[`faq-${v.id}`]?.cls }}</code>
                     <UiCopyButton
                       :value="rendered[`faq-${v.id}`]?.cls ?? ''"
@@ -2799,7 +2794,7 @@ const icons = [
               </div>
             </template>
             <template v-else-if="e.id === 'ALERT-01'">
-              <div class="bb__stack">
+              <div class="stack">
                 <UiAlert title="Info">Prices update every Monday.</UiAlert>
                 <UiAlert tone="success" title="Saved">Your changes are saved.</UiAlert>
                 <UiAlert tone="warning" title="Check">Two fields need attention.</UiAlert>
@@ -2819,7 +2814,7 @@ const icons = [
               />
             </template>
             <template v-else-if="e.id === 'PRICEBOX-01'">
-              <div class="bb__narrow">
+              <div class="narrow">
                 <UiPriceBox
                   base-label="Base price"
                   :base="49900"
@@ -2840,29 +2835,29 @@ const icons = [
               <UiTimeline :items="road" />
             </template>
             <template v-else-if="e.id === 'GRID-01'">
-              <UiCardGrid :columns="3" class="bb__wide">
-                <div v-for="n in 3" :key="n" class="bb__card">
+              <UiCardGrid :columns="3" class="wide">
+                <div v-for="n in 3" :key="n" class="card">
                   <UiMedia alt="Card photo placeholder" ratio="16 / 10" />
-                  <h3 class="bb__h3">Card {{ n }}</h3>
-                  <p class="bb__muted">Short text that explains the card.</p>
+                  <h3 class="h3">Card {{ n }}</h3>
+                  <p class="muted">Short text that explains the card.</p>
                 </div>
               </UiCardGrid>
             </template>
             <template v-else-if="e.id === 'MODAL-01'">
-              <p class="bb__note bb__wide">
+              <p class="note wide">
                 While a modal is open the page behind is dimmed and blurred
                 (<code>--backdrop-blur</code>), does not scroll, and focus stays inside. Escape, the
                 close button and a click outside close it; focus returns to the button that opened
                 it.
               </p>
-              <div class="bb__modals">
-                <article v-for="m in modalTypes" :key="m.id" class="bb__modal-card">
-                  <p class="bb__row">
+              <div class="modals">
+                <article v-for="m in modalTypes" :key="m.id" class="modal-card">
+                  <p class="row">
                     <strong>{{ m.name }}</strong>
                     <code>{{ m.cls }}</code>
                   </p>
-                  <p class="bb__muted">{{ m.note }}</p>
-                  <p class="bb__row">
+                  <p class="muted">{{ m.note }}</p>
+                  <p class="row">
                     <UiButton size="small" variant="outline" @click="openModal = m.id"
                       >Open</UiButton
                     >
@@ -2901,7 +2896,7 @@ const icons = [
                   </p>
                 </template>
                 <template v-else-if="openModal === 'wide'">
-                  <div class="bb__twocol">
+                  <div class="twocol">
                     <UiField
                       v-model="demo.fields['m-name']"
                       label="Name"
@@ -2967,7 +2962,7 @@ const icons = [
               </LazyUiModal>
             </template>
             <template v-else-if="e.id === 'LIGHTBOX-01'">
-              <button type="button" class="bb__thumb" @click="demo.lightbox = true">
+              <button type="button" class="thumb" @click="demo.lightbox = true">
                 <UiImg :src="photo" alt="Open the photo full screen" :width="240" :height="160" />
               </button>
               <LazyUiLightbox
@@ -2991,32 +2986,32 @@ const icons = [
       role="tabpanel"
       aria-labelledby="tab-tools"
     >
-      <section id="t-about" class="bb__sec">
-        <h2 class="bb__h">Developer tools <code class="bb__id">DEVTOOLS-01</code></h2>
-        <p class="bb__note">
+      <section id="t-about" class="sec">
+        <h2 class="h">Developer tools <code class="id">DEVTOOLS-01</code></h2>
+        <p class="note">
           Overlays for checking a page while building it. They come from
           <code>&lt;UiDevTools /&gt;</code>, placed once in <code>app.vue</code> or the default
           layout, so they work on every page of the site, not only here. Each tool has a switch
           below and a shortcut; the choice is remembered.
         </p>
-        <p v-if="!gridOn" class="bb__note">
+        <p v-if="!gridOn" class="note">
           The tools are off in this environment: <code>uiDevTools</code> is
           <code>{{ gridMode }}</code
           >. Set it to <code>always</code> to use them here.
         </p>
       </section>
 
-      <section v-for="t in devTools" :id="`t-${t.id}`" :key="t.id" class="bb__sec">
-        <h2 class="bb__h">
+      <section v-for="t in devTools" :id="`t-${t.id}`" :key="t.id" class="sec">
+        <h2 class="h">
           {{ t.name }} <kbd>Alt</kbd>+<kbd>{{ t.key }}</kbd>
         </h2>
-        <p class="bb__note">{{ t.note }}</p>
-        <div v-if="gridOn" class="bb__tool">
-          <div v-if="t.id === 'grid'" class="bb__gridrow">
+        <p class="note">{{ t.note }}</p>
+        <div v-if="gridOn" class="tool">
+          <div v-if="t.id === 'grid'" class="gridrow">
             <!-- the same red Grid button as the one bottom left, next to the columns it controls (shared state) -->
             <button
               type="button"
-              class="bb__gridbtn"
+              class="gridbtn"
               :aria-pressed="gridColsShared > 0"
               title="Layout grid (Alt+G)"
               @click="cycleGrid"
@@ -3033,21 +3028,21 @@ const icons = [
           </div>
           <UiSwitch v-else v-model="toolState[t.id]!.value" :label="t.switch" />
         </div>
-        <ul class="bb__checks">
+        <ul class="checks">
           <li v-for="c in t.checks" :key="c">{{ c }}</li>
         </ul>
       </section>
 
-      <section id="t-settings" class="bb__sec">
-        <h2 class="bb__h">Site setting</h2>
-        <p class="bb__note">
+      <section id="t-settings" class="sec">
+        <h2 class="h">Site setting</h2>
+        <p class="note">
           In <code>nuxt.config.ts</code>:
           <code>runtimeConfig: { public: { uiDevTools: 'dev' } }</code>. <code>dev</code> (default)
           shows the tools in development only, <code>always</code> on every page in every
           environment (a review on staging), <code>off</code> removes them. Without a rebuild:
           <code>NUXT_PUBLIC_UI_DEV_TOOLS=always|dev|off</code>.
         </p>
-        <table class="bb__table">
+        <table class="table">
           <thead>
             <tr>
               <th scope="col">Shortcut</th>
@@ -3074,15 +3069,15 @@ const icons = [
       role="tabpanel"
       aria-labelledby="tab-catalog"
     >
-      <section id="catalog" class="bb__sec">
-        <h2 class="bb__h">All components</h2>
-        <p class="bb__note">
+      <section id="catalog" class="sec">
+        <h2 class="h">All components</h2>
+        <p class="note">
           One row per pattern ID. Copy a single cell, a whole row, or the full table as Markdown for
           a task or a pull request.
         </p>
-        <div class="bb__row bb__toolbar">
-          <label class="bb__search">
-            <span class="bb__sr">Filter components</span>
+        <div class="row toolbar">
+          <label class="search">
+            <span class="sr">Filter components</span>
             <input
               v-model="catalogQuery"
               type="search"
@@ -3091,8 +3086,8 @@ const icons = [
           </label>
           <UiCopyButton :value="catalogMarkdown" label="catalog as Markdown" text="Copy table" />
         </div>
-        <div class="bb__scroll">
-          <table class="bb__table">
+        <div class="scroll">
+          <table class="table">
             <thead>
               <tr>
                 <th scope="col">ID</th>
@@ -3101,13 +3096,13 @@ const icons = [
                 <th scope="col">Component</th>
                 <th scope="col">Classes</th>
                 <th scope="col">Description</th>
-                <th scope="col"><span class="bb__sr">Copy row</span></th>
+                <th scope="col"><span class="sr">Copy row</span></th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="e in catalogRows" :key="e.id">
                 <td>
-                  <span class="bb__row"
+                  <span class="row"
                     ><a :href="`?tab=components#${e.id}`"
                       ><code>{{ e.id }}</code></a
                     ><UiCopyButton :value="e.id" :label="`ID ${e.id}`"
@@ -3121,7 +3116,7 @@ const icons = [
                   <code>{{ e.component }}</code>
                 </td>
                 <td>
-                  <span class="bb__row"
+                  <span class="row"
                     ><code>{{ e.classes }}</code
                     ><UiCopyButton :value="e.classes" :label="`classes of ${e.id}`"
                   /></span>
@@ -3145,152 +3140,160 @@ const icons = [
   margin: 0 auto;
   padding: var(--space-8) var(--page-gutter) var(--space-16);
 }
-.bb__intro {
-  display: grid;
-  gap: var(--space-3);
-  padding-bottom: var(--space-6);
+.bb {
+  .intro {
+    display: grid;
+    gap: var(--space-3);
+    padding-bottom: var(--space-6);
+  }
+  .eyebrow {
+    margin: 0;
+    color: var(--color-ink-500);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .title {
+    margin: 0;
+  }
 }
-.bb__eyebrow {
-  margin: 0;
-  color: var(--color-ink-500);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.bb__title {
-  margin: 0;
-}
-.bb__intro .lead {
+.intro .lead {
   max-width: 48rem;
   margin: 0;
 }
-.bb__tabs {
-  display: flex;
-  gap: var(--space-1);
-  max-width: 100%;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding: var(--space-1);
-  border-radius: var(--radius-pill);
-  background: var(--color-accent-soft);
-  justify-self: start;
+.bb {
+  .tabs {
+    display: flex;
+    gap: var(--space-1);
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: var(--space-1);
+    border-radius: var(--radius-pill);
+    background: var(--color-accent-soft);
+    justify-self: start;
+  }
+  .tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    text-decoration: none;
+    color: var(--color-ink-600);
+    flex: none;
+    min-height: 2.5rem;
+    padding: 0 var(--space-6);
+    white-space: nowrap;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--color-ink-600);
+    font-weight: 600;
+    cursor: pointer;
+  }
 }
-.bb__tab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  text-decoration: none;
-  color: var(--color-ink-600);
-  flex: none;
-  min-height: 2.5rem;
-  padding: 0 var(--space-6);
-  white-space: nowrap;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--color-ink-600);
-  font-weight: 600;
-  cursor: pointer;
-}
-.bb__tab[aria-selected='true'] {
+.tab[aria-selected='true'] {
   background: var(--color-surface);
   color: var(--color-ink);
   box-shadow: var(--shadow-card);
 }
-.bb__nav {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  margin: 0 calc(var(--page-gutter) * -1);
-  padding: var(--space-3) var(--page-gutter);
-  border-bottom: 1px solid var(--color-line);
-  background: var(--color-glass);
-  backdrop-filter: blur(12px);
+.bb {
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    margin: 0 calc(var(--page-gutter) * -1);
+    padding: var(--space-3) var(--page-gutter);
+    border-bottom: 1px solid var(--color-line);
+    background: var(--color-glass);
+    backdrop-filter: blur(12px);
+  }
+  .nav-main {
+    display: grid;
+    flex: 1;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  &.-detail-view :deep(.copy-button),
+  &.-detail-info :deep(.copy-button),
+  &.-detail-view .copies,
+  &.-detail-view .specs,
+  &.-detail-view .codes,
+  &.-detail-view .spec-line,
+  &.-detail-view .cell figcaption,
+  &.-detail-view .tags,
+  &.-detail-view .hint,
+  &.-detail-view .icons code {
+    display: none;
+  }
+  &.-detail-view .tagged {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  &.-detail-view .menu .hint,
+  &.-detail-view .menu :deep(.copy-button) {
+    display: revert;
+  }
+  .navend {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 3rem; /* the height of the tab row, so both line up */
+  }
+  .navctl {
+    display: grid;
+    gap: 0.15rem;
+  }
+  .navgrid {
+    display: grid;
+    grid-template-columns: 2.25rem auto;
+    align-items: center;
+    gap: var(--space-1);
+  }
 }
-.bb__nav-main {
-  display: grid;
-  flex: 1;
-  gap: var(--space-2);
-  min-width: 0;
-}
-.bb.-detail-view :deep(.copy-button),
-.bb.-detail-info :deep(.copy-button),
-.bb.-detail-view .bb__copies,
-.bb.-detail-view .bb__specs,
-.bb.-detail-view .bb__codes,
-.bb.-detail-view .bb__spec-line,
-.bb.-detail-view .bb__cell figcaption,
-.bb.-detail-view .bb__tags,
-.bb.-detail-view .bb__hint,
-.bb.-detail-view .bb__icons code {
-  display: none;
-}
-.bb.-detail-view .bb__tagged {
-  grid-template-columns: minmax(0, 1fr);
-}
-.bb.-detail-view .bb__menu .bb__hint,
-.bb.-detail-view .bb__menu :deep(.copy-button) {
-  display: revert;
-}
-.bb__navend {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: var(--space-3);
-  min-height: 3rem; /* the height of the tab row, so both line up */
-}
-.bb__navctl {
-  display: grid;
-  gap: 0.15rem;
-}
-.bb__navgrid {
-  display: grid;
-  grid-template-columns: 2.25rem auto;
-  align-items: center;
-  gap: var(--space-1);
-}
-.bb__navgrid :deep(.chips__row) {
+.navgrid :deep(.row) {
   padding: 0.1rem;
 }
-.bb__navgrid :deep(.chips__chip) {
+.navgrid :deep(.chip) {
   min-height: 1.35rem;
   padding: 0 0.55rem;
   font-size: 0.6875rem;
 }
-.bb__navgrid-label {
-  color: var(--color-ink-500);
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.bb {
+  .navgrid-label {
+    color: var(--color-ink-500);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .fab {
+    display: grid;
+    flex: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--color-line-strong);
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-ink);
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+  }
 }
-.bb__fab {
-  display: grid;
-  flex: none;
-  width: 2.75rem;
-  height: 2.75rem;
-  place-items: center;
-  padding: 0;
-  border: 1px solid var(--color-line-strong);
-  border-radius: 50%;
-  background: var(--color-surface);
-  color: var(--color-ink);
-  box-shadow: var(--shadow-card);
-  cursor: pointer;
-}
-.bb__fab:hover {
+.fab:hover {
   border-color: var(--color-ink);
 }
-.bb__fab:focus-visible {
+.fab:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
-.bb__fab svg {
+.fab svg {
   width: 1.2rem;
   height: 1.2rem;
   fill: none;
@@ -3298,193 +3301,211 @@ const icons = [
   stroke-width: 1.6;
   stroke-linecap: round;
 }
-.bb__menu {
-  position: fixed;
-  inset: 4.5rem var(--space-4) auto auto;
-  width: min(18rem, calc(100vw - 2rem));
-  max-height: calc(100dvh - 6rem);
-  margin: 0;
-  padding: var(--space-3);
-  overflow-y: auto;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  color: var(--color-ink);
-  box-shadow: var(--shadow-modal);
+.bb {
+  .menu {
+    position: fixed;
+    inset: 4.5rem var(--space-4) auto auto;
+    width: min(18rem, calc(100vw - 2rem));
+    max-height: calc(100dvh - 6rem);
+    margin: 0;
+    padding: var(--space-3);
+    overflow-y: auto;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    box-shadow: var(--shadow-modal);
+  }
 }
-.bb__menu .bb__label {
+.menu .label {
   margin: var(--space-2) var(--space-2) var(--space-1);
 }
-.bb__menu-list {
-  margin: 0 0 var(--space-2);
-  padding: 0;
-  list-style: none;
+.bb {
+  .menu-list {
+    margin: 0 0 var(--space-2);
+    padding: 0;
+    list-style: none;
+  }
 }
-.bb__menu-list li {
+.menu-list li {
   margin: 0;
 }
-.bb__menu-item {
-  display: block;
-  width: 100%;
-  padding: var(--space-2);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--color-ink);
-  font-size: var(--text-sm);
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
+.bb {
+  .menu-item {
+    display: block;
+    width: 100%;
+    padding: var(--space-2);
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--color-ink);
+    font-size: var(--text-sm);
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+  }
 }
-.bb__menu-item:hover,
-.bb__menu-item[aria-current='page'] {
+.menu-item:hover,
+.menu-item[aria-current='page'] {
   background: var(--color-accent-soft);
   color: var(--color-ink);
 }
-.bb__menu-item[aria-current='page'] {
+.menu-item[aria-current='page'] {
   font-weight: 600;
 }
-.bb__gridset {
-  display: grid;
-  gap: var(--space-2);
-  padding: 0 var(--space-2) var(--space-2);
+.bb {
+  .gridset {
+    display: grid;
+    gap: var(--space-2);
+    padding: 0 var(--space-2) var(--space-2);
+  }
 }
-.bb__menu .bb__hint {
+.menu .hint {
   display: block;
   margin: 0 var(--space-2) var(--space-2);
   color: var(--color-ink-500);
   font-size: var(--text-xs);
 }
-.bb__gridrow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-3);
+.bb {
+  .gridrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .gridbtn {
+    min-height: 2rem;
+    padding: 0 var(--space-3);
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-ink-600);
+    color: var(--color-brand-contrast);
+    font: inherit;
+    font-size: var(--text-xs);
+    font-weight: 700;
+    cursor: pointer;
+  }
 }
-.bb__gridbtn {
-  min-height: 2rem;
-  padding: 0 var(--space-3);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--color-ink-600);
-  color: var(--color-brand-contrast);
-  font: inherit;
-  font-size: var(--text-xs);
-  font-weight: 700;
-  cursor: pointer;
-}
-.bb__gridbtn[aria-pressed='true'] {
+.gridbtn[aria-pressed='true'] {
   background: var(--color-danger);
 }
-.bb__tool {
-  margin-bottom: var(--space-3);
+.bb {
+  .tool {
+    margin-bottom: var(--space-3);
+  }
+  .checks {
+    margin: 0;
+    color: var(--color-ink-600);
+    font-size: var(--text-sm);
+  }
 }
-.bb__checks {
-  margin: 0;
-  color: var(--color-ink-600);
-  font-size: var(--text-sm);
-}
-.bb__menu-item.-top {
+.menu-item.-top {
   border-top: 1px solid var(--color-line);
   border-radius: 0;
   color: var(--color-ink-600);
 }
-.bb__toc {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
-  font-size: var(--text-sm);
+.bb {
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    font-size: var(--text-sm);
+  }
 }
-.bb__toc a {
+.toc a {
   color: var(--color-ink-600);
 }
-.bb__sec {
-  padding-top: var(--space-12);
+.bb {
+  .sec {
+    padding-top: var(--space-12);
+  }
+  .h {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--text-2xl);
+  }
+  .h3 {
+    margin: 0;
+    font-size: var(--text-lead);
+  }
+  .note {
+    max-width: 48rem;
+    color: var(--color-ink-600);
+  }
+  .id {
+    font-size: var(--text-sm);
+  }
+  .muted {
+    color: var(--color-ink-500);
+  }
+  .row {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
+  }
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .group {
+    margin-top: var(--space-6);
+  }
+  .group-head {
+    justify-content: space-between;
+    width: 100%;
+  }
 }
-.bb__h {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-3);
-  font-size: var(--text-2xl);
-}
-.bb__h3 {
-  margin: 0;
-  font-size: var(--text-lead);
-}
-.bb__note {
-  max-width: 48rem;
-  color: var(--color-ink-600);
-}
-.bb__id {
-  font-size: var(--text-sm);
-}
-.bb__muted {
-  color: var(--color-ink-500);
-}
-.bb__row {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-1) var(--space-2);
-}
-.bb__sr {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-.bb__group {
-  margin-top: var(--space-6);
-}
-.bb__group-head {
-  justify-content: space-between;
-  width: 100%;
-}
-.bb__group .bb__note {
+.group .note {
   margin-bottom: var(--space-3);
 }
-.bb__btn {
-  display: grid;
-  gap: var(--space-3);
-  width: 100%;
+.bb {
+  .specimen {
+    display: grid;
+    gap: var(--space-3);
+    width: 100%;
+  }
+  .label {
+    margin: var(--space-2) 0 0;
+    color: var(--color-ink-500);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .cells {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-4);
+  }
+  .cell {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-2);
+    max-width: 11rem;
+    margin: 0;
+  }
 }
-.bb__label {
-  margin: var(--space-2) 0 0;
-  color: var(--color-ink-500);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.bb__cells {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: var(--space-4);
-}
-.bb__cell {
-  display: grid;
-  justify-items: start;
-  gap: var(--space-2);
-  max-width: 11rem;
-  margin: 0;
-}
-.bb__cell figcaption {
+.cell figcaption {
   margin: 0;
   color: var(--color-ink-500);
   font-size: var(--text-xs);
 }
 /* Size and state matrices: equal cells, the control centred in a fixed-height stage, its code and copies under it */
-.bb__cells.-matrix {
+.cells.-matrix {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
   align-items: stretch;
   gap: var(--space-3);
 }
-.bb__cells.-matrix .bb__cell {
+.cells.-matrix .cell {
   grid-template-rows: 4.25rem auto;
   align-content: start;
   max-width: none;
@@ -3492,420 +3513,449 @@ const icons = [
   border: 1px dashed var(--color-line-strong);
   border-radius: var(--radius-md);
 }
-.bb__cells.-matrix .bb__cell > :first-child {
+.cells.-matrix .cell > :first-child {
   align-self: center;
 }
-.bb__cells.-matrix figcaption {
+.cells.-matrix figcaption {
   padding-top: var(--space-2);
   border-top: 1px solid var(--color-line);
 }
-.bb__cells.-matrix.-wide {
+.cells.-matrix.-wide {
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
 }
-.bb__cell.-dark {
+.cell.-dark {
   border-style: solid;
   border-color: var(--color-inverse);
   background: var(--color-inverse);
   color: var(--color-inverse-ink);
 }
-.bb__cell.-dark figcaption {
+.cell.-dark figcaption {
   border-top-color: var(--color-inverse-line);
   color: var(--color-inverse-ink-600);
 }
-.bb__cell.-dark :deep(.copy-button) {
+.cell.-dark :deep(.copy-button) {
   color: var(--color-inverse-ink-600);
 }
-.bb__cell.-dark code {
+.cell.-dark code {
   background: var(--color-inverse-soft);
   color: var(--color-inverse-ink);
 }
-.bb__cell figcaption {
+.cell figcaption {
   display: grid;
   justify-items: start;
   gap: var(--space-1);
 }
-.bb__cell-name {
-  color: var(--color-ink);
-  font-size: var(--text-xs);
+.bb {
+  .cell-name {
+    color: var(--color-ink);
+    font-size: var(--text-xs);
+  }
 }
-.bb__cell.-dark .bb__cell-name {
+.cell.-dark .cell-name {
   color: var(--color-inverse-ink);
 }
-.bb__dark.-matrix .bb__cell {
+.dark.-matrix .cell {
   border-color: var(--color-inverse-line);
 }
-.bb__dark.-matrix figcaption {
+.dark.-matrix figcaption {
   border-top-color: var(--color-inverse-line);
 }
-.bb__dark {
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-  background: var(--color-inverse);
-  color: var(--color-inverse-ink);
+.bb {
+  .dark {
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--color-inverse);
+    color: var(--color-inverse-ink);
+  }
 }
-.bb__dark .bb__cell figcaption {
+.dark .cell figcaption {
   color: var(--color-inverse-ink-600);
 }
-.bb__dark :deep(.copy-button) {
+.dark :deep(.copy-button) {
   color: var(--color-inverse-ink-600);
 }
-.bb__swatches {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-  gap: var(--space-3);
-  padding: 0;
-  list-style: none;
+.bb {
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: var(--space-3);
+    padding: 0;
+    list-style: none;
+  }
+  .swatch {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: var(--space-3);
+    margin: 0;
+    padding: var(--space-3);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+  .chip {
+    height: 3.5rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+  }
+  .swatch-meta {
+    display: grid;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+  .type {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .type-sample {
+    margin: 0;
+    line-height: 1.2;
+  }
+  .cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: var(--space-8);
+  }
+  .list {
+    display: grid;
+    gap: var(--space-3);
+    padding: 0;
+    list-style: none;
+  }
 }
-.bb__swatch {
-  display: grid;
-  grid-template-columns: 3.5rem minmax(0, 1fr);
-  gap: var(--space-3);
-  margin: 0;
-  padding: var(--space-3);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-}
-.bb__chip {
-  height: 3.5rem;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-sm);
-}
-.bb__swatch-meta {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.bb__type {
-  display: grid;
-  gap: var(--space-1);
-  padding: var(--space-4) 0;
-  border-bottom: 1px solid var(--color-line);
-}
-.bb__type-sample {
-  margin: 0;
-  line-height: 1.2;
-}
-.bb__cols {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: var(--space-8);
-}
-.bb__list {
-  display: grid;
-  gap: var(--space-3);
-  padding: 0;
-  list-style: none;
-}
-.bb__list li {
+.list li {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   margin: 0;
 }
-.bb__bar {
-  height: 0.75rem;
-  border-radius: var(--radius-sm);
-  background: var(--color-brand);
+.bb {
+  .bar {
+    height: 0.75rem;
+    border-radius: var(--radius-sm);
+    background: var(--color-brand);
+  }
+  .box {
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid var(--color-line-strong);
+    background: var(--color-accent-soft);
+  }
 }
-.bb__box {
-  width: 3rem;
-  height: 3rem;
-  border: 1px solid var(--color-line-strong);
-  background: var(--color-accent-soft);
-}
-.bb__box.-white {
+.box.-white {
   border: 0;
   background: var(--color-surface);
 }
-.bb__search {
-  display: block;
-  max-width: 24rem;
-  margin-bottom: var(--space-4);
+.bb {
+  .search {
+    display: block;
+    max-width: 24rem;
+    margin-bottom: var(--space-4);
+  }
+  .toolbar {
+    justify-content: space-between;
+    width: 100%;
+  }
 }
-.bb__toolbar {
-  justify-content: space-between;
-  width: 100%;
-}
-.bb__toolbar .bb__search {
+.toolbar .search {
   flex: 1;
   margin: 0;
 }
-.bb__scroll {
-  position: relative;
-  margin-top: var(--space-4);
-  overflow-x: auto;
+.bb {
+  .scroll {
+    position: relative;
+    margin-top: var(--space-4);
+    overflow-x: auto;
+  }
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: 0;
+    color: var(--color-ink-500);
+    font-size: var(--text-sm);
+    list-style: none;
+  }
 }
-.bb__crumbs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  padding: 0;
-  color: var(--color-ink-500);
-  font-size: var(--text-sm);
-  list-style: none;
-}
-.bb__crumbs li {
+.crumbs li {
   margin: 0;
 }
-.bb__crumbs li + li::before {
+.crumbs li + li::before {
   content: '/';
   margin-right: var(--space-2);
 }
-.bb__usage {
-  margin-top: var(--space-6);
+.bb {
+  .usage {
+    margin-top: var(--space-6);
+  }
 }
-.bb__usage .bb__sample :where(*):hover,
-.bb__usage.-tags .bb__sample :where(*) {
+.usage .sample :where(*):hover,
+.usage.-tags .sample :where(*) {
   outline: 1px dashed var(--color-line-strong);
   outline-offset: 2px;
 }
-
-.bb__table td {
+.table td {
   vertical-align: top;
 }
-.bb__tagged {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 16rem;
-  align-items: start;
-  gap: var(--space-6);
-  margin-bottom: var(--space-6);
+.bb {
+  .tagged {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 16rem;
+    align-items: start;
+    gap: var(--space-6);
+    margin-bottom: var(--space-6);
+  }
+  .sample {
+    max-width: 42rem;
+    min-width: 0;
+  }
 }
-.bb__sample {
-  max-width: 42rem;
-  min-width: 0;
-}
-.bb__sample > :deep(:last-child),
-.bb__sample > :last-child {
+.sample > :deep(:last-child),
+.sample > :last-child {
   margin-bottom: 0;
 }
-.bb__sample.-code {
+.sample.-code {
   margin: 0;
 }
-.bb__sample :deep(.-hl),
-.bb__sample .-hl {
+.sample :deep(.-hl),
+.sample .-hl {
   outline: 2px solid var(--color-brand);
   outline-offset: 3px;
   border-radius: var(--radius-sm);
 }
-.bb__tags {
-  display: grid;
-  justify-items: start;
-  gap: 0.15rem;
-  color: var(--color-ink-500);
-  padding-top: 0.2rem;
-  font-size: var(--text-xs);
-  line-height: 1.6;
+.bb {
+  .tags {
+    display: grid;
+    justify-items: start;
+    gap: 0.15rem;
+    color: var(--color-ink-500);
+    padding-top: 0.2rem;
+    font-size: var(--text-xs);
+    line-height: 1.6;
+  }
 }
-.bb__tags code {
+.tags code {
   font-size: inherit;
   color: var(--color-ink);
   cursor: help;
 }
-.bb__tagline {
-  line-height: 1.45;
+.bb {
+  .tagline {
+    line-height: 1.45;
+  }
 }
-.bb__tags code:hover,
-.bb__tags code:focus-visible {
+.tags code:hover,
+.tags code:focus-visible {
   background: var(--color-brand);
   color: var(--color-brand-contrast);
 }
-.bb__spec {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  margin-bottom: var(--space-6);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  overflow: hidden;
+.bb {
+  .spec {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    margin-bottom: var(--space-6);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    overflow: hidden;
+  }
+  .plate {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-line);
+  }
+  .plate-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+  .copies {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin-left: auto;
+  }
+  .specs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: var(--space-1) var(--space-4);
+    margin-top: var(--space-1);
+  }
+  .spec-line {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    margin: 0;
+    font-size: var(--text-sm);
+  }
 }
-.bb__plate {
-  display: grid;
-  gap: var(--space-1);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-line);
-}
-.bb__plate-top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
-}
-.bb__copies {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
-  margin-left: auto;
-}
-.bb__specs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-  gap: var(--space-1) var(--space-4);
-  margin-top: var(--space-1);
-}
-.bb__spec-line {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
-  margin: 0;
-  font-size: var(--text-sm);
-}
-.bb__spec-line code {
+.spec-line code {
   overflow-x: auto;
   white-space: nowrap;
   scrollbar-width: thin;
 }
-.bb__codes {
+.codes {
   display: grid;
   gap: var(--space-1);
 }
-.bb__codes .bb__spec-key {
+.codes .spec-key {
   width: 4rem;
 }
-.bb__spec-key {
-  flex: none;
-  width: 2.5rem;
-  color: var(--color-ink-500);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  text-transform: uppercase;
+.bb {
+  .spec-key {
+    flex: none;
+    width: 2.5rem;
+    color: var(--color-ink-500);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
 }
-.bb__dark code {
+.dark code {
   background: var(--color-inverse-soft);
   color: var(--color-inverse-ink);
 }
-.bb__hint {
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
+.bb {
+  .hint {
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .desc {
+    margin: 0;
+    color: var(--color-ink-600);
+    font-size: var(--text-sm);
+  }
+  .stage {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    background: var(--color-paper);
+  }
+  .icons {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+    gap: var(--space-3);
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .icon {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 4rem auto;
+    align-items: center;
+    margin: 0;
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+  .icon-box {
+    display: grid;
+    grid-column: 1 / -1;
+    place-items: center;
+    height: 100%;
+  }
+  .icon-name {
+    min-width: 0;
+    overflow: hidden;
+    font-size: var(--text-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .form {
+    display: grid;
+    gap: var(--space-4);
+    width: min(100%, 26rem);
+  }
+  .stack,
+  .wide {
+    width: 100%;
+  }
+  .stack {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .narrow {
+    width: min(100%, 24rem);
+  }
+  .img {
+    width: min(100%, 24rem);
+    border-radius: var(--radius-md);
+  }
+  .media {
+    width: min(100%, 16rem);
+  }
+  .card {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
 }
-.bb__desc {
+.card p {
   margin: 0;
-  color: var(--color-ink-600);
+}
+.bb {
+  .modals {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: var(--space-3);
+    width: 100%;
+  }
+  .modal-card {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border: 1px dashed var(--color-line-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+}
+.modal-card p {
+  margin: 0;
   font-size: var(--text-sm);
 }
-.bb__stage {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-6);
-  background: var(--color-paper);
-}
-.bb__icons {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
-  gap: var(--space-3);
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.bb__icon {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: 4rem auto;
-  align-items: center;
-  margin: 0;
-  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-}
-.bb__icon-box {
-  display: grid;
-  grid-column: 1 / -1;
-  place-items: center;
-  height: 100%;
-}
-.bb__icon-name {
-  min-width: 0;
-  overflow: hidden;
-  font-size: var(--text-xs);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.bb__form {
-  display: grid;
-  gap: var(--space-4);
-  width: min(100%, 26rem);
-}
-.bb__stack,
-.bb__wide {
-  width: 100%;
-}
-.bb__stack {
-  display: grid;
-  gap: var(--space-3);
-}
-.bb__narrow {
-  width: min(100%, 24rem);
-}
-.bb__img {
-  width: min(100%, 24rem);
-  border-radius: var(--radius-md);
-}
-.bb__media {
-  width: min(100%, 16rem);
-}
-.bb__card {
-  display: grid;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-}
-.bb__card p {
-  margin: 0;
-}
-.bb__modals {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-  gap: var(--space-3);
-  width: 100%;
-}
-.bb__modal-card {
-  display: grid;
-  align-content: start;
-  gap: var(--space-2);
-  padding: var(--space-4);
-  border: 1px dashed var(--color-line-strong);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-}
-.bb__modal-card p {
-  margin: 0;
-  font-size: var(--text-sm);
-}
-.bb__twocol {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: var(--space-4);
-}
-.bb__thumb {
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  cursor: zoom-in;
+.bb {
+  .twocol {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: var(--space-4);
+  }
+  .thumb {
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    cursor: zoom-in;
+  }
 }
 @media (max-width: 900px) {
-  .bb__navgrid-label {
+  .bb .navgrid-label {
     display: none;
   }
 }
 @media (max-width: 640px) {
-  .bb__toc,
-  .bb__navgrid {
+  .bb .toc,
+  .bb .navgrid {
     display: none;
   }
-  .bb__tagged {
+  .bb .tagged {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-2);
   }
-  .bb__copies {
+  .bb .copies {
     margin-left: 0;
   }
 }

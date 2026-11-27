@@ -7,11 +7,15 @@
 1. **Tokens-Only Styling:**
    Every UI component must consume semantic CSS variables (`var(--color-*)`, `var(--radius-*)`, `var(--font-*)`). Never hard-code hex or rgb color literals.
 
-2. **Modifier Convention:**
-   Naming must follow BEM with separate dash-prefixed modifier classes:
-   - Correct: `class="btn -primary -lg"`
-   - Forbidden: `class="btn-primary-lg"` or `class="card-big"`
-   - States are dash modifiers too, as in DS7: `.tabs__tab.-active`, `.menu.-open`. Brandbook previews force a state with `-hover`, `-active` and `-focus`.
+2. **Naming Convention (short, not BEM):**
+   - The root is one short name: `.btn`, `.tabs`, `.counter`.
+   - Modifiers are separate dash-prefixed classes: `class="btn -primary -lg"`. Correct for any variant, size or state.
+   - Inner parts are short names scoped under the root in the CSS: `.counter .btn`, or the part name alone inside a scoped `<style>` block. Never `block__element`.
+   - Restyle a part through a modifier on the root or by inheritance from the parent (`.counter.-small .btn`), not by a new long name.
+   - Forbidden: `class="btn-primary-lg"`, `class="card-big"`, `class="counter__btn"`.
+   - States are dash modifiers too: `.tabs .tab.-active`, `.menu.-open`. Brandbook previews force a state with `-hover`, `-active` and `-focus`.
+   - `npx @ai.all/ui check` fails on BEM element names (`__`) and compound modifiers.
+   - Full rules, nesting and exceptions: `docs/CSS-CONVENTIONS.md` (DS7 source: `02-design-system/CSS-CONVENTIONS.md`).
 
 3. **Component Anatomy:**
    - Single responsibility, pure props/emits.
@@ -24,6 +28,7 @@
 
 5. **Self-Verification:**
    Before committing, run the UI quality gates on the project's UI components:
+
    ```bash
    npx @ai.all/ui check --strict
    ```

@@ -30,18 +30,18 @@ const onToggle = (e: Event) => {
     <details
       v-for="(it, i) in items"
       :key="it.q"
-      class="faq__item"
+      class="item"
       :name="exclusive ? group : undefined"
       :open="open === i || undefined"
       @toggle="onToggle"
     >
-      <summary class="faq__q">
+      <summary class="q">
         <span>{{ it.q }}</span>
-        <svg class="faq__chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path d="M6 9l6 6 6-6" />
         </svg>
       </summary>
-      <p class="faq__a">{{ it.a }}</p>
+      <p class="a">{{ it.a }}</p>
     </details>
   </div>
 </template>
@@ -51,78 +51,84 @@ const onToggle = (e: Event) => {
   display: grid;
   gap: var(--space-2);
 }
-.faq__item {
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
+.faq {
+  .item {
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+  .q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-6);
+    color: var(--color-ink);
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+  }
 }
-.faq__q {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-4) var(--space-6);
-  color: var(--color-ink);
-  font-weight: 600;
-  list-style: none;
-  cursor: pointer;
-}
-.faq__q::-webkit-details-marker {
+.q::-webkit-details-marker {
   display: none;
 }
-.faq__q:focus-visible {
+.q:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: -2px;
   border-radius: var(--radius-lg);
 }
-.faq__chev {
-  flex: none;
-  width: 1.1rem;
-  height: 1.1rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  transition: transform 180ms ease;
+.faq {
+  .chev {
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    transition: transform 180ms ease;
+  }
 }
-.faq__item[open] .faq__chev {
+.item[open] .chev {
   transform: rotate(180deg);
 }
-.faq__a {
-  margin: 0;
-  padding: 0 var(--space-6) var(--space-4);
-  color: var(--color-ink-600);
-  line-height: 1.6;
-}
-.faq.-plain {
-  gap: 0;
-}
-.faq.-plain .faq__item {
-  border: 0;
-  border-bottom: 1px solid var(--color-line);
-  border-radius: 0;
-  background: none;
-}
-.faq.-plain .faq__q {
-  padding: var(--space-3) 0;
-}
-.faq.-plain .faq__a {
-  padding: 0 0 var(--space-3);
-}
-.faq.-accent .faq__item[open] {
-  overflow: hidden;
-  border-color: var(--color-brand);
-}
-.faq.-accent .faq__item[open] .faq__q {
-  background: var(--color-brand);
-  color: var(--color-brand-contrast);
-}
-.faq.-accent .faq__item[open] .faq__a {
-  padding-top: var(--space-4);
+.faq {
+  .a {
+    margin: 0;
+    padding: 0 var(--space-6) var(--space-4);
+    color: var(--color-ink-600);
+    line-height: 1.6;
+  }
+  &.-plain {
+    gap: 0;
+  }
+  &.-plain .item {
+    border: 0;
+    border-bottom: 1px solid var(--color-line);
+    border-radius: 0;
+    background: none;
+  }
+  &.-plain .q {
+    padding: var(--space-3) 0;
+  }
+  &.-plain .a {
+    padding: 0 0 var(--space-3);
+  }
+  &.-accent .item[open] {
+    overflow: hidden;
+    border-color: var(--color-brand);
+  }
+  &.-accent .item[open] .q {
+    background: var(--color-brand);
+    color: var(--color-brand-contrast);
+  }
+  &.-accent .item[open] .a {
+    padding-top: var(--space-4);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .faq__chev {
+  .chev {
     transition: none;
   }
 }

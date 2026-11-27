@@ -52,16 +52,16 @@ const onChange = (e: Event) => {
   >
     <button
       type="button"
-      class="counter__btn"
+      class="btn"
       :aria-label="`${lessLabel}: ${label}`"
       :disabled="disabled || model <= min"
       @click="bump(-1)"
     >
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 12h12" /></svg>
     </button>
-    <span class="counter__value">
+    <span class="value">
       <input
-        class="counter__input"
+        class="input"
         type="text"
         inputmode="decimal"
         role="spinbutton"
@@ -75,11 +75,11 @@ const onChange = (e: Event) => {
         @keydown.up.prevent="bump(1)"
         @keydown.down.prevent="bump(-1)"
       />
-      <small v-if="unit" class="counter__unit">{{ unit }}</small>
+      <small v-if="unit" class="unit">{{ unit }}</small>
     </span>
     <button
       type="button"
-      class="counter__btn"
+      class="btn"
       :aria-label="`${moreLabel}: ${label}`"
       :disabled="disabled || model >= max"
       @click="bump(1)"
@@ -103,30 +103,32 @@ const onChange = (e: Event) => {
   gap: var(--space-2);
   color: var(--counter-ink);
 }
-.counter.-on-dark {
-  --counter-ink: var(--color-inverse-ink);
-  --counter-line: var(--color-inverse-line);
-  --counter-bg: transparent;
-  --counter-hover: var(--color-inverse-soft);
+.counter {
+  &.-on-dark {
+    --counter-ink: var(--color-inverse-ink);
+    --counter-line: var(--color-inverse-line);
+    --counter-bg: transparent;
+    --counter-hover: var(--color-inverse-soft);
+  }
+  &.-small {
+    --counter-h: 2.25rem;
+    font-size: var(--text-sm);
+  }
+  .btn {
+    display: grid;
+    flex: none;
+    width: var(--counter-h);
+    height: var(--counter-h);
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--counter-line);
+    border-radius: 50%;
+    background: var(--counter-bg);
+    color: inherit;
+    cursor: pointer;
+  }
 }
-.counter.-small {
-  --counter-h: 2.25rem;
-  font-size: var(--text-sm);
-}
-.counter__btn {
-  display: grid;
-  flex: none;
-  width: var(--counter-h);
-  height: var(--counter-h);
-  place-items: center;
-  padding: 0;
-  border: 1px solid var(--counter-line);
-  border-radius: 50%;
-  background: var(--counter-bg);
-  color: inherit;
-  cursor: pointer;
-}
-.counter__btn svg {
+.btn svg {
   width: 1rem;
   height: 1rem;
   fill: none;
@@ -134,67 +136,73 @@ const onChange = (e: Event) => {
   stroke-width: 1.8;
   stroke-linecap: round;
 }
-.counter__btn:hover:not(:disabled),
-.counter.-hover .counter__btn:last-child {
+.btn:hover:not(:disabled),
+.counter.-hover .btn:last-child {
   border-color: var(--counter-ink);
   background: var(--counter-hover);
 }
-.counter__btn:focus-visible,
-.counter.-focus .counter__btn:last-child {
+.btn:focus-visible,
+.counter.-focus .btn:last-child {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
-.counter.-on-dark .counter__btn:focus-visible,
-.counter.-on-dark.-focus .counter__btn:last-child {
-  outline-color: var(--color-inverse-ink);
+.counter {
+  &.-on-dark .btn:focus-visible,
+  &.-on-dark.-focus .btn:last-child {
+    outline-color: var(--color-inverse-ink);
+  }
 }
-.counter__btn:disabled {
+.btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
 }
-.counter__value {
-  display: inline-flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: var(--space-1);
-  min-width: 3ch;
+.counter {
+  .value {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: var(--space-1);
+    min-width: 3ch;
+  }
+  .input {
+    width: 4ch;
+    min-height: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    text-align: center;
+  }
 }
-.counter__input {
-  width: 4ch;
-  min-height: auto;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-weight: 600;
-  text-align: center;
-}
-.counter__input:focus-visible {
+.input:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
-.counter__unit {
-  color: var(--color-ink-500);
-}
-.counter.-on-dark .counter__unit {
-  color: var(--color-inverse-ink-600);
-}
-.counter.-inner {
-  gap: 0;
-  height: var(--counter-h);
-  padding: 0 var(--space-1);
-  border: 1px solid var(--counter-line);
-  border-radius: var(--radius-pill);
-  background: var(--counter-bg);
-}
-.counter.-inner .counter__btn {
-  width: calc(var(--counter-h) - 0.5rem);
-  height: calc(var(--counter-h) - 0.5rem);
-  border-color: transparent;
-}
-.counter.-disabled {
-  opacity: 0.5;
+.counter {
+  .unit {
+    color: var(--color-ink-500);
+  }
+  &.-on-dark .unit {
+    color: var(--color-inverse-ink-600);
+  }
+  &.-inner {
+    gap: 0;
+    height: var(--counter-h);
+    padding: 0 var(--space-1);
+    border: 1px solid var(--counter-line);
+    border-radius: var(--radius-pill);
+    background: var(--counter-bg);
+  }
+  &.-inner .btn {
+    width: calc(var(--counter-h) - 0.5rem);
+    height: calc(var(--counter-h) - 0.5rem);
+    border-color: transparent;
+  }
+  &.-disabled {
+    opacity: 0.5;
+  }
 }
 </style>

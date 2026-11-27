@@ -90,38 +90,33 @@ onBeforeUnmount(() => {
     @close="onClose"
     @keydown="onKey"
   >
-    <div class="lightbox__stage" :class="{ '-fit': fit }" @click.self="emit('close')">
+    <div class="stage" :class="{ '-fit': fit }" @click.self="emit('close')">
       <img ref="img" :src="src || undefined" :alt="alt" :style="size" @load="onLoad" />
     </div>
-    <div class="lightbox__bar" role="toolbar" :aria-label="labels.zoom">
+    <div class="bar" role="toolbar" :aria-label="labels.zoom">
       <button
         type="button"
-        class="lightbox__btn"
+        class="btn"
         :aria-label="labels.out"
         @click="setScale((fit ? 1 : scale) / 1.25)"
       >
         −
       </button>
-      <output class="lightbox__value">{{ label }}</output>
+      <output class="value">{{ label }}</output>
       <button
         type="button"
-        class="lightbox__btn"
+        class="btn"
         :aria-label="labels.in"
         @click="setScale((fit ? 1 : scale) * 1.25)"
       >
         +
       </button>
-      <button
-        type="button"
-        class="lightbox__btn lightbox__text"
-        :aria-pressed="fit"
-        @click="setFit"
-      >
+      <button type="button" class="btn text" :aria-pressed="fit" @click="setFit">
         {{ labels.fit }}
       </button>
       <button
         type="button"
-        class="lightbox__btn lightbox__text"
+        class="btn text"
         :aria-pressed="!fit && scale === 1"
         @click="setScale(1)"
       >
@@ -129,16 +124,14 @@ onBeforeUnmount(() => {
       </button>
       <button
         type="button"
-        class="lightbox__btn lightbox__text"
+        class="btn text"
         :aria-pressed="!fit && scale === 2"
         @click="setScale(2)"
       >
         200%
       </button>
     </div>
-    <button type="button" class="lightbox__close" :aria-label="labels.close" @click="emit('close')">
-      ×
-    </button>
+    <button type="button" class="close" :aria-label="labels.close" @click="emit('close')">×</button>
   </dialog>
 </template>
 
@@ -154,71 +147,77 @@ onBeforeUnmount(() => {
   background: var(--color-dim);
   color: var(--color-brand-contrast);
 }
-.lightbox::backdrop {
-  background: var(--color-dim);
+.lightbox {
+  &::backdrop {
+    background: var(--color-dim);
+  }
+  .stage {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    place-items: center;
+  }
 }
-.lightbox__stage {
-  display: grid;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  place-items: center;
-}
-.lightbox__stage.-fit img {
+.stage.-fit img {
   max-width: 92vw;
   max-height: 84dvh;
   object-fit: contain;
 }
-.lightbox__stage img {
+.stage img {
   max-width: none;
 }
-.lightbox__bar {
-  position: fixed;
-  bottom: var(--space-4);
-  left: 50%;
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1);
-  border-radius: var(--radius-pill);
-  background: var(--color-glass);
-  color: var(--color-ink);
-  transform: translateX(-50%);
+.lightbox {
+  .bar {
+    position: fixed;
+    bottom: var(--space-4);
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1);
+    border-radius: var(--radius-pill);
+    background: var(--color-glass);
+    color: var(--color-ink);
+    transform: translateX(-50%);
+  }
+  .btn,
+  .close {
+    display: grid;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    place-items: center;
+    padding: 0 var(--space-2);
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: var(--text-sm);
+    cursor: pointer;
+  }
 }
-.lightbox__btn,
-.lightbox__close {
-  display: grid;
-  min-width: 2.25rem;
-  height: 2.25rem;
-  place-items: center;
-  padding: 0 var(--space-2);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-size: var(--text-sm);
-  cursor: pointer;
-}
-.lightbox__btn:hover,
-.lightbox__btn[aria-pressed='true'] {
+.btn:hover,
+.btn[aria-pressed='true'] {
   background: var(--color-accent-soft);
 }
-.lightbox__value {
-  min-width: 3.5rem;
-  font-size: var(--text-sm);
-  text-align: center;
+.lightbox {
+  .value {
+    min-width: 3.5rem;
+    font-size: var(--text-sm);
+    text-align: center;
+  }
+  .close {
+    position: fixed;
+    top: var(--space-4);
+    right: var(--space-4);
+    background: var(--color-glass);
+    color: var(--color-ink);
+    font-size: var(--text-2xl);
+  }
 }
-.lightbox__close {
-  position: fixed;
-  top: var(--space-4);
-  right: var(--space-4);
-  background: var(--color-glass);
-  color: var(--color-ink);
-  font-size: var(--text-2xl);
-}
-.lightbox__btn:focus-visible,
-.lightbox__close:focus-visible {
+.btn:focus-visible,
+.close:focus-visible {
   outline: 2px solid var(--color-brand-contrast);
   outline-offset: 2px;
 }

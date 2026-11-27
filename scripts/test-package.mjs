@@ -241,11 +241,7 @@ try {
   assert.doesNotMatch(await html(lean.origin, '/', /Welcome/), /href="\/ui"/);
   assert.equal((await fetch(lean.origin + '/ui')).status, 404);
   for (const file of globSync('.output/**/*.{mjs,js,css}', { cwd: app })) {
-    assert.doesNotMatch(
-      read(app, file),
-      /dev-grid__lines|Brandbook of the site|lightbox__close/,
-      file,
-    );
+    assert.doesNotMatch(read(app, file), /dev-grid__|lightbox__|Brandbook of the site/, file);
   }
   await inspect(lean.origin, 'Nuxt modular production CSS', async (page) => {
     await page.goto(lean.origin + '/probe');
@@ -310,11 +306,11 @@ try {
     await page.getByRole('tab', { name: 'Dev tools', exact: true }).click();
     await page.waitForURL('**/ui?tab=tools');
     await page.getByText('Show width × height and breakpoint', { exact: true }).click();
-    await page.locator('.dev-grid__size').waitFor();
+    await page.locator('.dev-grid .size').waitFor();
     await page.reload();
-    await page.locator('.dev-grid__size').waitFor();
+    await page.locator('.dev-grid .size').waitFor();
     await page.keyboard.press('Alt+r');
-    await page.locator('.dev-grid__rhythm').waitFor();
+    await page.locator('.dev-grid .rhythm').waitFor();
     await page.keyboard.press('Alt+o');
     await page.locator('html.dev-outlines').waitFor();
     await page.keyboard.press('Alt+a');

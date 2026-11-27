@@ -200,7 +200,7 @@ defineExpose({ runAudit });
     <button
       v-if="button"
       type="button"
-      class="dev-grid__btn"
+      class="btn"
       :aria-pressed="cols > 0"
       title="Layout grid (Alt+G)"
       @click="next"
@@ -209,7 +209,7 @@ defineExpose({ runAudit });
     </button>
     <div
       v-if="cols"
-      class="dev-grid__lines"
+      class="lines"
       :style="{ '--dev-cols': cols, left: `${box.left}px`, width: `${box.width}px` }"
       aria-hidden="true"
     >
@@ -217,27 +217,22 @@ defineExpose({ runAudit });
     </div>
     <div
       v-if="cols"
-      class="dev-grid__edge"
+      class="edge"
       :style="{ left: `${box.left - edge}px`, width: `${box.width + edge * 2}px` }"
       aria-hidden="true"
     />
-    <div v-if="rhythm" class="dev-grid__rhythm" aria-hidden="true" />
-    <output v-if="size" class="dev-grid__size">{{ viewport }}</output>
-    <aside v-if="audit" class="dev-grid__audit" aria-label="Page audit">
-      <p class="dev-grid__audit-head">
+    <div v-if="rhythm" class="rhythm" aria-hidden="true" />
+    <output v-if="size" class="size">{{ viewport }}</output>
+    <aside v-if="audit" class="audit" aria-label="Page audit">
+      <p class="audit-head">
         <strong>{{
           issues.length ? `${issues.length} issue${issues.length > 1 ? 's' : ''}` : 'No issues'
         }}</strong>
-        <button type="button" class="dev-grid__audit-btn" @click="runAudit">Re-check</button>
+        <button type="button" class="audit-btn" @click="runAudit">Re-check</button>
       </p>
-      <ol v-if="issues.length" class="dev-grid__audit-list">
+      <ol v-if="issues.length" class="audit-list">
         <li v-for="(it, i) in issues.slice(0, 40)" :key="i">
-          <button
-            type="button"
-            class="dev-grid__audit-item"
-            :disabled="!it.el"
-            @click="goTo(it.el)"
-          >
+          <button type="button" class="audit-item" :disabled="!it.el" @click="goTo(it.el)">
             {{ it.text }}
           </button>
         </li>
@@ -247,7 +242,7 @@ defineExpose({ runAudit });
 </template>
 
 <style scoped>
-.dev-grid__btn {
+.btn {
   position: fixed;
   bottom: var(--space-3);
   left: var(--space-3);
@@ -263,16 +258,16 @@ defineExpose({ runAudit });
   font-weight: 700;
   cursor: pointer;
 }
-.dev-grid__btn[aria-pressed='true'] {
+.btn[aria-pressed='true'] {
   background: var(--color-danger);
 }
-.dev-grid__btn:focus-visible {
+.btn:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
-.dev-grid__lines,
-.dev-grid__edge,
-.dev-grid__rhythm {
+.lines,
+.edge,
+.rhythm {
   position: fixed;
   inset: 0;
   z-index: 999;
@@ -281,20 +276,20 @@ defineExpose({ runAudit });
   pointer-events: none;
   opacity: 0.85;
 }
-.dev-grid__lines {
+.lines {
   display: grid;
   grid-template-columns: repeat(var(--dev-cols), minmax(0, 1fr));
   gap: var(--grid-gutter);
 }
-.dev-grid__lines i {
+.lines i {
   border-inline: 1px solid var(--color-danger);
   background: color-mix(in srgb, var(--color-danger) 10%, transparent);
 }
 
-.dev-grid__edge {
+.edge {
   border-inline: 1px dashed var(--color-danger);
 }
-.dev-grid__rhythm {
+.rhythm {
   width: 100%;
   background: repeating-linear-gradient(
     to bottom,
@@ -303,7 +298,7 @@ defineExpose({ runAudit });
       var(--rhythm-step)
   );
 }
-.dev-grid__audit {
+.audit {
   position: fixed;
   right: var(--space-3);
   bottom: calc(var(--space-3) + 2.5rem);
@@ -318,19 +313,19 @@ defineExpose({ runAudit });
   box-shadow: var(--shadow-modal);
   font-size: var(--text-xs);
 }
-.dev-grid__audit-head {
+.audit-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin: 0 0 var(--space-2);
   color: var(--color-danger);
 }
-.dev-grid__audit-list {
+.audit-list {
   margin: 0;
   padding-left: var(--space-4);
 }
-.dev-grid__audit-item,
-.dev-grid__audit-btn {
+.audit-item,
+.audit-btn {
   padding: 0;
   border: 0;
   background: none;
@@ -339,14 +334,14 @@ defineExpose({ runAudit });
   text-align: left;
   cursor: pointer;
 }
-.dev-grid__audit-item:hover:not(:disabled),
-.dev-grid__audit-btn:hover {
+.audit-item:hover:not(:disabled),
+.audit-btn:hover {
   text-decoration: underline;
 }
-.dev-grid__audit-item:disabled {
+.audit-item:disabled {
   cursor: default;
 }
-.dev-grid__size {
+.size {
   position: fixed;
   right: var(--space-3);
   bottom: var(--space-3);
@@ -362,7 +357,7 @@ defineExpose({ runAudit });
 
 <style>
 /* Audit tool: offenders in red; the message shows on hover (global on purpose, it marks the whole page). */
-html .dev-issue,
+.dev-issue,
 html.dev-outlines .dev-issue {
   outline: 2px solid var(--color-danger);
   outline-offset: 2px;

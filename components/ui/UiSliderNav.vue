@@ -40,12 +40,12 @@ const go = (index: number) => {
     class="slider-nav"
     :class="{ '-numbered': numbered, '-small': size === 'small', '-on-dark': onDark }"
   >
-    <div v-if="dots" class="slider-nav__dots">
+    <div v-if="dots" class="dots">
       <button
         v-for="i in count"
         :key="i"
         type="button"
-        class="slider-nav__dot"
+        class="dot"
         :class="{ '-active': model === i - 1 }"
         :aria-label="`${goToLabel} ${i}`"
         :aria-current="model === i - 1 ? 'true' : undefined"
@@ -54,10 +54,10 @@ const go = (index: number) => {
         <span v-if="numbered" aria-hidden="true">{{ i }}</span>
       </button>
     </div>
-    <div v-if="arrows" class="slider-nav__arrows">
+    <div v-if="arrows" class="arrows">
       <button
         type="button"
-        class="slider-nav__arrow"
+        class="arrow"
         :aria-label="prevLabel"
         :disabled="!loop && model === 0"
         @click="go(model - 1)"
@@ -68,7 +68,7 @@ const go = (index: number) => {
       </button>
       <button
         type="button"
-        class="slider-nav__arrow"
+        class="arrow"
         :aria-label="nextLabel"
         :disabled="!loop && model === count - 1"
         @click="go(model + 1)"
@@ -88,118 +88,124 @@ const go = (index: number) => {
   align-items: center;
   gap: var(--space-4);
 }
-.slider-nav__dots,
-.slider-nav__arrows {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+.slider-nav {
+  .dots,
+  .arrows {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-line-strong);
+    cursor: pointer;
+    transition:
+      width 180ms ease,
+      background-color 180ms ease;
+  }
 }
-.slider-nav__dot {
-  width: 0.6rem;
-  height: 0.6rem;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--color-line-strong);
-  cursor: pointer;
-  transition:
-    width 180ms ease,
-    background-color 180ms ease;
-}
-.slider-nav__dot.-active {
+.dot.-active {
   width: 1.6rem;
   background: var(--color-brand);
 }
-.slider-nav.-numbered .slider-nav__dot {
-  display: grid;
-  width: 2rem;
-  height: 2rem;
-  place-items: center;
-  border: 1px solid var(--color-line-strong);
-  background: var(--color-surface);
-  color: var(--color-ink);
-  font-size: var(--text-sm);
-  font-weight: 600;
+.slider-nav {
+  &.-numbered .dot {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border: 1px solid var(--color-line-strong);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+  &.-numbered .dot.-active {
+    border-color: var(--color-brand);
+    background: var(--color-brand);
+    color: var(--color-brand-contrast);
+  }
+  .arrow {
+    display: grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--color-line-strong);
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-ink);
+    cursor: pointer;
+  }
 }
-.slider-nav.-numbered .slider-nav__dot.-active {
-  border-color: var(--color-brand);
-  background: var(--color-brand);
-  color: var(--color-brand-contrast);
-}
-.slider-nav__arrow {
-  display: grid;
-  width: 2.5rem;
-  height: 2.5rem;
-  place-items: center;
-  padding: 0;
-  border: 1px solid var(--color-line-strong);
-  border-radius: 50%;
-  background: var(--color-surface);
-  color: var(--color-ink);
-  cursor: pointer;
-}
-.slider-nav__arrow:hover:not(:disabled),
-.slider-nav.-hover .slider-nav__arrow:last-child {
+.arrow:hover:not(:disabled),
+.slider-nav.-hover .arrow:last-child {
   border-color: var(--color-ink);
   background: var(--color-accent-soft);
 }
-.slider-nav__arrow:disabled {
+.arrow:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
-.slider-nav__arrow svg {
+.arrow svg {
   width: 1.1rem;
   height: 1.1rem;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.6;
 }
-.slider-nav__dot:focus-visible,
-.slider-nav__arrow:focus-visible,
-.slider-nav.-focus .slider-nav__arrow:last-child {
+.dot:focus-visible,
+.arrow:focus-visible,
+.slider-nav.-focus .arrow:last-child {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
-.slider-nav.-small .slider-nav__arrow {
-  width: 2rem;
-  height: 2rem;
+.slider-nav {
+  &.-small .arrow {
+    width: 2rem;
+    height: 2rem;
+  }
+  &.-small.-numbered .dot {
+    width: 1.6rem;
+    height: 1.6rem;
+    font-size: var(--text-xs);
+  }
+  &.-on-dark .dot {
+    background: var(--color-inverse-line);
+  }
+  &.-on-dark .dot.-active {
+    background: var(--color-inverse-ink);
+  }
+  &.-on-dark.-numbered .dot {
+    border-color: var(--color-inverse-line);
+    background: transparent;
+    color: var(--color-inverse-ink);
+  }
+  &.-on-dark.-numbered .dot.-active {
+    background: var(--color-inverse-ink);
+    color: var(--color-inverse);
+  }
+  &.-on-dark .arrow {
+    border-color: var(--color-inverse-line);
+    background: transparent;
+    color: var(--color-inverse-ink);
+  }
+  &.-on-dark .arrow:hover:not(:disabled),
+  &.-on-dark.-hover .arrow:last-child {
+    border-color: var(--color-inverse-ink);
+    background: var(--color-inverse-soft);
+  }
 }
-.slider-nav.-small.-numbered .slider-nav__dot {
-  width: 1.6rem;
-  height: 1.6rem;
-  font-size: var(--text-xs);
-}
-.slider-nav.-on-dark .slider-nav__dot {
-  background: var(--color-inverse-line);
-}
-.slider-nav.-on-dark .slider-nav__dot.-active {
-  background: var(--color-inverse-ink);
-}
-.slider-nav.-on-dark.-numbered .slider-nav__dot {
-  border-color: var(--color-inverse-line);
-  background: transparent;
-  color: var(--color-inverse-ink);
-}
-.slider-nav.-on-dark.-numbered .slider-nav__dot.-active {
-  background: var(--color-inverse-ink);
-  color: var(--color-inverse);
-}
-.slider-nav.-on-dark .slider-nav__arrow {
-  border-color: var(--color-inverse-line);
-  background: transparent;
-  color: var(--color-inverse-ink);
-}
-.slider-nav.-on-dark .slider-nav__arrow:hover:not(:disabled),
-.slider-nav.-on-dark.-hover .slider-nav__arrow:last-child {
-  border-color: var(--color-inverse-ink);
-  background: var(--color-inverse-soft);
-}
-.slider-nav.-on-dark :is(.slider-nav__dot, .slider-nav__arrow):focus-visible,
-.slider-nav.-on-dark.-focus .slider-nav__arrow:last-child {
+.slider-nav.-on-dark :is(.dot, .arrow):focus-visible,
+.slider-nav.-on-dark.-focus .arrow:last-child {
   outline-color: var(--color-inverse-ink);
 }
 @media (prefers-reduced-motion: reduce) {
-  .slider-nav__dot {
+  .dot {
     transition: none;
   }
 }

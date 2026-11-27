@@ -51,7 +51,7 @@ onBeforeUnmount(() => timer && clearTimeout(timer));
       <path v-else d="M9 9h10v10H9zM5 15V5h10" />
     </svg>
     <span v-if="text">{{ text }}</span>
-    <span class="copy-button__status" role="status" aria-live="polite">
+    <span class="status" role="status" aria-live="polite">
       {{
         state === 'copied' ? `${label} copied` : state === 'error' ? `Could not copy ${label}` : ''
       }}
@@ -82,37 +82,39 @@ onBeforeUnmount(() => timer && clearTimeout(timer));
     background-color 160ms ease,
     color 160ms ease;
 }
-.copy-button.-text {
-  height: 1.5rem;
-  padding: 0 var(--space-2) 0 0.4rem;
-  border-color: var(--color-line);
-}
-.copy-button svg {
-  width: 0.9rem;
-  height: 0.9rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.copy-button:hover {
-  background: var(--color-accent-soft);
-  color: var(--color-ink);
-}
-.copy-button.-done {
-  color: var(--color-success);
-}
-.copy-button:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-}
-.copy-button__status {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
+.copy-button {
+  &.-text {
+    height: 1.5rem;
+    padding: 0 var(--space-2) 0 0.4rem;
+    border-color: var(--color-line);
+  }
+  & svg {
+    width: 0.9rem;
+    height: 0.9rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  &:hover {
+    background: var(--color-accent-soft);
+    color: var(--color-ink);
+  }
+  &.-done {
+    color: var(--color-success);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+  .status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 </style>

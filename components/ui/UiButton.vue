@@ -43,7 +43,7 @@ withDefaults(
     :aria-disabled="href && disabled ? 'true' : undefined"
     :aria-busy="loading || undefined"
   >
-    <span v-if="loading" class="btn__spinner" aria-hidden="true" />
+    <span v-if="loading" class="spinner" aria-hidden="true" />
     <slot />
   </component>
 </template>
@@ -80,135 +80,141 @@ withDefaults(
     color 160ms ease,
     transform 120ms ease;
 }
-.btn :deep(svg) {
-  width: 1.15em;
-  height: 1.15em;
-  flex: none;
+.btn {
+  & :deep(svg) {
+    width: 1.15em;
+    height: 1.15em;
+    flex: none;
+  }
 }
-
 /* Variants on light surfaces */
-.btn.-secondary {
-  --btn-bg: var(--color-accent-soft);
-  --btn-ink: var(--color-ink);
-  --btn-bg-hover: var(--color-line);
+.btn {
+  &.-secondary {
+    --btn-bg: var(--color-accent-soft);
+    --btn-ink: var(--color-ink);
+    --btn-bg-hover: var(--color-line);
+  }
+  &.-outline {
+    --btn-bg: var(--color-surface);
+    --btn-ink: var(--color-ink);
+    --btn-line: var(--color-line-strong);
+    --btn-bg-hover: var(--color-surface);
+    --btn-line-hover: var(--color-ink);
+  }
+  &.-ghost {
+    --btn-bg: transparent;
+    --btn-ink: var(--color-ink);
+    --btn-bg-hover: var(--color-accent-soft);
+  }
+  &.-link {
+    --btn-bg: transparent;
+    --btn-ink: var(--color-brand);
+    --btn-bg-hover: transparent;
+    --btn-ink-hover: var(--color-brand-hover);
+    min-height: auto;
+    padding: 0;
+    border-radius: var(--radius-sm);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
 }
-.btn.-outline {
-  --btn-bg: var(--color-surface);
-  --btn-ink: var(--color-ink);
-  --btn-line: var(--color-line-strong);
-  --btn-bg-hover: var(--color-surface);
-  --btn-line-hover: var(--color-ink);
-}
-.btn.-ghost {
-  --btn-bg: transparent;
-  --btn-ink: var(--color-ink);
-  --btn-bg-hover: var(--color-accent-soft);
-}
-.btn.-link {
-  --btn-bg: transparent;
-  --btn-ink: var(--color-brand);
-  --btn-bg-hover: transparent;
-  --btn-ink-hover: var(--color-brand-hover);
-  min-height: auto;
-  padding: 0;
-  border-radius: var(--radius-sm);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-}
-
 /* Variants on dark surfaces */
-.btn.-on-dark {
-  --btn-ring: var(--color-inverse-ink);
+.btn {
+  &.-on-dark {
+    --btn-ring: var(--color-inverse-ink);
+  }
+  &.-primary.-on-dark {
+    --btn-bg: var(--color-inverse-ink);
+    --btn-ink: var(--color-inverse);
+    --btn-bg-hover: var(--color-inverse-ink-600);
+  }
+  &.-secondary.-on-dark {
+    --btn-bg: var(--color-inverse-soft);
+    --btn-ink: var(--color-inverse-ink);
+    --btn-bg-hover: var(--color-inverse-line);
+  }
+  &.-outline.-on-dark {
+    --btn-bg: transparent;
+    --btn-ink: var(--color-inverse-ink);
+    --btn-line: var(--color-inverse-line);
+    --btn-bg-hover: var(--color-inverse-soft);
+    --btn-line-hover: var(--color-inverse-ink);
+  }
+  &.-ghost.-on-dark {
+    --btn-ink: var(--color-inverse-ink);
+    --btn-bg-hover: var(--color-inverse-soft);
+  }
+  &.-link.-on-dark {
+    --btn-ink: var(--color-inverse-ink);
+    --btn-ink-hover: var(--color-inverse-ink-600);
+  }
 }
-.btn.-primary.-on-dark {
-  --btn-bg: var(--color-inverse-ink);
-  --btn-ink: var(--color-inverse);
-  --btn-bg-hover: var(--color-inverse-ink-600);
-}
-.btn.-secondary.-on-dark {
-  --btn-bg: var(--color-inverse-soft);
-  --btn-ink: var(--color-inverse-ink);
-  --btn-bg-hover: var(--color-inverse-line);
-}
-.btn.-outline.-on-dark {
-  --btn-bg: transparent;
-  --btn-ink: var(--color-inverse-ink);
-  --btn-line: var(--color-inverse-line);
-  --btn-bg-hover: var(--color-inverse-soft);
-  --btn-line-hover: var(--color-inverse-ink);
-}
-.btn.-ghost.-on-dark {
-  --btn-ink: var(--color-inverse-ink);
-  --btn-bg-hover: var(--color-inverse-soft);
-}
-.btn.-link.-on-dark {
-  --btn-ink: var(--color-inverse-ink);
-  --btn-ink-hover: var(--color-inverse-ink-600);
-}
-
 /* Sizes and shapes */
-.btn.-small {
-  min-height: 2.25rem;
-  padding: 0 var(--space-4);
-  font-size: var(--text-sm);
+.btn {
+  &.-small {
+    min-height: 2.25rem;
+    padding: 0 var(--space-4);
+    font-size: var(--text-sm);
+  }
+  &.-big {
+    min-height: 3.25rem;
+    padding: 0 var(--space-8);
+    font-size: var(--text-lead);
+  }
+  &.-link.-small,
+  &.-link.-big {
+    min-height: auto;
+    padding: 0;
+  }
+  &.-block {
+    width: 100%;
+  }
+  &.-square {
+    width: var(--control-height);
+    padding: 0;
+  }
+  &.-square.-small {
+    width: 2.25rem;
+  }
+  &.-square.-big {
+    width: 3.25rem;
+  }
 }
-.btn.-big {
-  min-height: 3.25rem;
-  padding: 0 var(--space-8);
-  font-size: var(--text-lead);
-}
-.btn.-link.-small,
-.btn.-link.-big {
-  min-height: auto;
-  padding: 0;
-}
-.btn.-block {
-  width: 100%;
-}
-.btn.-square {
-  width: var(--control-height);
-  padding: 0;
-}
-.btn.-square.-small {
-  width: 2.25rem;
-}
-.btn.-square.-big {
-  width: 3.25rem;
-}
-
 /* States */
-.btn:hover,
-.btn.-hover {
-  border-color: var(--btn-line-hover);
-  background: var(--btn-bg-hover);
-  color: var(--btn-ink-hover);
-}
-.btn:active,
-.btn.-active {
-  transform: translateY(1px) scale(0.98);
-}
-.btn:focus-visible,
-.btn.-focus {
-  outline: 2px solid var(--btn-ring);
-  outline-offset: 2px;
-}
-.btn:disabled,
-.btn[aria-disabled='true'] {
-  opacity: 0.45;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-.btn.-loading {
-  opacity: 1;
-  cursor: progress;
-}
-.btn__spinner {
-  width: 1em;
-  height: 1em;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: btn-spin 700ms linear infinite;
+.btn {
+  &:hover,
+  &.-hover {
+    border-color: var(--btn-line-hover);
+    background: var(--btn-bg-hover);
+    color: var(--btn-ink-hover);
+  }
+  &:active,
+  &.-active {
+    transform: translateY(1px) scale(0.98);
+  }
+  &:focus-visible,
+  &.-focus {
+    outline: 2px solid var(--btn-ring);
+    outline-offset: 2px;
+  }
+  &:disabled,
+  &[aria-disabled='true'] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  &.-loading {
+    opacity: 1;
+    cursor: progress;
+  }
+  .spinner {
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: btn-spin 700ms linear infinite;
+  }
 }
 @keyframes btn-spin {
   to {
@@ -223,7 +229,7 @@ withDefaults(
   .btn.-active {
     transform: none;
   }
-  .btn__spinner {
+  .spinner {
     animation-duration: 2s;
   }
 }

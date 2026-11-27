@@ -60,20 +60,20 @@ onBeforeUnmount(() => {
     @close="onClose"
     @click.self="emit('close')"
   >
-    <div class="modal__card">
-      <button type="button" class="modal__close" :aria-label="closeLabel" @click="emit('close')">
+    <div class="card">
+      <button type="button" class="close" :aria-label="closeLabel" @click="emit('close')">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path d="M6 6l12 12M18 6L6 18" />
         </svg>
       </button>
-      <img v-if="image" class="modal__cover" :src="image" alt="" />
-      <header class="modal__head">
-        <p v-if="eyebrow" class="modal__eyebrow">{{ eyebrow }}</p>
-        <h2 :id="titleId" class="modal__title">{{ title }}</h2>
-        <p v-if="lead" class="modal__lead">{{ lead }}</p>
+      <img v-if="image" class="cover" :src="image" alt="" />
+      <header class="head">
+        <p v-if="eyebrow" class="eyebrow">{{ eyebrow }}</p>
+        <h2 :id="titleId" class="title">{{ title }}</h2>
+        <p v-if="lead" class="lead">{{ lead }}</p>
       </header>
-      <div class="modal__body"><slot /></div>
-      <footer v-if="$slots.foot" class="modal__foot"><slot name="foot" /></footer>
+      <div class="body"><slot /></div>
+      <footer v-if="$slots.foot" class="foot"><slot name="foot" /></footer>
     </div>
   </dialog>
 </template>
@@ -89,139 +89,143 @@ onBeforeUnmount(() => {
   color: var(--color-ink);
   box-shadow: var(--shadow-modal);
 }
-.modal[open] {
-  animation: modal-in 180ms ease-out;
+.modal {
+  &[open] {
+    animation: modal-in 180ms ease-out;
+  }
+  &::backdrop {
+    background: var(--color-dim);
+    -webkit-backdrop-filter: blur(var(--backdrop-blur));
+    backdrop-filter: blur(var(--backdrop-blur));
+  }
+  &.-small {
+    width: min(24rem, calc(100vw - 2rem));
+  }
+  &.-wide {
+    width: min(48rem, calc(100vw - 2rem));
+  }
+  &.-read {
+    width: min(40rem, calc(100vw - 2rem));
+  }
+  &.-side {
+    inset: 0 0 0 auto;
+    width: min(26rem, 100vw);
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  }
+  &.-side[open] {
+    animation-name: modal-side;
+  }
+  &.-bottom {
+    inset: auto 0 0;
+    width: min(40rem, 100vw);
+    max-height: 85dvh;
+    margin: 0 auto;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+  &.-bottom[open] {
+    animation-name: modal-bottom;
+  }
+  .card {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-8) var(--space-6) var(--space-6);
+  }
+  &.-small .card {
+    gap: var(--space-3);
+    padding: var(--space-6);
+    text-align: center;
+  }
+  &.-bottom .card::before {
+    content: '';
+    justify-self: center;
+    width: 2.5rem;
+    height: 0.25rem;
+    margin-top: calc(var(--space-4) * -1);
+    border-radius: var(--radius-pill);
+    background: var(--color-line-strong);
+  }
+  .cover {
+    display: block;
+    width: calc(100% + var(--space-6) * 2);
+    max-width: none;
+    height: 11rem;
+    margin: calc(var(--space-8) * -1) calc(var(--space-6) * -1) 0;
+    object-fit: cover;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+  .close {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    z-index: 1;
+    display: grid;
+    width: 2.25rem;
+    height: 2.25rem;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--color-glass);
+    color: var(--color-ink-600);
+    cursor: pointer;
+  }
 }
-.modal::backdrop {
-  background: var(--color-dim);
-  -webkit-backdrop-filter: blur(var(--backdrop-blur));
-  backdrop-filter: blur(var(--backdrop-blur));
-}
-.modal.-small {
-  width: min(24rem, calc(100vw - 2rem));
-}
-.modal.-wide {
-  width: min(48rem, calc(100vw - 2rem));
-}
-.modal.-read {
-  width: min(40rem, calc(100vw - 2rem));
-}
-.modal.-side {
-  inset: 0 0 0 auto;
-  width: min(26rem, 100vw);
-  height: 100dvh;
-  max-height: none;
-  margin: 0;
-  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
-}
-.modal.-side[open] {
-  animation-name: modal-side;
-}
-.modal.-bottom {
-  inset: auto 0 0;
-  width: min(40rem, 100vw);
-  max-height: 85dvh;
-  margin: 0 auto;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-}
-.modal.-bottom[open] {
-  animation-name: modal-bottom;
-}
-.modal__card {
-  position: relative;
-  display: grid;
-  gap: var(--space-4);
-  padding: var(--space-8) var(--space-6) var(--space-6);
-}
-.modal.-small .modal__card {
-  gap: var(--space-3);
-  padding: var(--space-6);
-  text-align: center;
-}
-.modal.-bottom .modal__card::before {
-  content: '';
-  justify-self: center;
-  width: 2.5rem;
-  height: 0.25rem;
-  margin-top: calc(var(--space-4) * -1);
-  border-radius: var(--radius-pill);
-  background: var(--color-line-strong);
-}
-.modal__cover {
-  display: block;
-  width: calc(100% + var(--space-6) * 2);
-  max-width: none;
-  height: 11rem;
-  margin: calc(var(--space-8) * -1) calc(var(--space-6) * -1) 0;
-  object-fit: cover;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-}
-.modal__close {
-  position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
-  z-index: 1;
-  display: grid;
-  width: 2.25rem;
-  height: 2.25rem;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: var(--color-glass);
-  color: var(--color-ink-600);
-  cursor: pointer;
-}
-.modal__close:hover {
+.close:hover {
   background: var(--color-accent-soft);
   color: var(--color-ink);
 }
-.modal__close:focus-visible {
+.close:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
-.modal__close svg {
+.close svg {
   width: 1.1rem;
   height: 1.1rem;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.6;
 }
-.modal__head {
-  display: grid;
-  gap: var(--space-2);
-  padding-right: var(--space-8);
-}
-.modal.-small .modal__head {
-  padding-right: 0;
-}
-.modal__eyebrow {
-  margin: 0;
-  color: var(--color-ink-500);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.modal__title {
-  margin: 0;
-  font-size: var(--text-2xl);
-}
-.modal__lead {
-  margin: 0;
-  color: var(--color-ink-600);
-}
-.modal.-read .modal__body {
-  line-height: 1.7;
-}
-.modal__foot {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--space-2);
-}
-.modal.-small .modal__foot {
-  justify-content: center;
+.modal {
+  .head {
+    display: grid;
+    gap: var(--space-2);
+    padding-right: var(--space-8);
+  }
+  &.-small .head {
+    padding-right: 0;
+  }
+  .eyebrow {
+    margin: 0;
+    color: var(--color-ink-500);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .title {
+    margin: 0;
+    font-size: var(--text-2xl);
+  }
+  .lead {
+    margin: 0;
+    color: var(--color-ink-600);
+  }
+  &.-read .body {
+    line-height: 1.7;
+  }
+  .foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-2);
+  }
+  &.-small .foot {
+    justify-content: center;
+  }
 }
 @keyframes modal-in {
   from {

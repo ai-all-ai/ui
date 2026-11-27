@@ -47,7 +47,7 @@ function checkTokenDiscipline(targetDir) {
   return issues;
 }
 
-// Validator 2: Modifiers & Naming
+// Validator 2: Modifiers & Naming (short inner names, dash modifiers; no BEM elements)
 function checkModifiers(targetDir) {
   const BAD =
     /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*-(?:active|big|small|large|orange|red|green|blue|dark|light|new|alt|v\d)$/;
@@ -67,6 +67,12 @@ function checkModifiers(targetDir) {
     for (const m of text.matchAll(/(?:class="([^"]*)"|\.([a-z][a-z0-9_-]*))/g)) {
       const classes = m[1] ? m[1].split(/\s+/) : [m[2]];
       for (const c of classes) {
+        if (c && /^[a-z][a-z0-9-]*__[a-z]/.test(c)) {
+          issues.push(
+            `${path.basename(f)}: BEM element "${c}". Name the part short and scope it under the root (.root .part), or use a dash modifier.`,
+          );
+          continue;
+        }
         if (
           c &&
           BAD.test(c) &&

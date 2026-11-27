@@ -275,19 +275,15 @@ onBeforeUnmount(() => clearTimeout(timer));
 
 <template>
   <div class="gallery" :class="{ '-dark': dark, '-cols-7': columns === 7 }">
-    <p v-if="!isDev" class="gallery__note">
-      The source gallery is available on the local dev server only.
-    </p>
+    <p v-if="!isDev" class="note">The source gallery is available on the local dev server only.</p>
     <template v-else>
-      <header class="gallery__top">
-        <div class="gallery__head">
-          <div class="gallery__titles">
-            <p class="gallery__eyebrow">
-              @ai.all/ui · DS7 <a class="gallery__back" href="/ui">← Brandbook</a>
-            </p>
-            <h1 class="gallery__title">Source files</h1>
+      <header class="top">
+        <div class="head">
+          <div class="titles">
+            <p class="eyebrow">@ai.all/ui · DS7 <a class="back" href="/ui">← Brandbook</a></p>
+            <h1 class="title">Source files</h1>
           </div>
-          <div class="gallery__modes">
+          <div class="modes">
             <UiChips
               v-model="mode"
               legend="Show"
@@ -323,16 +319,16 @@ onBeforeUnmount(() => clearTimeout(timer));
             />
           </div>
         </div>
-        <p class="gallery__count">
+        <p class="count">
           Shown: {{ total }}. Select with the circle on a card (Shift selects a range). Click a
           picture to view it.
         </p>
-        <p v-if="data && !data.available" class="gallery__warn">
+        <p v-if="data && !data.available" class="warn">
           The source folder was not found: check <code>gallery.folder</code> in nuxt.config.
         </p>
-        <div class="gallery__bar">
+        <div class="bar">
           <UiChips
-            class="gallery__tabs"
+            class="tabs"
             v-model="folderChoice"
             legend="Folder"
             inline
@@ -349,7 +345,7 @@ onBeforeUnmount(() => clearTimeout(timer));
           <input
             v-model="query"
             type="search"
-            class="gallery__search"
+            class="search"
             placeholder="Search by name"
             aria-label="Search by name"
           />
@@ -375,24 +371,21 @@ onBeforeUnmount(() => clearTimeout(timer));
         v-for="f in shown"
         :id="`gallery-${galleryEnc(f.folder).replace(/\//g, '-')}`"
         :key="f.folder"
-        class="gallery__section"
+        class="section"
       >
         <h3>
           {{ f.folder }} <small>{{ f.files.length }}</small>
         </h3>
-        <ul class="gallery__grid">
+        <ul class="grid">
           <li v-for="i in f.files" :key="i.name">
-            <article
-              class="gallery__card"
-              :class="{ '-sel': selected.has(galleryKey(f.folder, i.name)) }"
-            >
+            <article class="card" :class="{ '-sel': selected.has(galleryKey(f.folder, i.name)) }">
               <button
                 type="button"
-                class="gallery__preview"
+                class="preview"
                 :aria-label="`Open image ${i.name}`"
                 @click="viewIndex = flat.findIndex((x) => x.key === galleryKey(f.folder, i.name))"
               >
-                <span class="gallery__pic"
+                <span class="pic"
                   ><img
                     :src="src(f.folder, i.name)"
                     :alt="i.name"
@@ -405,18 +398,18 @@ onBeforeUnmount(() => clearTimeout(timer));
               </button>
               <button
                 type="button"
-                class="gallery__check"
+                class="check"
                 :aria-pressed="selected.has(galleryKey(f.folder, i.name))"
                 :aria-label="`Select ${i.name}`"
                 @click="toggle(galleryKey(f.folder, i.name))"
               >
                 ✓
               </button>
-              <span class="gallery__name">{{ i.name }}</span>
-              <span class="gallery__meta"
+              <span class="name">{{ i.name }}</span>
+              <span class="meta"
                 >{{ dims[galleryKey(f.folder, i.name)] || '…' }} · {{ galleryKb(i.size) }}</span
               >
-              <div class="gallery__actions">
+              <div class="actions">
                 <UiCopyButton
                   :value="textFor(f.folder, i.name)"
                   :label="`Copy ${mode === 'name' ? 'name' : 'path'}: ${textFor(f.folder, i.name)}`"
@@ -435,7 +428,7 @@ onBeforeUnmount(() => clearTimeout(timer));
           </li>
         </ul>
       </section>
-      <p v-if="data && data.available && !shown.length" class="gallery__warn">Nothing found.</p>
+      <p v-if="data && data.available && !shown.length" class="warn">Nothing found.</p>
 
       <UiGalleryResults
         v-if="results.length"
@@ -474,7 +467,7 @@ onBeforeUnmount(() => clearTimeout(timer));
       </UiModal>
     </template>
 
-    <div class="gallery__toast" :class="{ '-on': toast }" role="status" aria-live="polite">
+    <div class="toast" :class="{ '-on': toast }" role="status" aria-live="polite">
       {{ toast }}
     </div>
   </div>
@@ -488,205 +481,221 @@ onBeforeUnmount(() => clearTimeout(timer));
   background: var(--color-paper);
   color: var(--color-ink);
 }
-.gallery__top {
-  display: grid;
-  gap: 0.6rem;
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  padding: 0.5rem 0;
-  background: var(--color-paper);
+.gallery {
+  .top {
+    display: grid;
+    gap: 0.6rem;
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    padding: 0.5rem 0;
+    background: var(--color-paper);
+  }
+  .eyebrow {
+    margin: 0;
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    color: var(--color-ink-600);
+  }
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+  }
+  .back {
+    margin-left: var(--space-3);
+    font-size: var(--text-xs);
+    color: var(--color-ink-600);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    text-transform: none;
+    letter-spacing: 0;
+  }
 }
-.gallery__eyebrow {
-  margin: 0;
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  color: var(--color-ink-600);
-}
-.gallery__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-2) var(--space-4);
-}
-.gallery__back {
-  margin-left: var(--space-3);
-  font-size: var(--text-xs);
-  color: var(--color-ink-600);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-  text-transform: none;
-  letter-spacing: 0;
-}
-.gallery__back:hover {
+.back:hover {
   color: var(--color-ink);
 }
-.gallery__title {
-  margin: 0;
-  font-size: var(--text-lead);
-}
-.gallery__modes,
-.gallery__bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  gap: var(--space-4);
+.gallery {
+  .title {
+    margin: 0;
+    font-size: var(--text-lead);
+  }
+  .modes,
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--space-4);
+  }
 }
 /* each group reads as one line: the label on the left, the segments on the right */
-.gallery__modes :deep(.chips),
-.gallery__tabs :deep(.chips) {
+.modes :deep(.chips),
+.tabs :deep(.chips) {
   display: flex;
   align-items: center;
   gap: var(--space-2);
 }
-.gallery__modes :deep(.chips__legend),
-.gallery__tabs :deep(.chips__legend) {
+.modes :deep(.legend),
+.tabs :deep(.legend) {
   margin: 0;
   white-space: nowrap;
 }
-.gallery__tabs {
-  flex: none;
+.gallery {
+  .tabs {
+    flex: none;
+  }
+  .search {
+    flex: 1 1 12rem;
+    max-width: 20rem;
+    min-height: 2.1rem;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    color: inherit;
+    font: inherit;
+  }
+  .count,
+  .note,
+  .warn {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--color-ink-600);
+  }
 }
-.gallery__search {
-  flex: 1 1 12rem;
-  max-width: 20rem;
-  min-height: 2.1rem;
-  padding: 0.3rem 0.8rem;
-  border: 1px solid var(--color-line-strong);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface);
-  color: inherit;
-  font: inherit;
-}
-.gallery__count,
-.gallery__note,
-.gallery__warn {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--color-ink-600);
-}
-.gallery__section h3 {
+.section h3 {
   margin: var(--space-4) 0 var(--space-2);
   font-size: var(--text-lead);
 }
-.gallery__section h3 small {
+.section h3 small {
   color: var(--color-ink-600);
   font-weight: 500;
 }
-.gallery__grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--grid-gutter);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.gallery.-cols-7 .gallery__grid {
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+.gallery {
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--grid-gutter);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  &.-cols-7 .grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
 }
 @media (max-width: 1000px) {
-  .gallery__grid,
-  .gallery.-cols-7 .gallery__grid {
+  .grid,
+  .gallery.-cols-7 .grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 @media (max-width: 640px) {
-  .gallery__grid,
-  .gallery.-cols-7 .gallery__grid {
+  .grid,
+  .gallery.-cols-7 .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-.gallery__card {
-  position: relative;
-  display: grid;
-  gap: 0.3rem;
-  height: 100%;
-  padding: 0.45rem;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
+.gallery {
+  .card {
+    position: relative;
+    display: grid;
+    gap: 0.3rem;
+    height: 100%;
+    padding: 0.45rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
 }
-.gallery__card:hover,
-.gallery__card:focus-within,
-.gallery__card.-sel {
+.card:hover,
+.card:focus-within,
+.card.-sel {
   border-color: var(--color-brand);
 }
-.gallery__preview {
-  display: block;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: zoom-in;
+.gallery {
+  .preview {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-in;
+  }
+  .pic {
+    display: grid;
+    aspect-ratio: 1 / 1;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 0.3rem;
+    background: var(--color-surface-muted);
+  }
+  &.-dark .pic {
+    background: var(--color-inverse);
+  }
 }
-.gallery__pic {
-  display: grid;
-  aspect-ratio: 1 / 1;
-  place-items: center;
-  overflow: hidden;
-  border-radius: 0.3rem;
-  background: var(--color-surface-muted);
-}
-.gallery.-dark .gallery__pic {
-  background: var(--color-inverse);
-}
-.gallery__pic img {
+.pic img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
 }
-.gallery__check {
-  position: absolute;
-  top: 0.8rem;
-  right: 0.8rem;
-  width: 1.7rem;
-  height: 1.7rem;
-  border: 2px solid var(--color-surface);
-  border-radius: 50%;
-  background: var(--color-veil);
-  color: transparent;
-  font-weight: 700;
-  cursor: pointer;
+.gallery {
+  .check {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.8rem;
+    width: 1.7rem;
+    height: 1.7rem;
+    border: 2px solid var(--color-surface);
+    border-radius: 50%;
+    background: var(--color-veil);
+    color: transparent;
+    font-weight: 700;
+    cursor: pointer;
+  }
 }
-.gallery__check[aria-pressed='true'] {
+.check[aria-pressed='true'] {
   background: var(--color-brand);
   color: var(--color-brand-contrast);
 }
-.gallery__name {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  overflow-wrap: anywhere;
+.gallery {
+  .name {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .meta {
+    font-size: var(--text-xs);
+    color: var(--color-ink-600);
+  }
+  .actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.3rem;
+  }
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 1.5rem;
+    transform: translate(-50%, 1rem);
+    max-width: 90vw;
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-inverse);
+    color: var(--color-inverse-ink);
+    font-size: var(--text-sm);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.2s,
+      transform 0.2s;
+    overflow-wrap: anywhere;
+  }
 }
-.gallery__meta {
-  font-size: var(--text-xs);
-  color: var(--color-ink-600);
-}
-.gallery__actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.3rem;
-}
-.gallery__toast {
-  position: fixed;
-  left: 50%;
-  bottom: 1.5rem;
-  transform: translate(-50%, 1rem);
-  max-width: 90vw;
-  padding: 0.6rem 1rem;
-  border-radius: var(--radius-pill);
-  background: var(--color-inverse);
-  color: var(--color-inverse-ink);
-  font-size: var(--text-sm);
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    opacity 0.2s,
-    transform 0.2s;
-  overflow-wrap: anywhere;
-}
-.gallery__toast.-on {
+.toast.-on {
   opacity: 1;
   transform: translate(-50%, 0);
 }

@@ -5,9 +5,9 @@ defineProps<{ items: { value: string; label: string }[] }>();
 
 <template>
   <dl class="specs">
-    <div v-for="item in items" :key="item.label" class="specs__item">
-      <dt class="specs__label">{{ item.label }}</dt>
-      <dd class="specs__value">{{ item.value }}</dd>
+    <div v-for="item in items" :key="item.label" class="item">
+      <dt class="label">{{ item.label }}</dt>
+      <dd class="value">{{ item.value }}</dd>
     </div>
   </dl>
 </template>
@@ -19,25 +19,27 @@ defineProps<{ items: { value: string; label: string }[] }>();
   gap: var(--space-2);
   margin: 0;
 }
-.specs__item {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 7rem;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-}
-.specs__label {
-  order: 2;
-  color: var(--color-ink-500);
-  font-size: var(--text-xs);
-  font-weight: 400;
-}
-.specs__value {
-  margin: 0;
-  color: var(--color-ink);
-  font-size: var(--text-lead);
-  font-weight: 600;
+.specs {
+  .item {
+    display: grid;
+    gap: var(--space-1);
+    min-width: 7rem;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+  .label {
+    order: 2;
+    color: var(--color-ink-500);
+    font-size: var(--text-xs);
+    font-weight: 400;
+  }
+  .value {
+    margin: 0;
+    color: var(--color-ink);
+    font-size: var(--text-lead);
+    font-weight: 600;
+  }
 }
 </style>

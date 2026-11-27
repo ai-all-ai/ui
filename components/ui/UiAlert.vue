@@ -8,8 +8,8 @@ withDefaults(defineProps<{ tone?: 'info' | 'success' | 'warning' | 'danger'; tit
 
 <template>
   <div class="alert" :class="`-${tone}`" :role="tone === 'danger' ? 'alert' : 'status'">
-    <p v-if="title" class="alert__title">{{ title }}</p>
-    <div class="alert__body"><slot /></div>
+    <p v-if="title" class="title">{{ title }}</p>
+    <div class="body"><slot /></div>
   </div>
 </template>
 
@@ -25,24 +25,26 @@ withDefaults(defineProps<{ tone?: 'info' | 'success' | 'warning' | 'danger'; tit
   color: var(--color-ink);
   font-size: var(--text-sm);
 }
-.alert__title {
-  margin: 0;
-  font-weight: 700;
-}
-.alert__body {
-  margin: 0;
-  color: var(--color-ink-700);
-}
-.alert.-info {
-  border-left-color: var(--color-info);
-}
-.alert.-success {
-  border-left-color: var(--color-success);
-}
-.alert.-warning {
-  border-left-color: var(--color-warning);
-}
-.alert.-danger {
-  border-left-color: var(--color-danger);
+.alert {
+  .title {
+    margin: 0;
+    font-weight: 700;
+  }
+  .body {
+    margin: 0;
+    color: var(--color-ink-700);
+  }
+  &.-info {
+    border-left-color: var(--color-info);
+  }
+  &.-success {
+    border-left-color: var(--color-success);
+  }
+  &.-warning {
+    border-left-color: var(--color-warning);
+  }
+  &.-danger {
+    border-left-color: var(--color-danger);
+  }
 }
 </style>

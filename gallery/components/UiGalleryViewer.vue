@@ -54,13 +54,13 @@ onMounted(() => dialog.value?.showModal());
     @keydown="onKey"
     @close="emit('close')"
   >
-    <div v-if="item" class="gallery-viewer__inner">
-      <div class="gallery-viewer__bar">
-        <span id="gallery-viewer-title" class="gallery-viewer__name"
+    <div v-if="item" class="inner">
+      <div class="bar">
+        <span id="gallery-viewer-title" class="name"
           >{{ item.name }}
           <small>{{ item.dims }} · {{ index + 1 }} / {{ items.length }}</small></span
         >
-        <div class="gallery-viewer__actions">
+        <div class="actions">
           <UiButton
             variant="outline"
             size="small"
@@ -106,12 +106,12 @@ onMounted(() => dialog.value?.showModal());
           >
         </div>
       </div>
-      <div class="gallery-viewer__canvas" :class="{ '-pair': item.before }">
-        <figure v-if="item.before" class="gallery-viewer__pane">
+      <div class="canvas" :class="{ '-pair': item.before }">
+        <figure v-if="item.before" class="pane">
           <figcaption>Before</figcaption>
           <img :src="item.before" alt="" :class="`-${zoom}`" />
         </figure>
-        <figure class="gallery-viewer__pane">
+        <figure class="pane">
           <figcaption v-if="item.before">After</figcaption>
           <img :key="item.key" :src="item.src" :alt="item.name" :class="`-${zoom}`" />
         </figure>
@@ -132,57 +132,63 @@ onMounted(() => dialog.value?.showModal());
   background: var(--color-paper);
   color: var(--color-ink);
 }
-.gallery-viewer::backdrop {
-  background: var(--color-dim);
+.gallery-viewer {
+  &::backdrop {
+    background: var(--color-dim);
+  }
+  .inner {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+  }
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .name {
+    overflow-wrap: anywhere;
+    font-weight: 700;
+  }
 }
-.gallery-viewer__inner {
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-}
-.gallery-viewer__bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--color-line);
-}
-.gallery-viewer__name {
-  overflow-wrap: anywhere;
-  font-weight: 700;
-}
-.gallery-viewer__name small {
+.name small {
   margin-left: 0.4rem;
   font-weight: 400;
   color: var(--color-ink-600);
 }
-.gallery-viewer__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.3rem;
+.gallery-viewer {
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .canvas {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+  }
 }
-.gallery-viewer__canvas {
-  display: flex;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: auto;
-}
-.gallery-viewer__canvas.-pair {
+.canvas.-pair {
   gap: 2px;
 }
-.gallery-viewer__pane {
-  position: relative;
-  display: flex;
-  flex: 1 1 0;
-  min-width: 0;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
+.gallery-viewer {
+  .pane {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+  }
 }
-.gallery-viewer__pane figcaption {
+.pane figcaption {
   position: absolute;
   top: 0.5rem;
   left: 0.5rem;
@@ -192,11 +198,11 @@ onMounted(() => dialog.value?.showModal());
   color: var(--color-inverse-ink);
   font-size: var(--text-xs);
 }
-.gallery-viewer__pane img {
+.pane img {
   display: block;
   margin: auto;
 }
-.gallery-viewer__pane img.-fit {
+.pane img.-fit {
   width: 100%;
   height: 100%;
   object-fit: contain;

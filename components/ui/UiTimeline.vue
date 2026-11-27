@@ -5,10 +5,10 @@ defineProps<{ items: { title: string; text: string }[] }>();
 
 <template>
   <ol class="tline">
-    <li v-for="(it, i) in items" :key="it.title" class="tline__step">
-      <span class="tline__num">{{ i + 1 }}</span>
-      <span class="tline__title">{{ it.title }}</span>
-      <span class="tline__text">{{ it.text }}</span>
+    <li v-for="(it, i) in items" :key="it.title" class="step">
+      <span class="num">{{ i + 1 }}</span>
+      <span class="title">{{ it.title }}</span>
+      <span class="text">{{ it.text }}</span>
     </li>
   </ol>
 </template>
@@ -23,15 +23,17 @@ defineProps<{ items: { title: string; text: string }[] }>();
   padding: 0;
   list-style: none;
 }
-.tline__step {
-  position: relative;
-  margin: 0;
-  display: grid;
-  justify-items: center;
-  gap: var(--space-2);
-  text-align: center;
+.tline {
+  .step {
+    position: relative;
+    margin: 0;
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    text-align: center;
+  }
 }
-.tline__step + .tline__step::before {
+.step + .step::before {
   content: '';
   position: absolute;
   top: 1rem;
@@ -40,27 +42,29 @@ defineProps<{ items: { title: string; text: string }[] }>();
   height: 1px;
   background: var(--color-line-strong);
 }
-.tline__num {
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  margin-bottom: var(--space-2);
-  border-radius: 50%;
-  background: var(--color-brand);
-  color: var(--color-brand-contrast);
-  font-size: var(--text-sm);
-  font-weight: 600;
-}
-.tline__title {
-  color: var(--color-ink);
-  font-size: var(--text-sm);
-  font-weight: 600;
-}
-.tline__text {
-  color: var(--color-ink-600);
-  font-size: var(--text-xs);
-  line-height: 1.45;
+.tline {
+  .num {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    margin-bottom: var(--space-2);
+    border-radius: 50%;
+    background: var(--color-brand);
+    color: var(--color-brand-contrast);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+  .title {
+    color: var(--color-ink);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+  .text {
+    color: var(--color-ink-600);
+    font-size: var(--text-xs);
+    line-height: 1.45;
+  }
 }
 @media (max-width: 900px) {
   .tline {
@@ -68,7 +72,7 @@ defineProps<{ items: { title: string; text: string }[] }>();
     grid-template-columns: repeat(3, minmax(0, 1fr));
     row-gap: var(--space-8);
   }
-  .tline__step:nth-child(3n + 1)::before {
+  .step:nth-child(3n + 1)::before {
     display: none;
   }
 }
@@ -76,16 +80,16 @@ defineProps<{ items: { title: string; text: string }[] }>();
   .tline {
     grid-template-columns: minmax(0, 1fr);
   }
-  .tline__step {
+  .step {
     grid-template-columns: auto minmax(0, 1fr);
     justify-items: start;
     column-gap: var(--space-4);
     text-align: left;
   }
-  .tline__step::before {
+  .step::before {
     display: none;
   }
-  .tline__num {
+  .num {
     grid-row: span 2;
     margin: 0;
   }

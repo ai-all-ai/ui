@@ -32,8 +32,8 @@ const folderOptions = computed(() => props.folders.map((f) => ({ value: f, label
 
 <template>
   <div class="gallery-toolbar" role="toolbar" aria-label="Bulk actions">
-    <div class="gallery-toolbar__row gallery-toolbar__row--actions">
-      <span class="gallery-toolbar__count"
+    <div class="row -actions">
+      <span class="count"
         ><b>{{ count }}</b> selected of {{ total }}</span
       >
       <UiButton variant="outline" size="small" @click="emit('all')">Select all</UiButton>
@@ -67,9 +67,9 @@ const folderOptions = computed(() => props.folders.map((f) => ({ value: f, label
           >Delete</UiButton
         >
       </template>
-      <span v-if="busy" class="gallery-toolbar__busy" role="status">Processing…</span>
+      <span v-if="busy" class="busy" role="status">Processing…</span>
     </div>
-    <div v-if="isDev" class="gallery-toolbar__row gallery-toolbar__row--settings">
+    <div v-if="isDev" class="row -settings">
       <UiSelect v-model="fuzz" label="Background tolerance" :options="fuzzOptions" />
       <UiSelect v-model="quality" label="JPEG quality" :options="qualityOptions" />
       <UiSelect v-model="to" label="Move to" placeholder="Choose folder" :options="folderOptions" />
@@ -90,25 +90,25 @@ const folderOptions = computed(() => props.folders.map((f) => ({ value: f, label
   box-shadow: var(--shadow-card);
 }
 /* one row for the buttons (centred on one line), one row for the settings (the fields share a baseline, the Move button sits on it) */
-.gallery-toolbar__row {
+.row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
 }
-.gallery-toolbar__row--settings {
+.row.-settings {
   align-items: end;
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-line);
 }
-.gallery-toolbar__row--settings :deep(.select) {
+.row.-settings :deep(.select) {
   min-width: 11rem;
 }
-.gallery-toolbar__count {
+.count {
   margin-right: var(--space-2);
   font-size: var(--text-sm);
 }
-.gallery-toolbar__busy {
+.busy {
   margin-left: auto;
   font-size: var(--text-sm);
   color: var(--color-ink-600);
