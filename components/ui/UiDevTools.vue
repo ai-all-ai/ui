@@ -21,9 +21,29 @@ const KEY = 'ui-dev-tools';
 const next = () => {
   cols.value = STEPS[(STEPS.indexOf(cols.value) + 1) % STEPS.length] ?? 0;
 };
-const measure = () => {
+const measureViewport = () => {
   const w = window.innerWidth;
   viewport.value = `${w} × ${window.innerHeight} · ${w < 641 ? 'phone' : w < 1025 ? 'tablet' : 'desktop'}`;
+};
+// the grid follows the page's real content box (the element with data-dev-grid, else <main>), so it matches the
+// project's own container, not a fixed token width; re-measured on resize and on route change
+const box = ref({ left: 0, width: 0 });
+const edge = ref(24); // --grid-edge in px
+const measureBox = () => {
+  const el = (document.querySelector('[data-dev-grid]') ||
+    document.querySelector('main') ||
+    document.body) as HTMLElement;
+  const r = el.getBoundingClientRect();
+  const cs = getComputedStyle(el);
+  const pl = parseFloat(cs.paddingLeft) || 0;
+  const pr = parseFloat(cs.paddingRight) || 0;
+  box.value = { left: r.left + pl, width: Math.max(0, r.width - pl - pr) };
+  const e = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--grid-edge'));
+  if (Number.isFinite(e)) edge.value = e;
+};
+const measure = () => {
+  measureViewport();
+  measureBox();
 };
 const onKey = (e: KeyboardEvent) => {
   if (!e.altKey) return;
@@ -138,6 +158,8 @@ watch([cols, button, rhythm, outlines, size, audit], () => {
   }
 });
 onMounted(() => {
+  measure();
+  window.addEventListener('resize', measure);
   if (!visible) return;
   try {
     const saved = JSON.parse(localStorage.getItem(KEY) ?? '{}');
@@ -155,6 +177,7 @@ onMounted(() => {
   window.addEventListener('resize', measure);
 });
 onBeforeUnmount(() => {
+  window.removeEventListener('resize', measure);
   window.removeEventListener('keydown', onKey);
   window.removeEventListener('resize', measure);
   document.documentElement.classList.remove('dev-outlines');
@@ -164,6 +187,7 @@ onBeforeUnmount(() => {
 // Re-check after page changes (route or tab switches) while the audit is on.
 let auditTimer: ReturnType<typeof setTimeout> | undefined;
 watch(routePath, () => {
+  nextTick(measure);
   clearTimeout(auditTimer);
   if (audit.value) auditTimer = setTimeout(runAudit, 300);
 });
@@ -183,10 +207,20 @@ defineExpose({ runAudit });
     >
       Grid{{ cols ? ` ${cols}` : '' }}
     </button>
-    <div v-if="cols" class="dev-grid__lines" :style="{ '--dev-cols': cols }" aria-hidden="true">
+    <div
+      v-if="cols"
+      class="dev-grid__lines"
+      :style="{ '--dev-cols': cols, left: `${box.left}px`, width: `${box.width}px` }"
+      aria-hidden="true"
+    >
       <i v-for="n in cols" :key="n" />
     </div>
-    <div v-if="cols" class="dev-grid__edge" aria-hidden="true" />
+    <div
+      v-if="cols"
+      class="dev-grid__edge"
+      :style="{ left: `${box.left - edge}px`, width: `${box.width + edge * 2}px` }"
+      aria-hidden="true"
+    />
     <div v-if="rhythm" class="dev-grid__rhythm" aria-hidden="true" />
     <output v-if="size" class="dev-grid__size">{{ viewport }}</output>
     <aside v-if="audit" class="dev-grid__audit" aria-label="Page audit">
@@ -222,7 +256,7 @@ defineExpose({ runAudit });
   padding: 0 var(--space-3);
   border: 0;
   border-radius: var(--radius-pill);
-  background: var(--color-danger);
+  background: var(--color-ink-600);
   color: var(--color-brand-contrast);
   font: inherit;
   font-size: var(--text-xs);
@@ -230,7 +264,7 @@ defineExpose({ runAudit });
   cursor: pointer;
 }
 .dev-grid__btn[aria-pressed='true'] {
-  background: var(--color-ink);
+  background: var(--color-danger);
 }
 .dev-grid__btn:focus-visible {
   outline: 2px solid var(--focus-ring);
@@ -243,26 +277,21 @@ defineExpose({ runAudit });
   inset: 0;
   z-index: 999;
   height: 100vh;
-  margin-inline: auto;
+  right: auto;
   pointer-events: none;
-  opacity: 0.5;
+  opacity: 0.85;
 }
 .dev-grid__lines {
   display: grid;
   grid-template-columns: repeat(var(--dev-cols), minmax(0, 1fr));
   gap: var(--grid-gutter);
-  width: min(100% - var(--page-gutter) * 2, var(--content-width));
 }
 .dev-grid__lines i {
   border-inline: 1px solid var(--color-danger);
-  background: color-mix(in srgb, var(--color-danger) 6%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
 }
+
 .dev-grid__edge {
-  width: min(
-    100%,
-    100% - var(--page-gutter) * 2 + var(--grid-edge) * 2,
-    var(--content-width) + var(--grid-edge) * 2
-  );
   border-inline: 1px dashed var(--color-danger);
 }
 .dev-grid__rhythm {

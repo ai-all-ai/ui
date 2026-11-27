@@ -2,3 +2,6 @@
 .nuxt/
 .output/
 node_modules/
+dist/
+# Source files of the ui gallery (large originals; set gallery.git to 'track' to keep them in git)
+/ds/

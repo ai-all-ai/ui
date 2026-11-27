@@ -18,6 +18,9 @@ useHead({
   ],
 });
 
+// the gallery page exists on the dev server only
+const galleryLink = import.meta.dev;
+
 // Tabs: each tab is its own page of the brandbook, kept in the URL (?tab=) so it can be linked and reloaded.
 type Tab = 'foundations' | 'elements' | 'components' | 'catalog' | 'tools';
 const tabs: { id: Tab; name: string }[] = [
@@ -33,6 +36,10 @@ const tab = computed<Tab>({
   get: () => tabs.find((x) => x.id === route.query.tab)?.id ?? 'foundations',
   set: (v) =>
     void router.replace({ query: { ...route.query, tab: v === 'foundations' ? undefined : v } }),
+});
+const visitedTabs = reactive(new Set<Tab>([tab.value]));
+watch(tab, (value) => {
+  visitedTabs.add(value);
 });
 
 // Foundations. Values are read from the live theme, so a project overlay shows its own colours here.
@@ -1100,15 +1107,13 @@ const devTools = [
       'title 10–60 and description 50–160 characters, canonical, lang',
     ],
   },
-  {
-    id: 'grid-button',
-    name: 'Grid button',
-    key: '',
-    switch: '',
-    note: 'The red Grid button bottom left steps the grid; hide it if it covers content.',
-    checks: [],
-  },
 ];
+// the same state UiDevTools uses: the columns and the steps 0 → 12 → 16 → 24 → 0 (gridCols above is the same ref)
+const gridColsShared = gridCols;
+const cycleGrid = () => {
+  const steps = [0, 12, 16, 24];
+  gridColsShared.value = steps[(steps.indexOf(gridColsShared.value) + 1) % steps.length] ?? 0;
+};
 const gridColsLabel = computed({
   get: () => (gridCols.value ? String(gridCols.value) : 'Off'),
   set: (v: string | string[]) => (gridCols.value = Number(v) || 0),
@@ -1703,6 +1708,8 @@ const icons = [
           >
             {{ x.name }}
           </button>
+          <!-- the source gallery is a dev-server page of the ui app (see the gallery layer); a link tab, not a panel -->
+          <a v-if="galleryLink" class="bb__tab" href="/ui/ds" role="tab">Source gallery</a>
         </div>
         <nav class="bb__toc" aria-label="On this page">
           <a v-for="x in toc" :key="x.id" :href="`#${x.id}`">{{ x.name }}</a>
@@ -1803,8 +1810,18 @@ const icons = [
       <a class="bb__menu-item -top" href="#main" @click="closeMenu">Back to top</a>
     </nav>
 
+    <div
+      v-for="x in tabs.filter((entry) => !visitedTabs.has(entry.id))"
+      :id="`panel-${x.id}`"
+      :key="x.id"
+      :aria-labelledby="`tab-${x.id}`"
+      role="tabpanel"
+      hidden
+    />
+
     <!-- Foundations -->
     <div
+      v-if="visitedTabs.has('foundations')"
       v-show="tab === 'foundations'"
       id="panel-foundations"
       role="tabpanel"
@@ -1919,6 +1936,7 @@ const icons = [
 
     <!-- Base elements -->
     <div
+      v-if="visitedTabs.has('elements')"
       v-show="tab === 'elements'"
       id="panel-elements"
       role="tabpanel"
@@ -2411,6 +2429,7 @@ const icons = [
 
     <!-- Components -->
     <div
+      v-if="visitedTabs.has('components')"
       v-show="tab === 'components'"
       id="panel-components"
       role="tabpanel"
@@ -2852,7 +2871,8 @@ const icons = [
                   </p>
                 </article>
               </div>
-              <UiModal
+              <LazyUiModal
+                v-if="openModal"
                 :open="!!openModal"
                 v-bind="currentModal?.props"
                 :title="currentModal?.title ?? ''"
@@ -2944,13 +2964,14 @@ const icons = [
                     }}</UiButton>
                   </template>
                 </template>
-              </UiModal>
+              </LazyUiModal>
             </template>
             <template v-else-if="e.id === 'LIGHTBOX-01'">
               <button type="button" class="bb__thumb" @click="demo.lightbox = true">
                 <UiImg :src="photo" alt="Open the photo full screen" :width="240" :height="160" />
               </button>
-              <UiLightbox
+              <LazyUiLightbox
+                v-if="demo.lightbox"
                 :open="demo.lightbox"
                 :src="photo"
                 alt="Grey mountains under a pale sun"
@@ -2963,7 +2984,13 @@ const icons = [
     </div>
 
     <!-- Dev tools -->
-    <div v-show="tab === 'tools'" id="panel-tools" role="tabpanel" aria-labelledby="tab-tools">
+    <div
+      v-if="visitedTabs.has('tools')"
+      v-show="tab === 'tools'"
+      id="panel-tools"
+      role="tabpanel"
+      aria-labelledby="tab-tools"
+    >
       <section id="t-about" class="bb__sec">
         <h2 class="bb__h">Developer tools <code class="bb__id">DEVTOOLS-01</code></h2>
         <p class="bb__note">
@@ -2985,16 +3012,25 @@ const icons = [
         </h2>
         <p class="bb__note">{{ t.note }}</p>
         <div v-if="gridOn" class="bb__tool">
-          <UiChips
-            v-if="t.id === 'grid'"
-            v-model="gridColsLabel"
-            legend="Columns"
-            :options="['Off', '12', '16', '24']"
-            variant="segment"
-          />
-          <template v-else-if="t.id === 'grid-button'">
-            <UiSwitch v-model="gridButton" label="Show the red Grid button bottom left" />
-          </template>
+          <div v-if="t.id === 'grid'" class="bb__gridrow">
+            <!-- the same red Grid button as the one bottom left, next to the columns it controls (shared state) -->
+            <button
+              type="button"
+              class="bb__gridbtn"
+              :aria-pressed="gridColsShared > 0"
+              title="Layout grid (Alt+G)"
+              @click="cycleGrid"
+            >
+              Grid{{ gridColsShared ? ` ${gridColsShared}` : '' }}
+            </button>
+            <UiSwitch v-model="gridButton" label="Show the red button" />
+            <UiChips
+              v-model="gridColsLabel"
+              legend="Columns"
+              :options="['Off', '12', '16', '24']"
+              variant="segment"
+            />
+          </div>
           <UiSwitch v-else v-model="toolState[t.id]!.value" :label="t.switch" />
         </div>
         <ul class="bb__checks">
@@ -3032,6 +3068,7 @@ const icons = [
 
     <!-- Catalog -->
     <div
+      v-if="visitedTabs.has('catalog')"
       v-show="tab === 'catalog'"
       id="panel-catalog"
       role="tabpanel"
@@ -3104,7 +3141,7 @@ const icons = [
 
 <style scoped>
 .bb {
-  max-width: calc(var(--content-width) + var(--page-gutter) * 2);
+  max-width: calc(var(--page-max) + var(--page-gutter) * 2);
   margin: 0 auto;
   padding: var(--space-8) var(--page-gutter) var(--space-16);
 }
@@ -3140,6 +3177,12 @@ const icons = [
   justify-self: start;
 }
 .bb__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  text-decoration: none;
+  color: var(--color-ink-600);
   flex: none;
   min-height: 2.5rem;
   padding: 0 var(--space-6);
@@ -3311,6 +3354,27 @@ const icons = [
   margin: 0 var(--space-2) var(--space-2);
   color: var(--color-ink-500);
   font-size: var(--text-xs);
+}
+.bb__gridrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.bb__gridbtn {
+  min-height: 2rem;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-ink-600);
+  color: var(--color-brand-contrast);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+.bb__gridbtn[aria-pressed='true'] {
+  background: var(--color-danger);
 }
 .bb__tool {
   margin-bottom: var(--space-3);

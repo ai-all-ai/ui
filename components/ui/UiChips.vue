@@ -18,6 +18,7 @@ const props = withDefaults(
     onDark?: boolean;
     hideLegend?: boolean;
     disabled?: boolean;
+    inline?: boolean; // the legend on the left of the choices, on one line (a group, not a fieldset)
   }>(),
   {
     multiple: false,
@@ -46,11 +47,20 @@ const toggle = (value: string) => {
 </script>
 
 <template>
-  <fieldset
+  <!-- a fieldset with a legend above (default); with `inline` a group with the label on the left, on one line -->
+  <component
+    :is="inline ? 'div' : 'fieldset'"
     class="chips"
-    :class="[`-${variant}`, { '-small': size === 'small', '-on-dark': onDark }]"
+    :class="[`-${variant}`, { '-small': size === 'small', '-on-dark': onDark, '-inline': inline }]"
+    :role="inline ? 'group' : undefined"
+    :aria-label="inline ? legend : undefined"
   >
-    <legend class="chips__legend" :class="{ '-hidden': hideLegend }">{{ legend }}</legend>
+    <component
+      :is="inline ? 'span' : 'legend'"
+      class="chips__legend"
+      :class="{ '-hidden': hideLegend }"
+      >{{ legend }}</component
+    >
     <div class="chips__row">
       <button
         v-for="it in items"
@@ -66,7 +76,7 @@ const toggle = (value: string) => {
         <span>{{ it.label }}</span>
       </button>
     </div>
-  </fieldset>
+  </component>
 </template>
 
 <style scoped>
@@ -89,6 +99,15 @@ const toggle = (value: string) => {
   --chip-hover: var(--color-inverse-soft);
   --chip-on-bg: var(--color-inverse-ink);
   --chip-on-ink: var(--color-inverse);
+}
+.chips.-inline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.chips.-inline .chips__legend {
+  margin: 0;
+  white-space: nowrap;
 }
 .chips__legend {
   margin-bottom: var(--space-2);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { globSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -203,6 +203,16 @@ try {
     await page.getByRole('tab', { name: 'Components', exact: true }).first().click();
     await page.waitForURL('**/ui?tab=components');
     await page.locator('#CHIPS-01').waitFor();
+    assert.equal(await page.locator('#panel-components dialog').count(), 0);
+    await page
+      .locator('#MODAL-01')
+      .getByRole('button', { name: 'Open', exact: true })
+      .first()
+      .click();
+    await page.locator('dialog[open]').waitFor();
+    await page.keyboard.press('Escape');
+    await page.locator('dialog[open]').waitFor({ state: 'hidden' });
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.getByRole('button', { name: 'Grid', exact: true }).click();
     await page.getByRole('button', { name: 'Grid 12', exact: true }).waitFor();
     await page.getByRole('button', { name: 'Grid 12', exact: true }).click();
@@ -214,7 +224,7 @@ try {
   dev.stop();
   console.log('PASS Nuxt dev, SSR, Brandbook tabs, tokens and developer tools');
 
-  put(app, css, custom);
+  put(app, 'app/assets/css/theme.css', `@layer theme { ${custom} }\n`);
   put(
     app,
     'app/components/ui/UiBreadcrumb.vue',
@@ -224,6 +234,37 @@ try {
     app,
     'app/pages/probe.vue',
     '<template><main><UiButton>Package button</UiButton><UiBreadcrumb /></main></template>\n',
+  );
+  run(app, [process.execPath, nuxtCli, 'build'], { NUXT_TELEMETRY_DISABLED: '1' });
+  const lean = await serve(app, ['.output/server/index.mjs'], '/probe');
+  await html(lean.origin, '/probe', /Package button/);
+  assert.doesNotMatch(await html(lean.origin, '/', /Welcome/), /href="\/ui"/);
+  assert.equal((await fetch(lean.origin + '/ui')).status, 404);
+  for (const file of globSync('.output/**/*.{mjs,js,css}', { cwd: app })) {
+    assert.doesNotMatch(
+      read(app, file),
+      /dev-grid__lines|Brandbook of the site|lightbox__close/,
+      file,
+    );
+  }
+  await inspect(lean.origin, 'Nuxt modular production CSS', async (page) => {
+    await page.goto(lean.origin + '/probe');
+    const button = page.getByRole('button', { name: 'Package button' });
+    assert.equal(await button.evaluate((node) => getComputedStyle(node).display), 'inline-flex');
+    assert.equal(
+      await button.evaluate((node) => getComputedStyle(node).backgroundColor),
+      'rgb(18, 52, 86)',
+    );
+  });
+  lean.stop();
+  console.log('PASS default production artifacts exclude Brandbook and developer overlays');
+  put(
+    app,
+    'nuxt.config.ts',
+    config.replace(
+      'defineNuxtConfig({',
+      "defineNuxtConfig({ aiallUi: { brandbook: true, devTools: true, css: 'bundle' },",
+    ),
   );
   const build = run(app, [process.execPath, nuxtCli, 'build'], { NUXT_TELEMETRY_DISABLED: '1' });
   assert.doesNotMatch(build, /NUXT_B300[1279]/);
@@ -240,7 +281,13 @@ try {
     await page.locator('#CHIPS-01').waitFor();
     await page.locator('[data-local-breadcrumb]').first().waitFor();
     await page.goto(preview.origin + '/probe');
-    await page.getByRole('button', { name: 'Package button' }).waitFor();
+    const button = page.getByRole('button', { name: 'Package button' });
+    await button.waitFor();
+    assert.equal(await button.evaluate((node) => getComputedStyle(node).display), 'inline-flex');
+    assert.equal(
+      await button.evaluate((node) => getComputedStyle(node).backgroundColor),
+      'rgb(18, 52, 86)',
+    );
     assert.equal(
       await page.evaluate(() =>
         getComputedStyle(document.body).getPropertyValue('--ui-test-brand').trim(),
@@ -331,16 +378,71 @@ try {
   put(
     vite,
     'main.js',
-    "import { createApp } from 'vue';\nimport App from './App.vue';\nimport '@ai.all/ui/tokens/theme-base.css';\nimport '@ai.all/ui/tokens/base.css';\ncreateApp(App).mount('#app');\n",
+    "import { createApp } from 'vue';\nimport App from './App.vue';\nimport '@ai.all/ui/styles/foundation.css';\ncreateApp(App).mount('#app');\n",
   );
-  const components = archive.files
-    .map(({ path }) => path)
-    .filter((path) => path.startsWith('components/ui/') && path.endsWith('.vue'));
+  const components = archive.files.filter(({ path }) =>
+    /^dist\/components\/Ui\w+\.mjs$/.test(path),
+  );
+  assert.equal(components.length, 25);
+  put(
+    vite,
+    'ssr.mjs',
+    `
+    import assert from 'node:assert/strict';
+    import { createSSRApp, h } from 'vue';
+    import { renderToString } from 'vue/server-renderer';
+    import { UiButton } from '@ai.all/ui';
+    assert.match(await renderToString(createSSRApp(() => h(UiButton, null, () => 'Server ESM'))), /data-v-.*Server ESM/);
+  `,
+  );
+  run(vite, [process.execPath, 'ssr.mjs']);
   put(
     vite,
     'App.vue',
-    `<script setup>\n${components.map((file) => `import ${file.split('/').at(-1).slice(0, -4)} from '@ai.all/ui/${file}';`).join('\n')}\nconst all = [${components.map((file) => file.split('/').at(-1).slice(0, -4)).join(', ')}];\n</script>\n<template><UiChips :options="['Red', 'Blue']" /><UiButton>{{ all.length }} package components</UiButton><UiDevTools /></template>\n`,
+    `<script setup>
+import { defineAsyncComponent, ref } from 'vue';
+import UiButton from '@ai.all/ui/styled/UiButton';
+import UiChips from '@ai.all/ui/styled/UiChips';
+import LegacyIcon from '@ai.all/ui/components/ui/UiIcon.vue';
+const Lightbox = defineAsyncComponent(() => import('@ai.all/ui/styled/UiLightbox'));
+const open = ref(false);
+</script>
+<template>
+  <UiChips :options="['Red', 'Blue']" />
+  <UiButton @click="open = true">Open image</UiButton>
+  <LegacyIcon name="check" />
+  <Lightbox v-if="open" :open="open" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'/%3E" alt="Example" @close="open = false" />
+</template>
+`,
   );
+  const tsc = join(root, 'node_modules', 'typescript', 'bin', 'tsc');
+  put(
+    vite,
+    'consumer.ts',
+    `
+    import { UiButton } from '@ai.all/ui';
+    import UiChips from '@ai.all/ui/styled/UiChips';
+    const size: InstanceType<typeof UiButton>['$props']['size'] = 'small';
+    const chips: InstanceType<typeof UiChips>['$props']['options'] = ['Red'];
+    // @ts-expect-error Unknown size.
+    const invalid: InstanceType<typeof UiButton>['$props']['size'] = 'missing';
+    export { size, chips, invalid };
+  `,
+  );
+  run(vite, [
+    process.execPath,
+    tsc,
+    '--noEmit',
+    '--strict',
+    '--skipLibCheck',
+    '--module',
+    'esnext',
+    '--moduleResolution',
+    'bundler',
+    '--target',
+    'es2022',
+    'consumer.ts',
+  ]);
   const viteCli = 'node_modules/vite/bin/vite.js';
   run(vite, [process.execPath, viteCli, 'build']);
   const vitePreview = await serve(
@@ -350,11 +452,28 @@ try {
   );
   await inspect(vitePreview.origin, 'Vue/Vite production', async (page) => {
     await page.goto(vitePreview.origin);
-    await page.getByRole('button', { name: `${components.length} package components` }).waitFor();
+    const button = page.getByRole('button', { name: 'Open image' });
+    await button.waitFor();
+    assert.equal(await button.evaluate((node) => getComputedStyle(node).display), 'inline-flex');
     await page.getByText('Red', { exact: true }).waitFor();
+    assert.equal(await page.locator('.lightbox').count(), 0);
+    assert.equal(
+      await page.evaluate(() =>
+        performance.getEntriesByType('resource').some((entry) => /UiLightbox/.test(entry.name)),
+      ),
+      false,
+    );
+    await button.click();
+    await page.locator('dialog[open]').waitFor();
+    assert.equal(
+      await page.evaluate(() =>
+        performance.getEntriesByType('resource').some((entry) => /UiLightbox/.test(entry.name)),
+      ),
+      true,
+    );
   });
   vitePreview.stop();
-  console.log(`PASS Vue/Vite without Nuxt, compiling all ${components.length} components`);
+  console.log('PASS Vue/Vite ESM, modular CSS, SSR, types, legacy SFC and lazy Lightbox');
 } finally {
   for (const stop of servers) stop();
   await browser?.close();

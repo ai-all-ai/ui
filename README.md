@@ -63,39 +63,90 @@ The `@ai.all` ecosystem is organized into three cooperating layers:
 
 Run `npm install @ai.all/ui` and `npx ui init` in the project. Start Nuxt and open
 `/ui`. The local module entry in `modules/aiall-ui.mjs` loads the package module
-without editing `nuxt.config`. The module registers the catalog from npm, loads the
-package CSS, then loads the project CSS entry in `app/assets/css/main.css`. Put
-token overrides in `app/assets/css/theme-base.css` and custom HTML styles in
-`app/assets/css/base.css`. Keep their imports in a customized `main.css`.
+without editing `nuxt.config`. The module registers compiled ESM components from the package. Its default CSS
+mode loads the small foundation sheet once and attaches scoped CSS to the used
+components. Put project tokens and theme rules in `app/assets/css/theme.css`
+and import it from `main.css`. The kit's foundation lives in the
+`aiall-ui-foundation` cascade layer. A later project layer or unlayered
+project styles override the fallback tokens and HTML styles. Older
+`theme-base.css` and `base.css` project files can remain in the CSS entry during
+migration.
 
-Templates can use `<UiButton />` directly. A matching component under
-`app/components/ui/` takes precedence. Use `npx ui add UiButton` to start an
-override, then restart Nuxt if it was already running.
+Use `<UiButton />` directly. A matching component under `app/components/ui/`
+takes precedence. Use `npx ui add UiButton` to start an override. For a custom
+Nuxt source or modules directory, add `'@ai.all/ui/nuxt'` to the existing
+`modules` array and use that source directory for styles and overrides.
 
-For a custom Nuxt source or modules directory, register `'@ai.all/ui/nuxt'` in the
-existing `modules` array and place styles and overrides under that source directory.
-The module supplies `/ui` when pages are enabled and there is no local route for
-it. Keep `<NuxtPage />` in a custom app entry and add `<UiDevTools />` once if you
-want the developer overlays.
+The managed `/ui` route and developer overlay are enabled in development. The
+default production build excludes both. A custom project-owned `/ui` page
+remains available. Enable the tools you need when building a staging or internal
+site:
 
-### Vue 3 with Vite
+```ts
+export default defineNuxtConfig({
+  modules: ['@ai.all/ui/nuxt'],
+  aiallUi: { brandbook: true, devTools: true },
+  runtimeConfig: { public: { uiDevTools: 'off' } },
+});
+```
 
-Use Vue 3.5 or later and Vite's Vue plugin. Import SFCs and styles directly:
+Use one module entry, either `modules/aiall-ui.mjs` from init or the config
+entry above. Use `aiallUi.css: 'bundle'` for a single minified foundation and
+component sheet. `css: false` skips automatic global CSS and leaves scoped
+component styles attached. Remove older manual imports of the package's
+`tokens/*.css` from project CSS when using the module foundation. Legacy raw
+SFC imports remain supported. Use one delivery path for each component.
+
+### Vue 3 with Vite or Node SSR
+
+Vue 3.5+ is a peer dependency. The ESM exports compile templates ahead of time
+and leave Vue external. Choose one CSS strategy:
+
+| Strategy          | Component import                                               | Global CSS                                                                                        |
+| ----------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Modular (Vite)    | `import UiButton from '@ai.all/ui/styled/UiButton'`            | Import `@ai.all/ui/styles/foundation.css` once                                                    |
+| Combined          | `import { UiButton } from '@ai.all/ui'`                        | Import `@ai.all/ui/styles.css` once                                                               |
+| Manual / Node SSR | `import UiButton from '@ai.all/ui/components/UiButton'`        | Serve `styles/foundation.css` and individual `styles/UiButton.css` through the app's CSS pipeline |
+| Legacy Vue SFC    | `import UiButton from '@ai.all/ui/components/ui/UiButton.vue'` | Import the foundation once                                                                        |
+
+The JS-only exports can run in Node with `vue/server-renderer`. The styled
+subpaths import CSS and belong in a bundler pipeline. Vite SSR consumers using
+those subpaths should set `ssr.noExternal: ['@ai.all/ui']`.
+
+### Lazy loading and preload
+
+Keep first-screen components synchronous so their HTML renders on the server.
+Nuxt and Vite emit the module hints for the current route and entry graph.
+Use `<LazyUiModal v-if="open" />` and `<LazyUiLightbox v-if="open" />` for
+overlays that are closed initially. Warm a likely next interaction on hover or
+keyboard focus if the Network trace justifies it:
 
 ```vue
 <script setup>
-import UiButton from '@ai.all/ui/components/ui/UiButton.vue';
-import '@ai.all/ui/tokens/theme-base.css';
-import '@ai.all/ui/tokens/base.css';
+import { defineAsyncComponent, ref } from 'vue';
+
+const open = ref(false);
+const loadLightbox = () => import('@ai.all/ui/styled/UiLightbox');
+const Lightbox = defineAsyncComponent(loadLightbox);
+const warmLightbox = () => {
+  void loadLightbox().catch(() => {});
+};
 </script>
 
 <template>
-  <UiButton>Get started</UiButton>
+  <button @pointerenter="warmLightbox" @focus="warmLightbox" @click="open = true">
+    Open image
+  </button>
+  <Lightbox v-if="open" :open="open" src="/photo.webp" alt="Product photo" @close="open = false" />
 </template>
 ```
 
-Import the styles once in the application entry when multiple pages use them.
-The `/ui` route and its URL-based navigation are provided by the Nuxt integration.
+Preload a known LCP image or a critical self-hosted font at the application
+level. Keep below-fold images lazy. Serve hashed production assets with
+immutable caching and Brotli or gzip. For Nuxt/Nitro, `compressPublicAssets`
+precompresses static assets. Enable compression for SSR HTML at the host or
+reverse proxy. The package leaves the host's caching and compression settings
+under project control.
 
 ### AI-ALL and DS7
 
@@ -109,15 +160,16 @@ Run `npx aiall sync` and `npx aiall check` after initialization or migration.
 
 `@ai.all/ui` contains its own multi-gate validator:
 
-| Gate | Check | Rule |
-|---|---|---|
-| **Gate 1: Token Contract** | `tokens/theme-base.css` | Verifies required semantic variables are declared (`--color-paper`, `--color-ink`, `--color-brand`, etc.). |
-| **Gate 1b: Known Tokens** | Components in `<style>` | Every `var(--x)` without a fallback is declared in the theme CSS files or in the component itself. |
-| **Gate 2: Token Discipline** | Components in `<style>` | Forbids raw `#hex` or `rgb()` literals in components; enforces `var(--color-*)`. |
-| **Gate 3: Modifier Naming** | Class attributes | Enforces separate dash-prefixed modifiers (`.-modifier`), forbids compound anti-patterns (`.btn-big`). |
-| **Gate 4: Component Anatomy** | Vue Single File Components | Requires `<template>`, `<script setup lang="ts">`, and forbids `!important`. |
+| Gate                          | Check                      | Rule                                                                                                       |
+| ----------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Gate 1: Token Contract**    | `tokens/theme-base.css`    | Verifies required semantic variables are declared (`--color-paper`, `--color-ink`, `--color-brand`, etc.). |
+| **Gate 1b: Known Tokens**     | Components in `<style>`    | Every `var(--x)` without a fallback is declared in the theme CSS files or in the component itself.         |
+| **Gate 2: Token Discipline**  | Components in `<style>`    | Forbids raw `#hex` or `rgb()` literals in components; enforces `var(--color-*)`.                           |
+| **Gate 3: Modifier Naming**   | Class attributes           | Enforces separate dash-prefixed modifiers (`.-modifier`), forbids compound anti-patterns (`.btn-big`).     |
+| **Gate 4: Component Anatomy** | Vue Single File Components | Requires `<template>`, `<script setup lang="ts">`, and forbids `!important`.                               |
 
 Run quality gates:
+
 ```bash
 npx @ai.all/ui check
 npx @ai.all/ui check --strict # Fails with exit code 1 on violations
@@ -127,18 +179,18 @@ npx @ai.all/ui check --strict # Fails with exit code 1 on violations
 
 ## 4. Commands Reference
 
-| Command | Description |
-|---|---|
-| `npx @ai.all/ui init` | Scaffolds the Nuxt integration, override styles, Brandbook entry, and AI-ALL pack. |
-| `npx @ai.all/ui check` | Runs all UI quality gates. |
-| `npx @ai.all/ui check --strict` | Runs quality gates in CI mode (exit code 1 on issue). |
-| `npx @ai.all/ui list` | Lists all available components in the catalog. |
-| `npx @ai.all/ui add <Component>` | Copies a component from catalog to `app/components/ui/`. |
-| `npx ui status` | Shows the installed and recorded versions plus file decisions. |
-| `npx ui diff` | Shows local files alongside the installed version’s scaffold. |
-| `npx ui update [--dry-run]` | Plans or applies safe scaffold updates. |
-| `npx ui rollback [--dry-run]` | Plans or restores the most recent scaffold transaction. |
-| `npx @ai.all/ui --version` | Prints current package version. |
+| Command                          | Description                                                                        |
+| -------------------------------- | ---------------------------------------------------------------------------------- |
+| `npx @ai.all/ui init`            | Scaffolds the Nuxt integration, override styles, Brandbook entry, and AI-ALL pack. |
+| `npx @ai.all/ui check`           | Runs all UI quality gates.                                                         |
+| `npx @ai.all/ui check --strict`  | Runs quality gates in CI mode (exit code 1 on issue).                              |
+| `npx @ai.all/ui list`            | Lists all available components in the catalog.                                     |
+| `npx @ai.all/ui add <Component>` | Copies a component from catalog to `app/components/ui/`.                           |
+| `npx ui status`                  | Shows the installed and recorded versions plus file decisions.                     |
+| `npx ui diff`                    | Shows local files alongside the installed version’s scaffold.                      |
+| `npx ui update [--dry-run]`      | Plans or applies safe scaffold updates.                                            |
+| `npx ui rollback [--dry-run]`    | Plans or restores the most recent scaffold transaction.                            |
+| `npx @ai.all/ui --version`       | Prints current package version.                                                    |
 
 ### Updating a project
 
@@ -186,6 +238,13 @@ npm run dev   # http://localhost:3333/ui
 
 The dev page renders `templates/ui.vue`, the same package Brandbook that the Nuxt integration renders.
 
+`npm run build` generates ESM, CSS and declarations into `dist/`. `npm pack`
+runs the build automatically. `npm run verify` installs the packed archive in
+clean consumers and checks Nuxt SSR, Vue/Vite, TypeScript and lazy loading.
+Run `npx playwright install chromium` before local browser verification. The
+release workflow runs the same check before publishing the version in the Git tag.
+See [PERFORMANCE.md](PERFORMANCE.md) for measurements and reproduction commands.
+
 ---
 
 ## 7. Developer Tools and Shortcuts
@@ -200,18 +259,58 @@ Put `<UiDevTools />` once in `app.vue` or the default layout: the tools then wor
 - **Site setting** in `nuxt.config.ts`:
 
   ```ts
-  runtimeConfig: { public: { uiDevTools: 'dev' } } // 'dev' | 'always' | 'off'
+  runtimeConfig: {
+    public: {
+      uiDevTools: 'dev';
+    }
+  } // 'dev' | 'always' | 'off'
   ```
 
-  `dev` (default) shows the tools in development only; `always` everywhere (a review on staging); `off` removes them. Without a rebuild: `NUXT_PUBLIC_UI_DEV_TOOLS=always|dev|off`. The choices are remembered in `localStorage` (`ui-dev-tools`).
+  `dev` (default) shows the tools in development only. Set `aiallUi.devTools: true` when building production with overlays available. In that build, switch between `always` and `off` without rebuilding with `NUXT_PUBLIC_UI_DEV_TOOLS=always|dev|off`. The choices are remembered in `localStorage` (`ui-dev-tools`).
 
-| Shortcut | Where | Does |
-|---|---|---|
-| `Alt` + `G` | any page with `UiDevTools` | Steps the grid 12 → 16 → 24 → off |
-| `Alt` + `R` / `O` / `S` / `A` | any page with `UiDevTools` | Rhythm / outlines / viewport size / visual check |
-| `Esc` | modal, lightbox, brandbook menu | Closes it |
-| `+` / `-` / `0` | lightbox | Zoom in / out / fit |
-| `Tab` / `Shift` + `Tab` | everywhere | Moves focus; a 2 px ring shows where it is |
+| Shortcut                      | Where                           | Does                                             |
+| ----------------------------- | ------------------------------- | ------------------------------------------------ |
+| `Alt` + `G`                   | any page with `UiDevTools`      | Steps the grid 12 → 16 → 24 → off                |
+| `Alt` + `R` / `O` / `S` / `A` | any page with `UiDevTools`      | Rhythm / outlines / viewport size / visual check |
+| `Esc`                         | modal, lightbox, brandbook menu | Closes it                                        |
+| `+` / `-` / `0`               | lightbox                        | Zoom in / out / fit                              |
+| `Tab` / `Shift` + `Tab`       | everywhere                      | Moves focus; a 2 px ring shows where it is       |
+
+## 7. Source gallery (dev only)
+
+A tool inside the brandbook for the source images of a site: browse them, process and replace the originals. It is a Nuxt layer of this package, served on the development server only.
+
+**Turn it on** in the site's `nuxt.config.ts` (or in the ui app, as this repository does):
+
+```ts
+aiallUi: { gallery: { folder: 'ds', git: 'ignore' } }
+```
+
+- `folder`: the source folder, relative to the project root (`ds` by default). Files are read from there, never from `public/`.
+- `git`: `'ignore'` (default) adds `/ds/` to the site's `.gitignore` once, so large originals stay out of the repository; `'track'` leaves git alone.
+
+**Where it is:** `/ui/ds`, linked from the brandbook header (`← Brandbook`) and from the page itself. The full guide is in [docs/GALLERY.md](docs/GALLERY.md). The full guide is in [docs/GALLERY.md](docs/GALLERY.md).
+
+**What you can do**
+
+- **Browse:** folders as segments (All or one folder), search by name, Name or Path labels to copy, 4 or 7 images per row, light or dark background.
+- **Select:** a circle on each card, Shift selects a range, Select all and Clear.
+- **Copy:** the names or paths of the selection, to paste into code or a message.
+- **View:** click a picture for a full-size viewer.
+- **Process** (`sharp` needed, an optional peer): Trim margins (remove flat borders), Remove background (only the flat colour connected to the edge; set the tolerance first), Optimise (WebP or JPEG at the chosen quality).
+- **Move** the selected files to another folder, or **Delete** them.
+- **Apply:** a processed result replaces the original; the original is kept in `_backup/`. A result can be discarded instead.
+
+**Safety**
+
+- Paths are checked: a name cannot climb out of the source folder, and only image files are served.
+- The API and the image routes answer 404 in production; the page is marked `noindex`.
+- Nothing is changed in the source folder until you apply a result or move/delete a file.
+
+**Limits**
+
+- Background removal works on a flat, single-colour background; it is not a cut-out tool for photos with busy backgrounds.
+- Processing needs `sharp` installed in the site (`npm i -D sharp`); without it the gallery still browses and copies.
 
 ## 8. License
 

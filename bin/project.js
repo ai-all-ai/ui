@@ -11,11 +11,12 @@ const APP = 'app/app.vue';
 const HEAD = 'app/pages/index.vue';
 const MAIN = 'app/assets/css/main.css';
 const BRAND = 'app/assets/css/theme-base.css';
+const THEME = 'app/assets/css/theme.css';
 const BASE = 'app/assets/css/base.css';
 const PAGE = 'app/pages/ui.vue';
 const MODULE = 'modules/aiall-ui.mjs';
 const RULES = 'ui/ALL.md';
-const files = new Set([APP, HEAD, MAIN, BRAND, BASE, PAGE, MODULE, RULES, PACK]);
+const files = new Set([APP, HEAD, MAIN, BRAND, THEME, BASE, PAGE, MODULE, RULES, PACK]);
 const json = (data) => JSON.stringify(data, null, 2) + '\n';
 const hash = (content) =>
   content === null ? null : createHash('sha256').update(content).digest('hex');
@@ -138,7 +139,8 @@ export function projectCommand(root, cwd, command, args) {
       [BRAND]:
         '/* Override @ai.all/ui design tokens here. The Nuxt module loads the defaults. */\n',
       [BASE]: '/* Add project-wide base styles here. The Nuxt module loads the defaults. */\n',
-      [MAIN]: "@import './theme-base.css';\n@import './base.css';\n",
+      [THEME]: '/* Define project design tokens and theme styles here. */\n',
+      [MAIN]: "@import './theme-base.css';\n@import './base.css';\n@import './theme.css';\n",
       [PAGE]:
         '<script setup lang="ts">\nimport Brandbook from \'@ai.all/ui/templates/ui.vue\';\n</script>\n\n<template>\n  <Brandbook />\n</template>\n',
       [RULES]: source('ALL.md'),
@@ -151,7 +153,7 @@ export function projectCommand(root, cwd, command, args) {
     }
     if (manifest.files[HEAD] || (welcome && !fs.existsSync(location('app/pages')))) {
       desired[HEAD] =
-        '<template>\n  <main><h1>Welcome</h1><NuxtLink to="/ui">Brandbook</NuxtLink></main>\n</template>\n';
+        '<script setup lang="ts">\nimport { useRuntimeConfig } from \'#imports\';\nconst showBrandbook = useRuntimeConfig().public.aiallUiBrandbook;\n</script>\n\n<template>\n  <main>\n    <h1>Welcome</h1>\n    <NuxtLink v-if="showBrandbook" to="/ui">Brandbook</NuxtLink>\n  </main>\n</template>\n';
     }
 
     const changes = [];

@@ -31,7 +31,6 @@ jobs:
         run: npm run format:check
       # the CLI and its tests need no dependencies, so they run on every Node from 18
       - run: npm test
-      - run: npm pack --dry-run
 
   package:
     runs-on: ubuntu-latest

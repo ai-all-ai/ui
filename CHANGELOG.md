@@ -4,6 +4,25 @@ All notable changes to @ai.all/ui are recorded here. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+## [0.3.0-beta.0] — 2026-11-27
+
+### Added
+
+- Source gallery at `/ui/ds` (linked from the brandbook header), an option of the Nuxt module: `aiallUi: { gallery: { folder: 'ds', git: 'ignore' } }`. Browse, search, copy names or paths, select, move, delete, trim margins, remove background and optimise the images of the site's source folder, then replace the originals (a copy stays in `_backup/`). Dev server only: the API and image routes answer 404 in production. `sharp` is an optional peer dependency for the image actions. `git: 'ignore'` (default) adds the folder to the site's `.gitignore` once; `git: 'track'` leaves git alone.
+- `UiGallery` with its sub-components (toolbar, viewer, results), built from the ui components. Display options and folders are one-line segments with their labels on the left.
+- `UiChips` `inline` prop: the legend on the left of the choices, on one line (a group, not a fieldset).
+- `UiDevTools` measures the page's real content box for the grid, so it follows the site's own container (`data-dev-grid`).
+- Page width and margins come from the site's `--content-width` and `--page-gutter` (four base steps). The brandbook and the gallery share them.
+
+- Precompiled Vue ESM, TypeScript declarations, modular scoped CSS and an optional combined minified stylesheet.
+- Lighthouse, network and CSS coverage measurements for a packed-package consumer.
+
+### Changed
+
+- The Nuxt module uses precompiled components. Project themes override the package's layered fallback styles.
+- The managed Brandbook and developer overlays are excluded by default from production. Enable them with `aiallUi.brandbook` and `aiallUi.devTools`.
+- Brandbook renders the active tab first, retains previously opened tabs and loads dialogs on demand. The generated starter page links to the Brandbook when it is available.
+
 ## [0.2.0-beta.3] — 2026-11-27
 
 ### Fixed
@@ -27,16 +46,19 @@ All notable changes to @ai.all/ui are recorded here. Format: [Keep a Changelog](
 ## [0.2.0-beta.1] — 2026-11-26
 
 ### Changed
+
 - States are dash modifiers, as in DS7: `-active` (slider dot) and the brandbook previews `-hover`, `-active`, `-focus` replace the `is-` classes; the highlight in Base elements is `-hl`.
 - `ALL.md` (copied to `ui/ALL.md` by `ui init`) speaks to a project: the brandbook is `app/pages/ui.vue`, the check is `npx @ai.all/ui check --strict`.
 
 ### Fixed
+
 - `ui init` adds `@import './theme-base.css'` and `@import './base.css'` to `app/assets/css/main.css` (creates it when missing), so the tokens reach every page and DS7's css check sees the files used.
 - `ui init`: the AI-ALL pack points at the files init puts in the project (`app/assets/css/theme-base.css`, `app/pages/ui.vue`, `ui/ALL.md`), so `aiall check` passes; before, it linked to paths inside the package.
 
 ## [0.2.0-beta.0] — 2026-11-26
 
 ### Added
+
 - Brandbook `/ui` rebuilt with four tabs kept in the URL (`?tab=`): Foundations (colours in groups with live values and contrast, type, space, radius, shadow), Base elements (every HTML tag with a sample, tag chips that outline the tag in the sample, a filterable index), Components (a spec plate and live demo per pattern ID) and Catalog (filterable table, Markdown export). Every variable, value, ID, name, description, class and snippet has a copy button.
 - Brandbook layout: icons in equal cards (icon, name and copy in fixed rows), button sizes and states in an equal-cell matrix with the code under each control.
 - Brandbook Dev tools tab: one section per tool with its switch, what it checks and its shortcut; INFO and GRID controls stacked in the top bar.
@@ -57,20 +79,24 @@ All notable changes to @ai.all/ui are recorded here. Format: [Keep a Changelog](
 - `ui check`: Known Tokens gate fails on a `var(--x)` that no theme file or component declares.
 
 ### Changed
+
 - All components are self-contained: they no longer import project files (i18n, icons, scenes, masks, image manifests), call missing components or use colours from other sites. Texts come in as props.
 - `UiCheckbox` uses `v-model` through `defineModel`; `UiField` is a plain labelled field with browser validation; `UiModal` uses the native `<dialog>`; `UiSpecs` takes `{ value, label }` items; `UiImg` requires `width` and `height`.
 - `--color-warning` darkened to `#b45309` for 4.5:1 contrast on white.
 
 ### Removed
+
 - `UiTrust`, `UiCarousel` and `UiSlides`: page sections of one site with its own texts and photos, not kit components.
 
 ### Fixed
+
 - Select arrow: the UiSelect badge is centred with insets, and native `<select>` gets the same round badge instead of the browser arrow stuck to the edge.
 - `ui --version` printed help instead of the version.
 - `exports` now exposes `bin/*`, `templates/*` and `aiall-pack.json`, so a parent package (such as ds7) can `require.resolve('@ai.all/ui/bin/ui.js')`.
 - Dev playground returned 500 (`__VUE_OPTIONS_API__ is not defined`) with vue-router 5.5.2; pinned vue-router 5.5.1 via `overrides` (affects only this repo's install, not consumers).
 
 ### Compatibility
+
 - Pre-release: install with `npm i @ai.all/ui@next`. Component props and class names may still change before 0.2.0.
 - Components from 0.1.0 were copies of one site and did not build on their own. Projects that copied them should copy them again (`npx @ai.all/ui add <Component>`) and adjust props: `UiCheckbox` and `UiSwitch` use `v-model`, `UiField` takes `kind`, `hint` and `error`, `UiSpecs` takes `{ value, label }`, `UiImg` needs `width` and `height`, `UiModal` closes with `@close` and takes `size` and `placement`.
 - `UiTrust`, `UiCarousel` and `UiSlides` are gone; keep a project copy if a page still uses them.
@@ -80,6 +106,7 @@ All notable changes to @ai.all/ui are recorded here. Format: [Keep a Changelog](
 ## [0.1.0] — 2026-11-26
 
 ### Added
+
 - Initial pre-release of `@ai.all/ui`.
 - `tokens/theme-base.css`: neutral monochrome tokens (ink, paper, line, brand, feedback, typography, radiuses).
 - 21 core components in `components/ui/` (buttons, modals, selects, chips, cards, sliders, steppers, copy buttons).

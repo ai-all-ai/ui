@@ -74,10 +74,17 @@
 
   /* Layout: page container and its column grid (UiDevTools draws it) */
   --content-width: 73rem;
-  --page-gutter: var(--space-6);
+  --page-gutter: calc(var(--rhythm-step) * 4); /* side margins: four base steps (32 px) on both sides */
   --grid-gutter: var(--space-4);
-  --grid-edge: var(--space-6); /* one base step outside the columns, the extra line of the dev grid */
+  --page-max: var(--content-width); /* the page width is the site's content width (set in its theme.css) */
+  --grid-edge: clamp(0.5rem, 2vw, 1.5rem); /* the dashed line of the dev grid, kept on screen on phones */
   --rhythm-step: var(--space-2); /* baseline rhythm lines of UiDevTools */
+  /* Baseline leading: every line box is a multiple of the base step, so text sits on the rhythm lines */
+  --leading-text: calc(var(--rhythm-step) * 3); /* 24 px */
+  --leading-lead: calc(var(--rhythm-step) * 4); /* 32 px */
+  --leading-h3: calc(var(--rhythm-step) * 4); /* 32 px */
+  --leading-h2: calc(var(--rhythm-step) * 5); /* 40 px */
+  --leading-h1: calc(var(--rhythm-step) * 6); /* 48 px */
 
   /* Radiuses and shadows */
   --radius-sm: 4px;
@@ -99,10 +106,3 @@
   --icon-size: 1.5rem;
 }
 
-/* Phones: a narrower page gutter. Set on :root so the page and UiDevTools use the same value. */
-@media (max-width: 640px) {
-  :root {
-    --page-gutter: var(--space-4);
-    --grid-edge: var(--space-2);
-  }
-}

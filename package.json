@@ -1,6 +1,6 @@
 {
   "name": "@ai.all/ui",
-  "version": "0.2.0-beta.3",
+  "version": "0.3.0-beta.0",
   "description": "Universal monochrome UI foundation, design tokens, and living pattern catalog for DS7 web projects",
   "keywords": [
     "design-system",
@@ -25,14 +25,34 @@
   "author": "Igor Orlov",
   "type": "module",
   "exports": {
-    "./components/*": "./components/*",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs"
+    },
+    "./styled/*": {
+      "types": "./dist/components/ui/*.vue.d.ts",
+      "import": "./dist/styled/*.mjs"
+    },
+    "./components/*.vue": "./components/*.vue",
+    "./components/*": {
+      "types": "./dist/components/ui/*.vue.d.ts",
+      "import": "./dist/components/*.mjs"
+    },
+    "./styles.css": "./dist/styles/all.css",
+    "./styles/*": "./dist/styles/*",
     "./tokens/*": "./tokens/*",
     "./templates/*": "./templates/*",
     "./bin/*": "./bin/*",
     "./aiall-pack.json": "./aiall-pack.json",
     "./package.json": "./package.json",
-    "./nuxt": "./nuxt/module.mjs",
-    "./dev-tools": "./runtime/dev-tools.ts"
+    "./nuxt": {
+      "types": "./nuxt/module.d.ts",
+      "import": "./nuxt/module.mjs"
+    },
+    "./dev-tools": {
+      "types": "./dist/runtime/dev-tools.d.ts",
+      "import": "./dist/runtime/dev-tools.mjs"
+    }
   },
   "bin": {
     "ui": "bin/ui.js"
@@ -40,6 +60,7 @@
   "files": [
     "bin/",
     "components/",
+    "gallery/",
     "tokens/",
     "templates/",
     "aiall-pack.json",
@@ -48,7 +69,8 @@
     "CHANGELOG.md",
     "LICENSE",
     "nuxt/",
-    "runtime/"
+    "runtime/",
+    "dist/"
   ],
   "engines": {
     "node": ">=18"
@@ -58,7 +80,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "dev": "nuxt dev --port 3333",
+    "dev": "npm run build && nuxt dev --port 3333",
     "test": "node scripts/test.mjs",
     "test:package": "node scripts/test-package.mjs",
     "test:one": "node --test",
@@ -68,23 +90,35 @@
     "format:check": "npx --yes prettier@3.6.2 --check \"**/*.{js,mjs,cjs,ts,vue,json,yml,yaml}\"",
     "prepublishOnly": "npm run format:check && npm test && npm run check:strict",
     "verify": "npm run format:check && npm test && npm run check:strict && npm run test:package",
-    "release:check": "bash scripts/release-check.sh"
+    "release:check": "bash scripts/release-check.sh",
+    "build": "node scripts/build.mjs && vue-tsc -p tsconfig.build.json",
+    "prepack": "npm run --silent build",
+    "benchmark": "node scripts/benchmark.mjs"
   },
   "devDependencies": {
+    "@vue/compiler-sfc": "3.5.46",
+    "esbuild": "0.28.2",
+    "lighthouse": "13.6.0",
     "nuxt": "^4.0.0",
     "playwright": "1.65.1",
-    "prettier": "3.6.2"
+    "prettier": "3.6.2",
+    "typescript": "5.9.3",
+    "vue-tsc": "3.3.14"
   },
   "overrides": {
     "vue-router": "5.5.1"
   },
   "peerDependencies": {
-    "nuxt": "^4.0.0",
-    "vue": "^3.5.0"
+    "sharp": ">=0.33.0"
   },
   "peerDependenciesMeta": {
-    "nuxt": {
+    "sharp": {
       "optional": true
     }
-  }
+  },
+  "sideEffects": [
+    "**/*.css",
+    "**/*.vue",
+    "./dist/styled/*.mjs"
+  ]
 }
