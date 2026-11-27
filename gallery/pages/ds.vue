@@ -1,5 +1,8 @@
 <script setup lang="ts">
 // The /ds page of the gallery layer: the whole gallery is one component (UiGallery). Dev only, see the middleware.
+import { useHead } from '#imports';
+// Tokens for a site that loads none of the package's CSS (aiallUi.css false): layered, so the site's own rules win
+import '../../dist/styles/foundation.css';
 import UiGallery from '../components/UiGallery.vue';
 
 useHead({ title: 'ds · source files', meta: [{ name: 'robots', content: 'noindex,nofollow' }] });

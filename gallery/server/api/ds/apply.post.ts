@@ -1,4 +1,5 @@
 // Replaces originals with processed results (the original is copied to _backup/ first) or discards them.
+import { defineEventHandler, readBody } from '#imports';
 import { apply, parseItems } from '../../../lib/ds.js';
 import { devOnly, sourceRoot, failed } from '../../utils/gallery';
 

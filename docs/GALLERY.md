@@ -62,7 +62,7 @@ Nothing changes in `ds/` until you replace an original with a result, move a fil
 ## 6. Safety
 
 - Paths are checked on the server: a name cannot leave the source folder (`..` and absolute paths are refused), and only image files are read or served.
-- The gallery API and the image routes answer `404` outside the dev server, so production never serves the source folder.
+- The gallery exists on the dev server only: a production build (`nuxt build`, `nuxt generate`) has no `/ui/ds` page and no API or image routes, whatever `aiallUi.gallery` says.
 - The page is marked `noindex`.
 - `_processed/` and `_backup/` live inside `ds/`, which `git: 'ignore'` keeps out of git.
 
@@ -77,5 +77,6 @@ Nothing changes in `ds/` until you replace an original with a result, move a fil
 
 - Page: `gallery/pages/ds.vue`, served at `/ui/ds`.
 - Components: `gallery/components/` (`UiGallery`, `UiGalleryToolbar`, `UiGalleryResults`, `UiGalleryViewer`).
-- Server: `gallery/server/` (API under `/api/ds`, images under `/ds-files/`), logic in `gallery/lib/ds.js`.
+- Server: `gallery/server/` (API under `/api/ds`, images under `/ds-files/`), logic in `gallery/lib/ds.js`. `npm run build` compiles the server files to `dist/gallery/server/*.mjs`, because Nitro compiles no TypeScript inside `node_modules` and auto-imports nothing there; the sources therefore import what they use from `#imports`.
+- The page has no site layout and loads the layered token stylesheet itself, so it works in a site with `aiallUi.css: false`. A site's own global rules for generic class names (`.modal`, `.tabs`) still apply to the gallery's components, as they do to every ui component.
 - Tests: `test/gallery.test.mjs`.

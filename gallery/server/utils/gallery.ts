@@ -1,4 +1,5 @@
 // Shared helpers of the gallery API: the source root of the site and the error mapping.
+import { createError, useRuntimeConfig } from '#imports';
 import { resolve } from 'node:path';
 import { DsError } from '../../lib/ds.js';
 

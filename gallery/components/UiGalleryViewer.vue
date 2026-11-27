@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // GALLERY-03 · Viewer of the source gallery: one image full screen with zoom, neighbours, selection and copy.
 // A result shows before and after side by side. Native <dialog>, so focus stays inside and Escape closes it.
+import { ref, computed, onMounted } from 'vue';
 import UiButton from '../../components/ui/UiButton.vue';
 import UiCopyButton from '../../components/ui/UiCopyButton.vue';
 

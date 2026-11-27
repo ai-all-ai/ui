@@ -1,7 +1,10 @@
 <script setup lang="ts">
 // GALLERY-01 · Source gallery of the site: browse, search, copy names or paths, select, move, delete and process the
 // images of the source folder (gallery.folder, ds by default). Dev server only: outside dev it shows a short note.
+import { ref, computed, onMounted, onBeforeUnmount, reactive } from 'vue';
+import { useFetch } from '#imports';
 import UiButton from '../../components/ui/UiButton.vue';
+import UiChips from '../../components/ui/UiChips.vue';
 import UiCopyButton from '../../components/ui/UiCopyButton.vue';
 import UiModal from '../../components/ui/UiModal.vue';
 import UiIcon from '../../components/ui/UiIcon.vue';

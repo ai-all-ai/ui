@@ -1,4 +1,5 @@
 // Deletes one file from the source folder.
+import { defineEventHandler, readBody } from '#imports';
 import { parseItems, remove } from '../../../lib/ds.js';
 import { devOnly, sourceRoot, failed } from '../../utils/gallery';
 

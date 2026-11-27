@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compileScript, compileStyleAsync, parse } from '@vue/compiler-sfc';
@@ -93,4 +93,40 @@ await write(
   'runtime/dev-tools.mjs',
   (await transform(tools, { loader: 'ts', format: 'esm', target: 'es2020' })).code,
 );
+// The gallery's server files: Nitro does not compile TypeScript inside node_modules, so a site gets plain JavaScript.
+// Imports are explicit (`#imports`), because nothing auto-imports them there either.
+const galleryServer = join(root, 'gallery/server');
+const walk = async (dir) =>
+  (await readdir(dir, { withFileTypes: true })).flatMap((entry) =>
+    entry.isDirectory() ? [] : [join(dir, entry.name)],
+  );
+const walkAll = async (dir) =>
+  (
+    await Promise.all(
+      (await readdir(dir, { withFileTypes: true })).map((entry) =>
+        entry.isDirectory() ? walkAll(join(dir, entry.name)) : [join(dir, entry.name)],
+      ),
+    )
+  ).flat();
+for (const file of (await walkAll(galleryServer)).filter((name) => name.endsWith('.ts'))) {
+  const target = join(dist, 'gallery/server', file.slice(galleryServer.length + 1)).replace(
+    /\.ts$/,
+    '.mjs',
+  );
+  await mkdir(join(target, '..'), { recursive: true });
+  const code = await transform(await readFile(file, 'utf8'), {
+    loader: 'ts',
+    format: 'esm',
+    target: 'es2020',
+  });
+  // relative imports without an extension (`../utils/gallery`) point at the compiled `.mjs` file
+  const fixed = code.code.replace(/(from\s+['"]\.[^'"]*?)(['"])/g, (all, spec, quote) =>
+    /\.m?js$/.test(spec) ? all : `${spec}.mjs${quote}`,
+  );
+  await writeFile(target, fixed);
+}
+await mkdir(join(dist, 'gallery/lib'), { recursive: true });
+for (const file of await walk(join(root, 'gallery/lib'))) {
+  await copyFile(file, join(dist, 'gallery/lib', file.slice(file.lastIndexOf('/') + 1)));
+}
 console.error(`Built ${core.length} Vue components, developer tools and CSS bundles.`);

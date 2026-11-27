@@ -4,6 +4,20 @@ All notable changes to @ai.all/ui are recorded here. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+## [0.4.0-beta.1] — 2026-11-27
+
+### Fixed
+
+- The source gallery (`aiallUi.gallery`, `/ui/ds`) works in a site. It only ran inside this repository: from `node_modules` the site's Nitro does not compile TypeScript or auto-import, so `nuxt generate` failed on the server files and every dev page answered 500 with `defineEventHandler is not defined` and `useHead is not defined`. The server files are compiled to `dist/gallery/server/*.mjs` by `npm run build` (explicit `#imports`), and the gallery page and components import the Vue and Nuxt APIs they use. `UiChips` is imported by the gallery itself, so a site's own `UiChips` cannot replace it.
+- The gallery exists in development only: a production build (`nuxt build`, `nuxt generate`) has no `/ui/ds` page, no API routes and no `.gitignore` line, whatever `aiallUi.gallery` says. Before, `nuxt generate` tried to prerender `/ui/ds` and failed.
+- The gallery page has no site layout (no header, footer or floating buttons), and loads the layered token stylesheet itself, so it renders in a site that sets `aiallUi.css: false`.
+- `aiall-pack.json` said 0.3.0-beta.0 in 0.4.0-beta.0; it follows the package version again.
+- `ALL.md` (copied to `ui/ALL.md` in a site) no longer links a `docs/CSS-CONVENTIONS.md` that a site does not have.
+
+### Added
+
+- Package test: a site with the gallery configured. In development the API lists the folder, an image is served with its type and `/ui/ds` renders; `ui update` keeps the setting and the gallery still serves; in a production build the page and the API answer 404.
+
 ## [0.4.0-beta.0] — 2026-11-27
 
 ### Changed

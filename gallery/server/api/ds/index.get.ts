@@ -1,4 +1,5 @@
 // Lists the image folders of the source folder with their files.
+import { defineEventHandler } from '#imports';
 import { existsSync } from 'node:fs';
 import { listing } from '../../../lib/ds.js';
 import { devOnly, sourceRoot, failed } from '../../utils/gallery';

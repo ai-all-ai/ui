@@ -1,4 +1,5 @@
 // Serves one image of the source folder (or of _processed/) to the gallery: /ds-files/<folder>/<name>. Dev only.
+import { defineEventHandler, createError, setHeader, sendStream } from '#imports';
 import { createReadStream } from 'node:fs';
 import { servable } from '../../lib/ds.js';
 import { devOnly, sourceRoot } from '../utils/gallery';

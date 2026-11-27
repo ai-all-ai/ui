@@ -1,4 +1,5 @@
 // Moves files to another folder of the source folder; a name already taken there is skipped.
+import { defineEventHandler, readBody } from '#imports';
 import { move, parseItems } from '../../../lib/ds.js';
 import { devOnly, sourceRoot, failed } from '../../utils/gallery';
 

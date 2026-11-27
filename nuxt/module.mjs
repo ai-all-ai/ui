@@ -55,7 +55,8 @@ export default defineNuxtModule({
       addComponent({ name, filePath, priority: -1 });
     }
     // Source gallery (gallery: { folder: 'ds' } in aiallUi): dev only, see gallery/ in the package.
-    if (options.gallery) {
+    // A production build gets no route, no API and no .gitignore line, so `nuxt build` and `nuxt generate` never see it.
+    if (options.gallery && nuxt.options.dev) {
       const config = {
         folder: 'ds',
         git: 'ignore',
@@ -75,7 +76,8 @@ export default defineNuxtModule({
           );
         }
       }
-      const server = (file) => fromPackage('../gallery/server', file);
+      // compiled by scripts/build.mjs: Nitro does not compile TypeScript inside node_modules
+      const server = (file) => fromPackage('../dist/gallery/server', file.replace(/\.ts$/, '.mjs'));
       addServerHandler({ middleware: true, handler: server('middleware/gallery-dev-only.ts') });
       addServerHandler({ route: '/api/ds', method: 'get', handler: server('api/ds/index.get.ts') });
       addServerHandler({
@@ -115,6 +117,8 @@ export default defineNuxtModule({
             name: 'aiall-ui-gallery',
             path: '/ui/ds',
             file: fromPackage('../gallery/pages/ds.vue'),
+            // a tool page: the site's header, footer and floating buttons stay out of it
+            meta: { layout: false },
           });
         }
       });

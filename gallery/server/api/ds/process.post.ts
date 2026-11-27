@@ -1,4 +1,5 @@
 // Runs trim, background removal or optimisation into _processed/<action>/; sources stay untouched.
+import { defineEventHandler, readBody } from '#imports';
 import { parseItems, processItems } from '../../../lib/ds.js';
 import { devOnly, sourceRoot, failed } from '../../utils/gallery';
 

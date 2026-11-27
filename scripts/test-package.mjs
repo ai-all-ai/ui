@@ -224,6 +224,57 @@ try {
   dev.stop();
   console.log('PASS Nuxt dev, SSR, Brandbook tabs, tokens and developer tools');
 
+  // The source gallery in a site: its server files come from node_modules, where Nitro compiles no TypeScript.
+  const pixel = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==',
+    'base64',
+  );
+  mkdirSync(join(app, 'ds/hero'), { recursive: true });
+  writeFileSync(join(app, 'ds/hero/pixel.png'), pixel);
+  const galleryConfig = config.replace(
+    'defineNuxtConfig({',
+    "defineNuxtConfig({ aiallUi: { gallery: { folder: 'ds' } },",
+  );
+  put(app, 'nuxt.config.ts', galleryConfig);
+  const gallery = await serve(app, [nuxtCli, 'dev', '--host', '127.0.0.1'], '/api/ds');
+  const listing = await (await fetch(gallery.origin + '/api/ds')).json();
+  assert.equal(listing.available, true);
+  assert.deepEqual(
+    listing.folders.flatMap((folder) => folder.files.map((file) => file.name)),
+    ['pixel.png'],
+  );
+  const served = await fetch(gallery.origin + '/ds-files/hero/pixel.png');
+  assert.equal(served.status, 200);
+  assert.equal(served.headers.get('content-type'), 'image/png');
+  assert.equal((await fetch(gallery.origin + '/api/ds/results')).status, 200);
+  assert.match(read(app, '.gitignore'), /^\/ds\/$/m);
+  await html(gallery.origin, '/ui', /href="\/ui\/ds"/);
+  await inspect(gallery.origin, 'Nuxt dev gallery', async (page) => {
+    await page.goto(gallery.origin + '/ui/ds');
+    await page.getByRole('heading', { name: 'Source files' }).waitFor();
+    await page.getByText('pixel.png').first().waitFor();
+    await page.screenshot({ path: join(work, 'gallery-desktop.png') });
+  });
+  gallery.stop();
+  // an update keeps the site's gallery setting, and the gallery still serves afterwards
+  ui(app, 'update');
+  assert.equal(read(app, 'nuxt.config.ts'), galleryConfig);
+  const updated = await serve(app, [nuxtCli, 'dev', '--host', '127.0.0.1'], '/api/ds');
+  assert.equal((await (await fetch(updated.origin + '/api/ds')).json()).available, true);
+  assert.equal((await fetch(updated.origin + '/ui/ds')).status, 200);
+  updated.stop();
+  // a production build carries neither the page nor the API, whatever aiallUi.gallery says
+  run(app, [process.execPath, nuxtCli, 'build'], { NUXT_TELEMETRY_DISABLED: '1' });
+  const closed = await serve(app, ['.output/server/index.mjs'], '/');
+  assert.equal((await fetch(closed.origin + '/api/ds')).status, 404);
+  assert.equal((await fetch(closed.origin + '/ds-files/hero/pixel.png')).status, 404);
+  assert.equal((await fetch(closed.origin + '/ui/ds')).status, 404);
+  closed.stop();
+  put(app, 'nuxt.config.ts', config);
+  console.log(
+    'PASS source gallery: dev API, images and page; kept by an update; closed in production',
+  );
+
   put(app, 'app/assets/css/theme.css', `@layer theme { ${custom} }\n`);
   put(
     app,

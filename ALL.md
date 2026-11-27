@@ -15,7 +15,7 @@
    - Forbidden: `class="btn-primary-lg"`, `class="card-big"`, `class="counter__btn"`.
    - States are dash modifiers too: `.tabs .tab.-active`, `.menu.-open`. Brandbook previews force a state with `-hover`, `-active` and `-focus`.
    - `npx @ai.all/ui check` fails on BEM element names (`__`) and compound modifiers.
-   - Full rules, nesting and exceptions: `docs/CSS-CONVENTIONS.md` (DS7 source: `02-design-system/CSS-CONVENTIONS.md`).
+   - Full rules, nesting and exceptions: DS7 `02-design-system/CSS-CONVENTIONS.md` in the ds7 package.
 
 3. **Component Anatomy:**
    - Single responsibility, pure props/emits.
