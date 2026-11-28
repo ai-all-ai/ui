@@ -17,7 +17,9 @@ export default defineNuxtConfig({
 - `folder` (default `ds`): the source folder, relative to the project root. Files are read from there, never from `public/`.
 - `git` (default `'ignore'`): `'ignore'` adds `/ds/` to the site's `.gitignore` once, so large originals stay out of the repository; `'track'` leaves git alone.
 
-The page is at `/ui/ds`. The brandbook header links to it, and the gallery header links back (`← Brandbook`).
+The page is at `/ui/ds`. The brandbook’s Tools tab links to it, and the gallery header links back to Tools (`← Brandbook`).
+
+The floating controls expand search within the toolbar and open settings in a side panel. Bulk actions appear after selecting files.
 
 ## 2. The screen
 
@@ -25,13 +27,13 @@ The page is at `/ui/ds`. The brandbook header links to it, and the gallery heade
   - **Show:** `Name` (copies the file name) or `Path` (copies the path inside `ds/`).
   - **Background:** `Light` or `Dark`, to check a picture on both.
   - **Columns:** `4 per row` or `7 per row`.
-- **Folder row:** `All`, or one folder with its file count (`. (3)` is the root of `ds/`), and **Search by name**.
+- **Folder row:** `All`, or one folder with its file count (`. (3)` is the root of `ds/`), and **Search by name**. Folder filters wrap onto multiple lines.
 - **Action panel:** the count of selected files, the buttons and the settings (section 4).
 - **Grid of cards:** one card per image, with a circle to select it.
 
 ## 3. Browse and select
 
-- **Folders:** click a folder to show only its files. `All` shows everything.
+- **Folders:** click a folder to show only its files. `All` shows everything. Single-file deletion asks for confirmation in the gallery toolbar.
 - **Search:** filters by file name as you type.
 - **Select:** click the circle on a card. Shift with a second click selects the range between them.
 - **Select all / Clear:** selects every file shown (after folder and search filters) or clears the selection.
@@ -78,5 +80,5 @@ Nothing changes in `ds/` until you replace an original with a result, move a fil
 - Page: `gallery/pages/ds.vue`, served at `/ui/ds`.
 - Components: `gallery/components/` (`UiGallery`, `UiGalleryToolbar`, `UiGalleryResults`, `UiGalleryViewer`).
 - Server: `gallery/server/` (API under `/api/ds`, images under `/ds-files/`), logic in `gallery/lib/ds.js`. `npm run build` compiles the server files to `dist/gallery/server/*.mjs`, because Nitro compiles no TypeScript inside `node_modules` and auto-imports nothing there; the sources therefore import what they use from `#imports`.
-- The page has no site layout and loads the layered token stylesheet itself, so it works in a site with `aiallUi.css: false`. A site's own global rules for generic class names (`.modal`, `.tabs`) still apply to the gallery's components, as they do to every ui component.
+- The page uses the site's default layout and loads the layered token stylesheet itself, so it works in a site with `aiallUi.css: false`. A site's own global rules for generic class names (`.modal`, `.tabs`) still apply to the gallery's components, as they do to every ui component.
 - Tests: `test/gallery.test.mjs`.

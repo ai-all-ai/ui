@@ -9,6 +9,9 @@
 
 2. **Naming Convention (short, not BEM):**
    - The root is one short name: `.btn`, `.tabs`, `.counter`.
+   - A component's ordinary size and appearance use its base class alone. For example, `.btn` is the default button and `-primary`, `-secondary`, `-bright`, `-light`, `-small` and `-big` are explicit choices.
+   - Buttons, fields and selects share `--control-height` (44 px), `--control-height-small` (36 px) and `--control-height-big` (52 px). The spacing scale derives from `--space-1`. Project themes override values through CSS variables.
+   - A `.btn` can render as a link or a native button; its element does not change its appearance. Use `-link` for a button that looks like a text link, and `-transparent` for a full-size button without a resting fill. Browser-native appearance is reset on the component root.
    - Modifiers are separate dash-prefixed classes: `class="btn -primary -lg"`. Correct for any variant, size or state.
    - Inner parts are short names scoped under the root in the CSS: `.counter .btn`, or the part name alone inside a scoped `<style>` block. Never `block__element`.
    - Restyle a part through a modifier on the root or by inheritance from the parent (`.counter.-small .btn`), not by a new long name.

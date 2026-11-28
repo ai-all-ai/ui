@@ -1,8 +1,9 @@
 # @ai.all/ui
 
+[![CI](https://github.com/ai-all-ai/ui/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ai-all-ai/ui/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@ai.all/ui)](https://www.npmjs.com/package/@ai.all/ui)
+[![node](https://img.shields.io/node/v/@ai.all/ui)](https://nodejs.org)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![repo](https://img.shields.io/badge/github-ai--all--ai%2Fui-blue)](https://github.com/ai-all-ai/ui)
 
 > **Tokens first, then components, then the brandbook.** A monochrome UI kit for DS7 web projects: tokens, base HTML styles, self-contained Vue components and a living `/ui` brandbook with developer tools.
 
@@ -160,13 +161,13 @@ Run `npx aiall sync` and `npx aiall check` after initialization or migration.
 
 `@ai.all/ui` contains its own multi-gate validator:
 
-| Gate                          | Check                      | Rule                                                                                                       |
-| ----------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| **Gate 1: Token Contract**    | `tokens/theme-base.css`    | Verifies required semantic variables are declared (`--color-paper`, `--color-ink`, `--color-brand`, etc.). |
-| **Gate 1b: Known Tokens**     | Components in `<style>`    | Every `var(--x)` without a fallback is declared in the theme CSS files or in the component itself.         |
-| **Gate 2: Token Discipline**  | Components in `<style>`    | Forbids raw `#hex` or `rgb()` literals in components; enforces `var(--color-*)`.                           |
+| Gate                          | Check                      | Rule                                                                                                                                     |
+| ----------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Gate 1: Token Contract**    | `tokens/theme-base.css`    | Verifies required semantic variables are declared (`--color-paper`, `--color-ink`, `--color-brand`, etc.).                               |
+| **Gate 1b: Known Tokens**     | Components in `<style>`    | Every `var(--x)` without a fallback is declared in the theme CSS files or in the component itself.                                       |
+| **Gate 2: Token Discipline**  | Components in `<style>`    | Forbids raw `#hex` or `rgb()` literals in components; enforces `var(--color-*)`.                                                         |
 | **Gate 3: Modifier Naming**   | Class attributes           | Enforces separate dash-prefixed modifiers (`.-modifier`), forbids compound anti-patterns (`.btn-big`) and BEM elements (`.card__title`). |
-| **Gate 4: Component Anatomy** | Vue Single File Components | Requires `<template>`, `<script setup lang="ts">`, and forbids `!important`.                               |
+| **Gate 4: Component Anatomy** | Vue Single File Components | Requires `<template>`, `<script setup lang="ts">`, and forbids `!important`.                                                             |
 
 Run quality gates:
 
@@ -224,7 +225,23 @@ transaction.
 
 Every component is self-contained: it uses only the tokens above, takes its texts as props and imports nothing from a project.
 
-- **Atoms:** `UiIcon`, `UiButton` (primary, secondary, outline, ghost, link; small, medium, big; square, block, loading; `on-dark`), `UiTag`, `UiCopyButton`, `UiCheckbox`, `UiSwitch`, `UiImg`, `UiMedia`
+An ordinary `<UiButton>` renders `.btn`. Add `variant="primary"` or
+`variant="secondary"` for a different role. Use `bright` or `light` for the theme’s named appearance variants, and `size="small"` or `size="big"` for
+a different size. The default color and states read `--ui-button-background`,
+`--ui-button-color`, `--ui-button-hover-background` and `--ui-button-hover-color`.
+The primary variant reads its corresponding `--ui-button-primary-*` tokens.
+Passing `href` renders an anchor with the same button appearance. `variant="link"`
+renders a compact text-link appearance on a native button when no `href` is
+provided. `variant="transparent"` keeps the button size and padding without a
+resting fill; its text and hover colors use `--ui-button-transparent-*` tokens.
+
+Buttons, single-line fields and selects share `--control-height`,
+`--control-height-small` and `--control-height-big` (44, 36 and 52 px by default).
+Set those heights once in the theme to size the controls together. The button
+has separate horizontal padding and font tokens for each size. Square buttons
+use the same height for their width.
+
+- **Atoms:** `UiIcon`, `UiButton` (primary, secondary, bright, light, outline, ghost, transparent, link; small, medium, big; square, block, loading; `on-dark`), `UiTag`, `UiCopyButton`, `UiCheckbox`, `UiSwitch`, `UiImg`, `UiMedia`
 - **Molecules:** `UiField`, `UiSelect`, `UiChips` (pill, soft, segment, tile; small, medium; `on-dark`), `UiAlert`, `UiSpecs`, `UiPriceBox`, `UiStepper`, `UiTimeline`, `UiSliderNav` (dots, numbered, arrows; small; `on-dark`), `UiCounter` (− / +), `UiTabs`, `UiBreadcrumb`, `UiAccordion` (card, plain, accent; one open at a time)
 - **Organisms:** `UiCardGrid`, `UiModal`, `UiLightbox`
 - **Tools:** `UiDevTools` (layout grid, baseline rhythm, outlines, viewport size and a visual a11y/SEO check, in development)
@@ -275,6 +292,15 @@ Put `<UiDevTools />` once in `app.vue` or the default layout: the tools then wor
 | `Esc`                         | modal, lightbox, brandbook menu | Closes it                                        |
 | `+` / `-` / `0`               | lightbox                        | Zoom in / out / fit                              |
 | `Tab` / `Shift` + `Tab`       | everywhere                      | Moves focus; a 2 px ring shows where it is       |
+
+## Project brandbook sections
+
+To add a project section, import `@ai.all/ui/templates/ui.vue` in the project's
+`app/pages/ui.vue`. Pass an array of `{ id, name }` as `sections` and supply a
+named slot for each ID. Use lowercase, dash-separated IDs that do not match
+an existing tab. The component keeps the package tabs and uses `?tab=<id>`
+for direct links to project sections. Keep the wrapper and slot content in
+the project so updating the package also updates the built-in tabs.
 
 ## 7. Source gallery (dev only)
 

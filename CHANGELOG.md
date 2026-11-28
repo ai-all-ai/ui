@@ -4,6 +4,28 @@ All notable changes to @ai.all/ui are recorded here. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+### Added
+
+- Brandbook sections can be supplied by the site as named slots and linked by tab ID.
+
+### Changed
+
+- Gallery: the selected count and a Clear selection action sit under the title; the All filter shows the total.
+- Gallery: the controls row no longer shifts the title; the settings gear stays in place when the selection badge appears.
+- Gallery: 12 files per row option for small icons.
+- Gallery: delete confirmation stays inside the gallery frame and the gallery is on by default in development.
+- Reset native button and anchor differences on `.btn`; document both directions in the brandbook. Add a full-size transparent variant and theme tokens, show selection on gallery thumbnails, place selected-file actions before Settings, and shorten the main tab labels with Tools first.
+
+- Render the ordinary button as `.btn`; primary is explicit. Buttons, fields and selects share three height tokens and Component theme previews them together.
+
+- The brandbook puts Component list next to Component theme and labels its HTML examples Tags.
+
+- Rename the Dev tools tab to Tools and move the source gallery link into it.
+
+- Brandbook settings use compact Info and Grid selects in a sidebar.
+
+- Source gallery folder filters use link styling and wrap on narrow screens. Single-file deletion is confirmed in the gallery toolbar.
+
 ## [0.4.0-beta.1] — 2026-11-27
 
 ### Fixed

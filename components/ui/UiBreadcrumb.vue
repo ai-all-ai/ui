@@ -13,7 +13,11 @@ withDefaults(
 </script>
 
 <template>
-  <nav class="crumbs" :class="[`-${variant}`, { '-on-dark': onDark }]" :aria-label="label">
+  <nav
+    class="crumbs"
+    :class="[variant === 'plain' ? '' : `-${variant}`, { '-on-dark': onDark }]"
+    :aria-label="label"
+  >
     <ol class="list">
       <li v-for="(it, i) in items" :key="it.label" class="item">
         <a v-if="it.href && i < items.length - 1" class="link" :href="it.href">{{ it.label }}</a>

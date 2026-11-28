@@ -6,6 +6,7 @@ import { computed, ref, useId } from 'vue';
 const props = withDefaults(
   defineProps<{
     label: string;
+    size?: 'small' | 'md' | 'big';
     kind?: 'text' | 'email' | 'tel' | 'url' | 'search' | 'textarea';
     required?: boolean;
     placeholder?: string;
@@ -36,7 +37,10 @@ const describedBy = computed(
 </script>
 
 <template>
-  <div class="field" :class="{ '-error': invalid }">
+  <div
+    class="field"
+    :class="{ '-error': invalid, '-small': size === 'small', '-big': size === 'big' }"
+  >
     <label class="label" :for="uid">
       {{ label }}<span v-if="required" class="req" aria-hidden="true"> *</span>
     </label>
@@ -72,6 +76,7 @@ const describedBy = computed(
 
 <style scoped>
 .field {
+  --field-height: var(--control-height);
   display: grid;
   gap: var(--space-1);
   min-width: 0;
@@ -88,7 +93,7 @@ const describedBy = computed(
   }
   .input {
     width: 100%;
-    min-height: var(--control-height);
+    min-height: var(--field-height);
     padding: 0 var(--control-pad-x);
     border: 1px solid var(--color-line-strong);
     border-radius: var(--radius-ui);
@@ -125,5 +130,11 @@ const describedBy = computed(
   .error {
     font-weight: 600;
   }
+}
+.field.-small {
+  --field-height: var(--control-height-small, 2.25rem);
+}
+.field.-big {
+  --field-height: var(--control-height-big, 3.25rem);
 }
 </style>

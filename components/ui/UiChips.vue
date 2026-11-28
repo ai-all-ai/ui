@@ -51,7 +51,10 @@ const toggle = (value: string) => {
   <component
     :is="inline ? 'div' : 'fieldset'"
     class="chips"
-    :class="[`-${variant}`, { '-small': size === 'small', '-on-dark': onDark, '-inline': inline }]"
+    :class="[
+      variant === 'pill' ? '' : `-${variant}`,
+      { '-small': size === 'small', '-on-dark': onDark, '-inline': inline },
+    ]"
     :role="inline ? 'group' : undefined"
     :aria-label="inline ? legend : undefined"
   >
