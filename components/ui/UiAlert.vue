@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// ALERT-01 · Feedback block: info, success, warning or danger. Danger is announced as an alert.
+// Feedback block: info, success, warning or danger. Danger is announced as an alert.
 withDefaults(defineProps<{ tone?: 'info' | 'success' | 'warning' | 'danger'; title?: string }>(), {
   tone: 'info',
   title: '',

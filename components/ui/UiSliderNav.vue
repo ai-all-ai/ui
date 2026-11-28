@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// SLIDERNAV-01 · Slider controls: dots (or numbers) and previous/next arrows for any slider. The model is the index.
+// Slider controls: dots (or numbers) and previous/next arrows for any slider. The model is the index.
 // Variants by props: dots + arrows, numbered, arrows only, dots only; small; `onDark`. -hover and -focus force
 // a state on the next arrow for the brandbook only.
 const props = withDefaults(

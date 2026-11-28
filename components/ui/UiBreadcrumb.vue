@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// BREADCRUMB-01 · Breadcrumb: where the page sits (madera). Plain (slashes) or pill (a frosted pill over a photo);
+// Breadcrumb: where the page sits. Plain (slashes) or pill (a frosted pill over a photo);
 // `onDark`. The last item is the current page (aria-current="page", not a link).
 withDefaults(
   defineProps<{
@@ -33,12 +33,25 @@ withDefaults(
   --crumbs-muted: var(--color-ink-500);
   color: var(--crumbs-muted);
   font-size: var(--text-sm);
-}
-.crumbs {
+
   &.-on-dark {
     --crumbs-ink: var(--color-inverse-ink);
     --crumbs-muted: var(--color-inverse-ink-600);
   }
+
+  &.-pill {
+    display: inline-block;
+    padding: var(--space-1) var(--space-4);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-pill);
+    background: var(--color-glass);
+
+    &.-on-dark {
+      border-color: var(--color-inverse-line);
+      background: var(--color-inverse-soft);
+    }
+  }
+
   .list {
     display: flex;
     flex-wrap: wrap;
@@ -48,35 +61,24 @@ withDefaults(
     padding: 0;
     list-style: none;
   }
+
   .item {
     margin: 0;
   }
-}
-.item + .item::before {
-  content: '/';
-  margin-right: var(--space-2);
-}
-.crumbs {
+
+  .item + .item::before {
+    content: '/';
+    margin-right: var(--space-2);
+  }
+
   .link {
     color: var(--crumbs-ink);
     text-decoration: underline;
     text-underline-offset: 0.2em;
-  }
-}
-.link:hover {
-  text-decoration-thickness: 2px;
-}
-.crumbs {
-  &.-pill {
-    display: inline-block;
-    padding: var(--space-1) var(--space-4);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-pill);
-    background: var(--color-glass);
-  }
-  &.-pill.-on-dark {
-    border-color: var(--color-inverse-line);
-    background: var(--color-inverse-soft);
+
+    &:hover {
+      text-decoration-thickness: 2px;
+    }
   }
 }
 </style>

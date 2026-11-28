@@ -1,3 +1,4 @@
+// Checks the packed package: Nuxt, SSR, production and migration.
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { globSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -244,7 +245,7 @@ try {
     listing.folders.flatMap((folder) => folder.files.map((file) => file.name)),
     ['pixel.png'],
   );
-  const served = await fetch(gallery.origin + '/ds-files/hero/pixel.png');
+  const served = await fetch(gallery.origin + '/ds-files/ds/hero/pixel.png');
   assert.equal(served.status, 200);
   assert.equal(served.headers.get('content-type'), 'image/png');
   assert.equal((await fetch(gallery.origin + '/api/ds/results')).status, 200);

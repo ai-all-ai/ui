@@ -24,6 +24,9 @@ export interface GalleryResult {
 export type GalleryAction = 'trim' | 'bg' | 'optimize';
 export const galleryKey = (folder: string, name: string) => `${folder}/${name}`;
 export const galleryEnc = (folder: string) => folder.split('/').map(encodeURIComponent).join('/');
+/** Preview URL of a processed result: <source folder>/_processed/<action>/<rest of the folder>/<file>. */
+export const processedUrl = (action: string, folder: string, file: string) =>
+  `/ds-files/${[folder.split('/')[0], '_processed', action, ...folder.split('/').slice(1), file].map(encodeURIComponent).join('/')}`;
 export const galleryKb = (bytes: number) =>
   bytes > 1048576
     ? `${(bytes / 1048576).toFixed(1)} MB`

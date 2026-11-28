@@ -1,4 +1,4 @@
-// File logic of the /ds gallery: folders, files, path safety and image actions.
+// File logic of the /ui/ds gallery: folders, files, path safety and image actions.
 // No Nuxt imports, so the tests run it with plain Node. Handlers turn DsError into an HTTP error.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -18,23 +18,64 @@ export class DsError extends Error {
   }
 }
 
-/** The source folder with symlinks resolved, or '' when it does not exist. */
-export const realRoot = (root) => (fs.existsSync(root) ? fs.realpathSync(root) : '');
+/**
+ * The gallery root: the project folder (base) and the source folders inside it (roots, from the setting).
+ * A folder is named by its path from the project root, so files of two source folders never clash.
+ */
+export const galleryRoot = (base, roots) => ({ base, roots });
 
-/** Every folder under root (relative, with "/"), except dot and tool folders; sorted so siblings stay together. */
+/** The project folder with symlinks resolved, or '' when it does not exist. */
+export const realRoot = (root) => (fs.existsSync(root.base) ? fs.realpathSync(root.base) : '');
+
+/** The source folder a path starts with (ds for ds/logos), or null when it is outside the gallery. */
+const topOf = (root, folder) =>
+  root.roots.find((r) => folder === r || folder.startsWith(`${r}/`)) ?? null;
+
+/**
+ * The setting as a list: one name or a comma-separated list, relative to the project root.
+ * Names must be plain folders inside the project, and no name may sit inside another one.
+ */
+export const parseRoots = (value) => {
+  const list = [
+    ...new Set(
+      (Array.isArray(value) ? value : String(value ?? 'ds').split(','))
+        .map((s) => String(s).trim().replace(/\\/g, '/').replace(/^\.\//, '').replace(/\/+$/, ''))
+        .filter(Boolean),
+    ),
+  ];
+  if (!list.length) throw new Error('gallery folder: name at least one folder');
+  for (const r of list) {
+    if (r.startsWith('/') || r.split('/').includes('..') || r.startsWith('.')) {
+      throw new Error(`gallery folder "${r}": use a folder inside the project`);
+    }
+    if (list.some((o) => o !== r && r.startsWith(`${o}/`))) {
+      throw new Error(
+        `gallery folder "${r}" sits inside "${list.find((o) => r.startsWith(`${o}/`))}"`,
+      );
+    }
+  }
+  return list;
+};
+
+/** Every source folder and the folders under it (relative to the project root, with "/"), sorted. */
 export const listFolders = (root) => {
   const base = realRoot(root);
   if (!base) return [];
   const out = [];
-  const walk = (dir) => {
+  const walk = (dir, name) => {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       if (!entry.isDirectory() || entry.name.startsWith('.') || HIDDEN.has(entry.name)) continue;
-      const abs = path.join(dir, entry.name);
-      out.push(path.relative(base, abs).split(path.sep).join('/'));
-      walk(abs);
+      const sub = `${name}/${entry.name}`;
+      out.push(sub);
+      walk(path.join(dir, entry.name), sub);
     }
   };
-  walk(base);
+  for (const top of root.roots) {
+    const dir = path.join(base, top);
+    if (!fs.existsSync(dir)) continue;
+    out.push(top);
+    walk(dir, top);
+  }
   return out.sort();
 };
 
@@ -47,11 +88,10 @@ export const listFiles = (root, folder) => {
     .map((name) => ({ name, size: fs.statSync(path.join(dir, name)).size }));
 };
 
-/** Folders that hold images, with their files: the gallery's listing. Files right in root show as ".". */
+/** Folders that hold images, with their files: the gallery's listing. */
 export const listing = (root) => {
-  const base = realRoot(root);
-  if (!base) return [];
-  return ['.', ...listFolders(root)]
+  if (!realRoot(root)) return [];
+  return listFolders(root)
     .map((folder) => ({ folder, files: listFiles(root, folder) }))
     .filter((f) => f.files.length);
 };
@@ -60,7 +100,7 @@ const plainName = (name) =>
   typeof name === 'string' && name.length > 0 && name === name.split(/[\\/]/).pop();
 
 export const assertFolder = (root, folder) => {
-  if (folder === '.' || listFolders(root).includes(folder)) return folder;
+  if (listFolders(root).includes(folder)) return folder;
   throw new DsError(400, 'Unknown folder');
 };
 
@@ -69,7 +109,7 @@ export const parseItems = (root, value) => {
   if (!Array.isArray(value) || !value.length || value.length > MAX_ITEMS) {
     throw new DsError(400, `Choose from 1 to ${MAX_ITEMS} files`);
   }
-  const folders = new Set(['.', ...listFolders(root)]);
+  const folders = new Set(listFolders(root));
   return value.map((item) => {
     const { folder, name } = item ?? {};
     if (typeof folder !== 'string' || !folders.has(folder) || !plainName(name) || !IMG.test(name)) {
@@ -79,12 +119,19 @@ export const parseItems = (root, value) => {
   });
 };
 
-/** Absolute path of an item, optionally under a tool folder (_processed/<action>, _backup); never outside root. */
+/**
+ * Absolute path of an item, optionally under a tool folder (_processed/<action>, _backup) of its source folder.
+ * Never outside that source folder.
+ */
 export const itemPath = (root, item, sub = '') => {
   const base = realRoot(root);
   if (!base) throw new DsError(404, 'Source folder not found');
-  const file = path.resolve(base, sub, item.folder, item.name);
-  if (!file.startsWith(base + path.sep)) throw new DsError(400, 'Invalid path');
+  const top = topOf(root, item.folder);
+  if (!top) throw new DsError(400, 'Invalid path');
+  const dir = path.join(base, top);
+  const inside = item.folder.slice(top.length).replace(/^\//, '');
+  const file = path.resolve(dir, sub, inside, item.name);
+  if (!file.startsWith(dir + path.sep)) throw new DsError(400, 'Invalid path');
   return file;
 };
 
@@ -157,23 +204,27 @@ export const apply = (root, action, items, outs = [], discard = false) => {
   return { applied };
 };
 
-/** Results waiting in _processed/<action>/<folder>/, found by walking the processed tree itself. */
+/** Results waiting in <source folder>/_processed/<action>/, found by walking each processed tree itself. */
 export const results = (root) => {
   const base = realRoot(root);
   if (!base) return [];
-  const dir = path.join(base, PROCESSED);
-  if (!fs.existsSync(dir)) return [];
   const out = [];
-  for (const action of fs.readdirSync(dir)) {
-    if (!ACTIONS.includes(action)) continue;
-    const walk = (at, rel) => {
-      for (const entry of fs.readdirSync(at, { withFileTypes: true })) {
-        const abs = path.join(at, entry.name);
-        if (entry.isDirectory()) walk(abs, rel ? `${rel}/${entry.name}` : entry.name);
-        else if (IMG.test(entry.name)) out.push({ action, folder: rel || '.', name: entry.name });
-      }
-    };
-    walk(path.join(dir, action), '');
+  for (const top of root.roots) {
+    const dir = path.join(base, top, PROCESSED);
+    if (!fs.existsSync(dir)) continue;
+    for (const action of fs.readdirSync(dir)) {
+      if (!ACTIONS.includes(action)) continue;
+      const walk = (at, rel) => {
+        for (const entry of fs.readdirSync(at, { withFileTypes: true })) {
+          const abs = path.join(at, entry.name);
+          if (entry.isDirectory()) walk(abs, rel ? `${rel}/${entry.name}` : entry.name);
+          else if (IMG.test(entry.name)) {
+            out.push({ action, folder: rel ? `${top}/${rel}` : top, name: entry.name });
+          }
+        }
+      };
+      walk(path.join(dir, action), '');
+    }
   }
   return out.sort((a, b) =>
     `${a.action}/${a.folder}/${a.name}`.localeCompare(`${b.action}/${b.folder}/${b.name}`),
@@ -305,14 +356,17 @@ const TYPES = {
   '.gif': 'image/gif',
 };
 
-/** A file under root for the preview, with its type; null for anything else (outside root, not an image, missing). */
+/** A file under a source folder for the preview, with its type; null for anything else (outside, not an image, missing). */
 export const servable = (root, rel) => {
   const base = realRoot(root);
-  if (!base || typeof rel !== 'string') return null;
+  const top = typeof rel === 'string' ? topOf(root, rel) : null;
+  if (!base || !top) return null;
+  // inside the source folder the file lives in, not just inside the project folder
+  const dir = path.join(base, top) + path.sep;
   const file = path.resolve(base, rel);
   const type = TYPES[path.extname(file).toLowerCase()];
-  if (!file.startsWith(base + path.sep) || !type || !fs.existsSync(file)) return null;
+  if (!file.startsWith(dir) || !type || !fs.existsSync(file)) return null;
   const real = fs.realpathSync(file);
-  if (!real.startsWith(base + path.sep) || !fs.statSync(real).isFile()) return null;
+  if (!real.startsWith(dir) || !fs.statSync(real).isFile()) return null;
   return { file: real, type };
 };

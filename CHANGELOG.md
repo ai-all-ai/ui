@@ -4,6 +4,26 @@ All notable changes to @ai.all/ui are recorded here. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+## [0.4.0-beta.3] - 2026-11-28
+
+### Added
+
+- One breakpoint set for the kit: 480, 768, 1024, 1280 and 1440 px, defined in `tokens/breakpoints.json`. `test/breakpoints.test.mjs` keeps CSS and the dev tools equal.
+- Gallery source folders: the setting takes one folder or a comma-separated list inside the project. Results stay in each source folder.
+- Site setup guide (`docs/SITE-SETUP.md`) and the breakpoint rule in `docs/CSS-CONVENTIONS.md`.
+
+### Changed
+
+- Breakpoints: the CSS uses 480, 768, 1024 and 1280 px (was 560, 640, 700, 900, 1000 and 1280 px). The brandbook header switches at 1280 px as before.
+- Dev tools read the viewport band with `matchMedia` instead of `innerWidth`.
+- Component JavaScript is minified in the package build (about half the size before gzip).
+- Button, chips and breadcrumb styles are one nested block each, with unchanged computed styles in Chromium.
+- The gallery server file layer is split out into `gallery/composables/useGalleryActions.ts`.
+
+### Fixed
+
+- Gallery preview URLs follow the source folder, and files are served only from the configured source folders.
+
 ## [0.4.0-beta.2] - 2026-11-28
 
 ### Added

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// GALLERY-02 · Bulk actions of the source gallery: select, copy, process, move, delete. Process and file actions are dev only.
+// Bulk actions of the source gallery: select, copy, process, move, delete. Process and file actions are dev only.
 import { ref, computed } from 'vue';
 import UiButton from '../../components/ui/UiButton.vue';
 import UiSelect from '../../components/ui/UiSelect.vue';

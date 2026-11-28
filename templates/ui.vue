@@ -196,10 +196,10 @@ useHead({
 const baseTabs: BrandbookSection[] = [
   { id: 'tools', name: 'Tools' },
   { id: 'foundations', name: 'Base' },
-  { id: 'tokens', name: 'Tokens' },
-  { id: 'elements', name: 'Tags' },
   { id: 'components', name: 'Components' },
   { id: 'catalog', name: 'Base List' },
+  { id: 'elements', name: 'Tags' },
+  { id: 'tokens', name: 'Tokens' },
   { id: 'component-theme', name: 'Theme' },
 ];
 const extraTabs = computed(() => {
@@ -1473,7 +1473,7 @@ onMounted(() =>
   ),
 );
 // Variant matrices: every variant of a component in its own row of equal cells (sizes, states, dark), each cell
-// labelled, with its final class and copy buttons for the class, the HTML and the Vue tag (same idea as the buttons).
+// labelled, with its final class and copy buttons for the class, the HTML and the Vue tag.
 type MCell = {
   key: string;
   label: string;
@@ -3338,7 +3338,7 @@ const icons = [
         <p class="note">{{ t.note }}</p>
         <div v-if="gridOn" class="tool">
           <div v-if="t.id === 'grid'" class="gridrow">
-            <!-- the same red Grid button as the one bottom left, next to the columns it controls (shared state) -->
+            <!-- the same red Grid button as in the Layout row, shared state -->
             <button
               type="button"
               class="gridbtn"
@@ -4491,7 +4491,7 @@ const icons = [
     cursor: zoom-in;
   }
 }
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .bb .tagged {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-2);

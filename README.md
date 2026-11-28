@@ -30,6 +30,8 @@ npx ui init
 
 ## 2. Architecture & Ecosystem Integration
 
+Site setup, theme and the recommended configuration: [docs/SITE-SETUP.md](docs/SITE-SETUP.md).
+
 The `@ai.all` ecosystem is organized into three cooperating layers:
 
 ```
@@ -312,10 +314,10 @@ A tool inside the brandbook for the source images of a site: browse them, proces
 aiallUi: { gallery: { folder: 'ds', git: 'ignore' } }
 ```
 
-- `folder`: the source folder, relative to the project root (`ds` by default). Files are read from there, never from `public/`.
+- **Which folder the gallery reads:** only the folder named in `folder`, relative to the site's project root (default `ds`, that is `<project>/ds/`). To change it, set `aiallUi.gallery.folder` in `nuxt.config.ts` and restart the dev server. Files are read from there, never from `public/`.
 - `git`: `'ignore'` (default) adds `/ds/` to the site's `.gitignore` once, so large originals stay out of the repository; `'track'` leaves git alone.
 
-**Where it is:** `/ui/ds`, linked from the brandbook header (`← Brandbook`) and from the page itself. The full guide is in [docs/GALLERY.md](docs/GALLERY.md). The full guide is in [docs/GALLERY.md](docs/GALLERY.md).
+**Where it is:** `/ui/ds`, linked from the brandbook header (`← Brandbook`) and from the page itself. The full guide is in [docs/GALLERY.md](docs/GALLERY.md).
 
 **What you can do**
 

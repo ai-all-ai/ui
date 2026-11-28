@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// TIMELINE-01 · Timeline: numbered circles joined by a line, each with a title and a short text. Rows on tablets, a column on phones.
+// Timeline: numbered circles joined by a line, each with a title and a short text. Rows on tablets, a column on phones.
 defineProps<{ items: { title: string; text: string }[] }>();
 </script>
 
@@ -66,7 +66,7 @@ defineProps<{ items: { title: string; text: string }[] }>();
     line-height: 1.45;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .tline {
     grid-auto-flow: row;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -76,7 +76,7 @@ defineProps<{ items: { title: string; text: string }[] }>();
     display: none;
   }
 }
-@media (max-width: 560px) {
+@media (max-width: 480px) {
   .tline {
     grid-template-columns: minmax(0, 1fr);
   }

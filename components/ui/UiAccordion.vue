@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, useId } from 'vue';
 
-// FAQ-01 · Accordion: questions that open one at a time (opening one closes the rest) on native <details>.
+// Accordion: questions that open one at a time (opening one closes the rest) on native <details>.
 // Variants: card (default), plain (lines between) and accent (the open question is filled). `open` is the index
 // open at start; `exclusive: false` lets several stay open.
 const props = withDefaults(
@@ -50,15 +50,19 @@ const onToggle = (e: Event) => {
 .faq {
   display: grid;
   gap: var(--space-2);
-}
-.faq {
+
   .item {
     margin: 0;
     padding: 0;
     border: 1px solid var(--color-line);
     border-radius: var(--radius-lg);
     background: var(--color-surface);
+
+    &[open] .chev {
+      transform: rotate(180deg);
+    }
   }
+
   .q {
     display: flex;
     align-items: center;
@@ -69,17 +73,18 @@ const onToggle = (e: Event) => {
     font-weight: 600;
     list-style: none;
     cursor: pointer;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: -2px;
+      border-radius: var(--radius-lg);
+    }
   }
-}
-.q::-webkit-details-marker {
-  display: none;
-}
-.q:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: -2px;
-  border-radius: var(--radius-lg);
-}
-.faq {
+
   .chev {
     flex: none;
     width: 1.1rem;
@@ -89,47 +94,51 @@ const onToggle = (e: Event) => {
     stroke-width: 1.8;
     transition: transform 180ms ease;
   }
-}
-.item[open] .chev {
-  transform: rotate(180deg);
-}
-.faq {
+
   .a {
     margin: 0;
     padding: 0 var(--space-6) var(--space-4);
     color: var(--color-ink-600);
     line-height: 1.6;
   }
+
   &.-plain {
     gap: 0;
+
+    .item {
+      border: 0;
+      border-bottom: 1px solid var(--color-line);
+      border-radius: 0;
+      background: none;
+    }
+
+    .q {
+      padding: var(--space-3) 0;
+    }
+
+    .a {
+      padding: 0 0 var(--space-3);
+    }
   }
-  &.-plain .item {
-    border: 0;
-    border-bottom: 1px solid var(--color-line);
-    border-radius: 0;
-    background: none;
+
+  @media (prefers-reduced-motion: reduce) {
+    .chev {
+      transition: none;
+    }
   }
-  &.-plain .q {
-    padding: var(--space-3) 0;
-  }
-  &.-plain .a {
-    padding: 0 0 var(--space-3);
-  }
+
   &.-accent .item[open] {
     overflow: hidden;
     border-color: var(--color-brand);
-  }
-  &.-accent .item[open] .q {
-    background: var(--color-brand);
-    color: var(--color-brand-contrast);
-  }
-  &.-accent .item[open] .a {
-    padding-top: var(--space-4);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .chev {
-    transition: none;
+
+    .q {
+      background: var(--color-brand);
+      color: var(--color-brand-contrast);
+    }
+
+    .a {
+      padding-top: var(--space-4);
+    }
   }
 }
 </style>

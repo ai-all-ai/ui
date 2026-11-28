@@ -1,3 +1,4 @@
+// Measures page weight and Lighthouse scores for a built URL.
 import { writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { pathToFileURL } from 'node:url';

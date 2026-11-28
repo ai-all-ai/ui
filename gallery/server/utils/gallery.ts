@@ -1,11 +1,11 @@
 // Shared helpers of the gallery API: the source root of the site and the error mapping.
 import { createError, useRuntimeConfig } from '#imports';
 import { resolve } from 'node:path';
-import { DsError } from '../../lib/ds.js';
+import { DsError, galleryRoot } from '../../lib/ds.js';
 
-/** The source folder of the site (process.cwd() + gallery.folder). */
+/** The gallery root of the site: the project folder and the source folders from gallery.folder. */
 export const sourceRoot = (event: Parameters<typeof useRuntimeConfig>[0]) =>
-  resolve(process.cwd(), useRuntimeConfig(event).gallery.folder);
+  galleryRoot(resolve(process.cwd()), useRuntimeConfig(event).gallery.folder);
 
 /** The gallery exists on the dev server only: everything else answers 404. */
 export const devOnly = () => {

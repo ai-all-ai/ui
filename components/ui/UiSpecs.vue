@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// SPECS-01 · Specs: key facts as value and label pairs (area, rooms, weight), in a row that wraps.
+// Specs: key facts as value and label pairs (area, rooms, weight), in a row that wraps.
 defineProps<{ items: { value: string; label: string }[] }>();
 </script>
 

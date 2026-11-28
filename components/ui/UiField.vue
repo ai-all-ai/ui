@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useId } from 'vue';
 
-// FIELD-01 · Text field: label, input or textarea, hint and an error shown after the field is left.
+// Text field: label, input or textarea, hint and an error shown after the field is left.
 // The browser validates (required, type=email, pattern); `error` is the message shown when it fails.
 const props = withDefaults(
   defineProps<{
@@ -110,10 +110,6 @@ const describedBy = computed(
 }
 .input::placeholder {
   color: var(--control-placeholder);
-}
-.input:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
 }
 .field {
   &.-error .input {

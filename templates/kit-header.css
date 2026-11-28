@@ -96,7 +96,7 @@
   block-size: var(--controls-height);
   align-items: center;
 }
-@media (min-width: 80rem) {
+@media (min-width: 1280px) {
   .kithead .controls {
     inset: calc(-1.25rem + var(--controls-edge)) auto auto calc(-3rem + var(--controls-edge));
   }

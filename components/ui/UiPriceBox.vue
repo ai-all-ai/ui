@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// PRICEBOX-01 · Price box: base and extras lines over a box with the total and a note. Money is formatted with Intl.
+// Price box: base and extras lines over a box with the total and a note. Money is formatted with Intl.
 const props = withDefaults(
   defineProps<{
     baseLabel: string;

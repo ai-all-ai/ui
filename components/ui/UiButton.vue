@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// BTN-01 · Default button; primary, secondary, outline, ghost or link are opt-in; small and big are opt-in; `onDark` for dark bands.
+// Default button; primary, secondary, outline, ghost or link are opt-in; small and big are opt-in; `onDark` for dark bands.
 // States: hover, active (pressed), focus-visible, disabled, loading. The -hover, -active and -focus
 // classes force a state for the brandbook only. Icons go in the slot (UiIcon); `square` makes an icon-only button.
 withDefaults(
@@ -96,16 +96,14 @@ withDefaults(
     border-color 160ms ease,
     color 160ms ease,
     transform 120ms ease;
-}
-.btn {
+
   & :deep(svg) {
     width: 1.15em;
     height: 1.15em;
     flex: none;
   }
-}
-/* Variants on light surfaces */
-.btn {
+
+  /* Variants on light surfaces */
   &.-primary {
     --btn-bg: var(--ui-button-primary-background, var(--color-brand));
     --btn-ink: var(--ui-button-primary-color, var(--color-brand-contrast));
@@ -161,9 +159,8 @@ withDefaults(
     text-decoration: underline;
     text-underline-offset: 0.2em;
   }
-}
-/* Variants on dark surfaces */
-.btn {
+
+  /* Variants on dark surfaces */
   &.-on-dark {
     --btn-ring: var(--color-inverse-ink);
   }
@@ -198,9 +195,8 @@ withDefaults(
     --btn-ink: var(--color-inverse-ink);
     --btn-ink-hover: var(--color-inverse-ink-600);
   }
-}
-/* Sizes and shapes */
-.btn {
+
+  /* Sizes and shapes */
   &.-small {
     --btn-height: var(--control-height-small, 2.25rem);
     padding: 0 var(--ui-button-small-padding-inline, var(--space-4));
@@ -223,9 +219,8 @@ withDefaults(
     width: var(--btn-height);
     padding: 0;
   }
-}
-/* States */
-.btn {
+
+  /* States */
   &:hover,
   &.-hover {
     border-color: var(--btn-line-hover);
@@ -259,22 +254,24 @@ withDefaults(
     border-radius: 50%;
     animation: btn-spin 700ms linear infinite;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    & {
+      transition: none;
+    }
+    &:active,
+    &.-active {
+      transform: none;
+    }
+    .spinner {
+      animation-duration: 2s;
+    }
+  }
 }
+
 @keyframes btn-spin {
   to {
     transform: rotate(360deg);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .btn {
-    transition: none;
-  }
-  .btn:active,
-  .btn.-active {
-    transform: none;
-  }
-  .spinner {
-    animation-duration: 2s;
   }
 }
 </style>

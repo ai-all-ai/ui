@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-// LIGHTBOX-01 · Lightbox: a photo full screen in a native <dialog> with zoom out, in, fit, 100% and 200%.
+// Lightbox: a photo full screen in a native <dialog> with zoom out, in, fit, 100% and 200%.
 // Keys: + and - zoom, 0 fits. Focus returns to the opener on close. Labels come in as props.
 const props = withDefaults(
   defineProps<{

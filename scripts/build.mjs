@@ -1,3 +1,4 @@
+// Builds the precompiled package: ESM, styles, types and a manifest.
 import { createHash } from 'node:crypto';
 import { copyFile, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -43,7 +44,7 @@ for (const name of names) {
     sourcefile: `${name}.vue`,
     format: 'esm',
     target: 'es2020',
-    minifySyntax: true,
+    minify: true,
     legalComments: 'eof',
   });
   await write(`components/${name}.mjs`, code.code);

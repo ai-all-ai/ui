@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// COUNTER-01 · Counter: a bounded number with − and + (as in velo). Outline (buttons outside the value) or inner
+// Counter: a bounded number with − and +. Outline (buttons outside the value) or inner
 // (one pill, buttons inside); small or medium; `onDark`. Arrow keys change the value; typing is clamped to min/max.
 // The -hover and -focus classes force a state for the brandbook only.
 const props = withDefaults(
@@ -177,8 +177,6 @@ const onChange = (e: Event) => {
   }
 }
 .input:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
 .counter {

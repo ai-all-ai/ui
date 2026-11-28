@@ -1,7 +1,7 @@
 <script setup lang="ts">
-// GALLERY-04 · Results of the source gallery: processed images waiting to replace the originals, with the size change.
+// Results of the source gallery: processed images waiting to replace the originals, with the size change.
 import UiButton from '../../components/ui/UiButton.vue';
-import { galleryEnc, galleryKb, type GalleryResult } from './types';
+import { galleryEnc, galleryKb, processedUrl, type GalleryResult } from './types';
 
 const props = defineProps<{ results: GalleryResult[]; busy: boolean }>();
 const emit = defineEmits<{
@@ -19,7 +19,7 @@ const saved = (r: GalleryResult) =>
   r.before && r.after ? Math.round((1 - r.after.size / r.before.size) * 100) : 0;
 const thumb = (r: GalleryResult, done: boolean) =>
   done
-    ? `/ds-files/_processed/${r.action}/${galleryEnc(r.folder)}/${encodeURIComponent(r.out ?? r.name)}?t=${r.after?.size ?? 0}`
+    ? `${processedUrl(r.action, r.folder, r.out ?? r.name)}?t=${r.after?.size ?? 0}`
     : `/ds-files/${galleryEnc(r.folder)}/${encodeURIComponent(r.name)}`;
 const ok = () => props.results.filter((r) => !r.error);
 </script>

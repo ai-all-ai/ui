@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref } from 'vue';
 
-// COPY-01 · Copy button: copies `value` to the clipboard and announces the result. `label` names what is copied.
+// Copy button: copies `value` to the clipboard and announces the result. `label` names what is copied.
 const props = defineProps<{ value: string; label: string; text?: string }>();
 
 const state = ref<'idle' | 'copied' | 'error'>('idle');
@@ -103,10 +103,6 @@ onBeforeUnmount(() => timer && clearTimeout(timer));
   }
   &.-done {
     color: var(--color-success);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: 2px;
   }
   .status {
     position: absolute;

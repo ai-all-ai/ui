@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import '../../templates/kit-header.css';
-// GALLERY-01 · Source gallery of the site: browse, search, copy names or paths, select, move, delete and process the
+// Source gallery of the site: browse, search, copy names or paths, select, move, delete and process the
 // images of the source folder (gallery.folder, ds by default). Dev server only: outside dev it shows a short note.
 import { ref, computed, nextTick, onMounted, onBeforeUnmount, reactive } from 'vue';
 import { useFetch } from '#imports';
@@ -10,11 +10,12 @@ import UiIcon from '../../components/ui/UiIcon.vue';
 import UiGalleryToolbar from './UiGalleryToolbar.vue';
 import UiGalleryViewer, { type GalleryViewerItem } from './UiGalleryViewer.vue';
 import UiGalleryResults from './UiGalleryResults.vue';
+import { useGalleryActions } from '../composables/useGalleryActions';
 import {
   galleryEnc,
   galleryKb,
   galleryKey,
-  type GalleryAction,
+  processedUrl,
   type GalleryFolder,
   type GalleryResult,
 } from './types';
@@ -57,11 +58,18 @@ const themeChoice = computed({
   get: () => (dark.value ? 'dark' : 'light'),
   set: (v: string) => (dark.value = v === 'dark'),
 });
+// The grid defaults to 12 columns when the shown files are all SVG (small icons), otherwise 4; the select overrides it.
+const columnsPick = ref<4 | 7 | 14 | null>(null);
+const columns = computed<4 | 7 | 14>(() => {
+  if (columnsPick.value) return columnsPick.value;
+  const all =
+    flat.value.length > 0 && flat.value.every((f) => f.name.toLowerCase().endsWith('.svg'));
+  return all ? 14 : 4;
+});
 const columnsChoice = computed({
   get: () => String(columns.value),
-  set: (v: string) => (columns.value = Number(v) === 12 ? 12 : Number(v) === 7 ? 7 : 4),
+  set: (v: string) => (columnsPick.value = Number(v) === 14 ? 14 : Number(v) === 7 ? 7 : 4),
 });
-const columns = ref<4 | 7 | 12>(4);
 const dark = ref(false);
 const busy = ref(false);
 const toast = ref('');
@@ -143,7 +151,7 @@ const viewerItems = computed<GalleryViewerItem[]>(() =>
         {
           key: 'cmp',
           name: compare.value.name,
-          src: `/ds-files/_processed/${compare.value.action}/${galleryEnc(compare.value.folder)}/${encodeURIComponent(compare.value.out ?? compare.value.name)}?t=${compare.value.after?.size ?? 0}`,
+          src: `${processedUrl(compare.value.action, compare.value.folder, compare.value.out ?? compare.value.name)}?t=${compare.value.after?.size ?? 0}`,
           before: src(compare.value.folder, compare.value.name),
           dims: compare.value.after
             ? `${galleryKb(compare.value.before?.size ?? 0)} → ${galleryKb(compare.value.after.size)}`
@@ -180,124 +188,24 @@ const viewerRemove = (it: GalleryViewerItem) => {
 };
 
 /* server actions */
-async function reload() {
-  try {
-    await refresh();
-  } catch (e) {
-    console.error('gallery: could not refresh the list', e);
-  }
-}
+const { deleteFile, removeSelected, moveSelected, run, settle, loadResults } = useGalleryActions({
+  selected,
+  results,
+  busy,
+  notify,
+  selItems,
+  clearSel,
+  closeViewer,
+  refresh,
+});
 async function confirmDelete() {
   const target = pendingDelete.value;
   if (!target) return;
   pendingDelete.value = null;
-  busy.value = true;
-  try {
-    await $fetch('/api/ds', { method: 'DELETE', body: target });
-    selected.value.delete(galleryKey(target.folder, target.name));
-    closeViewer();
-    notify(`Deleted: ${target.name}`);
-    await reload();
-  } catch (e) {
-    console.error('gallery: delete', e);
-    notify(`Could not delete: ${target.name}`);
-  } finally {
-    busy.value = false;
-  }
+  await deleteFile(target);
 }
-async function removeSelected() {
-  const items = selItems();
-  busy.value = true;
-  let fail = 0;
-  for (const it of items) {
-    try {
-      await $fetch('/api/ds', { method: 'DELETE', body: it });
-    } catch {
-      fail++;
-    }
-  }
-  clearSel();
-  busy.value = false;
-  notify(fail ? `Deleted ${items.length - fail}, errors: ${fail}` : `Deleted: ${items.length}`);
-  await reload();
-}
-async function moveSelected(to: string) {
-  busy.value = true;
-  try {
-    const r = await $fetch<{ moved: string[]; skipped: string[] }>('/api/ds/move', {
-      method: 'POST',
-      body: { items: selItems(), to },
-    });
-    notify(
-      `Moved: ${r.moved.length}${r.skipped.length ? `, skipped (name taken): ${r.skipped.length}` : ''}`,
-    );
-    clearSel();
-    await reload();
-  } catch (e) {
-    console.error('gallery: move', e);
-    notify('Could not move');
-  } finally {
-    busy.value = false;
-  }
-}
-async function run(action: GalleryAction, params: { quality: number; fuzz: number }) {
-  busy.value = true;
-  try {
-    const r = await $fetch<{ results: GalleryResult[] }>('/api/ds/process', {
-      method: 'POST',
-      body: { action, items: selItems(), ...params },
-    });
-    const ids = new Set(r.results.map((x) => `${x.action}/${x.folder}/${x.name}`));
-    results.value = [
-      ...r.results,
-      ...results.value.filter((x) => !ids.has(`${x.action}/${x.folder}/${x.name}`)),
-    ];
-    const bad = r.results.filter((x) => x.error).length;
-    notify(
-      `Done: ${r.results.length - bad}${bad ? `, errors: ${bad}` : ''}. Originals are untouched until you replace them.`,
-    );
-  } catch (e) {
-    console.error('gallery: process', e);
-    notify('Processing failed. See the dev server terminal.');
-  } finally {
-    busy.value = false;
-  }
-}
-async function settle(list: GalleryResult[], discard: boolean) {
-  if (!list.length) return;
-  busy.value = true;
-  try {
-    for (const action of new Set(list.map((r) => r.action))) {
-      const part = list.filter((r) => r.action === action);
-      await $fetch('/api/ds/apply', {
-        method: 'POST',
-        body: {
-          action,
-          discard,
-          items: part.map((r) => ({ folder: r.folder, name: r.name })),
-          out: part.map((r) => r.out ?? r.name),
-        },
-      });
-    }
-    const gone = new Set(list.map((r) => `${r.action}/${r.folder}/${r.name}`));
-    results.value = results.value.filter((r) => !gone.has(`${r.action}/${r.folder}/${r.name}`));
-    closeViewer();
-    notify(discard ? 'Results discarded' : 'Originals replaced');
-    await reload();
-  } catch (e) {
-    console.error('gallery: apply', e);
-    notify('Could not apply');
-  } finally {
-    busy.value = false;
-  }
-}
-onMounted(async () => {
-  if (!isDev) return;
-  try {
-    results.value = await $fetch<GalleryResult[]>('/api/ds/results');
-  } catch {
-    /* no results yet */
-  }
+onMounted(() => {
+  if (isDev) void loadResults();
 });
 onBeforeUnmount(() => clearTimeout(timer));
 </script>
@@ -305,7 +213,7 @@ onBeforeUnmount(() => clearTimeout(timer));
 <template>
   <div
     class="gallery"
-    :class="{ '-dark': dark, '-cols-7': columns === 7, '-cols-12': columns === 12 }"
+    :class="{ '-dark': dark, '-cols-7': columns === 7, '-cols-14': columns === 14 }"
   >
     <p v-if="!isDev" class="note">The source gallery is available on the local dev server only.</p>
     <template v-else>
@@ -313,25 +221,10 @@ onBeforeUnmount(() => clearTimeout(timer));
         <div class="heading">
           <div
             class="controls"
-            :class="{ '-searching': searchExpanded, '-has-selection': selected.size }"
+            :class="{ '-searching': searchExpanded }"
             role="group"
             aria-label="Gallery controls"
           >
-            <button
-              v-if="selected.size"
-              type="button"
-              class="tool -selection"
-              :aria-label="`Actions (${selected.size})`"
-              title="Actions"
-              popovertarget="gallery-settings"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <circle cx="5" cy="12" r="1" />
-                <circle cx="12" cy="12" r="1" />
-                <circle cx="19" cy="12" r="1" />
-              </svg>
-              {{ selected.size }}
-            </button>
             <button
               type="button"
               class="tool"
@@ -438,7 +331,7 @@ onBeforeUnmount(() => clearTimeout(timer));
               <select v-model="columnsChoice">
                 <option value="4">4 per row</option>
                 <option value="7">7 per row</option>
-                <option value="12">12 per row</option>
+                <option value="14">14 per row</option>
               </select>
             </label>
             <button
@@ -608,20 +501,9 @@ onBeforeUnmount(() => clearTimeout(timer));
 .controls {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-}
-.controls {
-  position: relative;
-  max-width: 100%;
-  margin: 0;
-  box-sizing: border-box;
-  color: var(--color-ink);
-  z-index: 10;
   gap: var(--space-1);
-  padding-inline-start: 2.75rem;
-  position: absolute;
-  inset: -2.75rem auto auto 0;
-  block-size: 2.25rem;
+  max-width: 100%;
+  color: var(--color-ink);
 }
 
 .controls .tool {
@@ -630,10 +512,12 @@ onBeforeUnmount(() => clearTimeout(timer));
   align-items: center;
   justify-content: center;
   gap: var(--space-1);
-  min-width: var(--gallery-control-size);
-  min-height: var(--gallery-control-size);
+  flex: none;
+  width: var(--gallery-control-size);
+  height: var(--gallery-control-size);
+  padding: 0;
   border: 0;
-  border-radius: var(--radius-pill);
+  border-radius: 50%;
   background: transparent;
 }
 .kit-drawer .actions {
@@ -666,13 +550,6 @@ onBeforeUnmount(() => clearTimeout(timer));
   cursor: pointer;
   font: inherit;
 }
-.controls .tool.-selection {
-  position: absolute;
-  inset-inline-start: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  background: var(--color-accent-soft);
-}
 .finder {
   display: flex;
   align-items: center;
@@ -693,7 +570,7 @@ onBeforeUnmount(() => clearTimeout(timer));
 .gallery .finder.-expanded .search {
   height: var(--controls-height);
   box-sizing: border-box;
-  width: min(12rem, 40vw);
+  width: min(13rem, 43vw);
   padding-inline: var(--space-2);
   border-width: 1px;
   visibility: visible;
@@ -742,18 +619,20 @@ onBeforeUnmount(() => clearTimeout(timer));
   &.-cols-7 .grid {
     grid-template-columns: repeat(7, minmax(0, 1fr));
   }
-  &.-cols-12 .grid {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
+  &.-cols-14 .grid {
+    /* SVG tiles keep a fixed width: 14 per row, packed from the left. Narrow screens fall back to the fluid breakpoints below. */
+    grid-template-columns: repeat(14, 5rem);
+    justify-content: start;
   }
 }
-@media (max-width: 1000px) {
+@media (max-width: 1024px) {
   .grid,
   .gallery.-cols-7 .grid,
-  .gallery.-cols-12 .grid {
+  .gallery.-cols-14 .grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .grid,
   .gallery.-cols-7 .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

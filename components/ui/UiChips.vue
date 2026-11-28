@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-// CHIPS-01 · Chips: a legend and options to pick one (default) or several (`multiple`).
+// Chips: a legend and options to pick one (default) or several (`multiple`).
 // Variants from the sites: pill (outlined pills), soft (quiet, no border), segment (all options in one shared
 // track, like a segmented control) and tile (equal tiles with an icon over the label, for category bars).
 // Sizes small and md; `onDark` for dark bands; `hideLegend` keeps the legend for screen readers only.
@@ -91,8 +91,7 @@ const toggle = (value: string) => {
   margin: 0;
   padding: 0;
   border: 0;
-}
-.chips {
+
   &.-on-dark {
     --chip-ink: var(--color-inverse-ink);
     --chip-line: var(--color-inverse-line);
@@ -100,16 +99,27 @@ const toggle = (value: string) => {
     --chip-hover: var(--color-inverse-soft);
     --chip-on-bg: var(--color-inverse-ink);
     --chip-on-ink: var(--color-inverse);
+
+    .legend {
+      color: var(--color-inverse-ink-600);
+    }
+    &.-focus .chip.-on,
+    .chip:focus-visible {
+      outline-color: var(--color-inverse-ink);
+    }
   }
+
   &.-inline {
     display: flex;
     align-items: center;
     gap: var(--space-2);
+
+    .legend {
+      margin: 0;
+      white-space: nowrap;
+    }
   }
-  &.-inline .legend {
-    margin: 0;
-    white-space: nowrap;
-  }
+
   .legend {
     margin-bottom: var(--space-2);
     padding: 0;
@@ -117,24 +127,13 @@ const toggle = (value: string) => {
     font-size: var(--text-sm);
     font-weight: 600;
   }
-  &.-on-dark .legend {
-    color: var(--color-inverse-ink-600);
-  }
-}
-.legend.-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-.chips {
+
   .row {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
   }
+
   .chip {
     display: inline-flex;
     align-items: center;
@@ -155,37 +154,13 @@ const toggle = (value: string) => {
       border-color 160ms ease,
       color 160ms ease;
   }
-}
-.chip:hover:not(:disabled),
-.chips.-hover .chip:not(.-on) {
-  border-color: var(--chip-ink);
-}
-.chip.-on {
-  border-color: var(--chip-on-bg);
-  background: var(--chip-on-bg);
-  color: var(--chip-on-ink);
-}
-.chip:focus-visible,
-.chips.-focus .chip.-on {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-}
-.chip:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-.chips {
-  &.-on-dark .chip:focus-visible,
-  &.-on-dark.-focus .chip.-on {
-    outline-color: var(--color-inverse-ink);
-  }
+
   .icon {
     display: inline-grid;
     place-items: center;
   }
-}
-/* soft: no border, quiet hover */
-.chips {
+
+  /* soft: no border, quiet hover */
   &.-soft .chip {
     border-color: transparent;
     border-radius: var(--radius-md);
@@ -198,9 +173,8 @@ const toggle = (value: string) => {
   &.-soft .chip.-on {
     background: var(--chip-on-bg);
   }
-}
-/* segment: one shared track, options share its height */
-.chips {
+
+  /* segment: one shared track, options share its height */
   &.-segment .row {
     display: inline-flex;
     gap: var(--space-1);
@@ -225,9 +199,8 @@ const toggle = (value: string) => {
     background: var(--chip-on-bg);
     box-shadow: var(--shadow-card);
   }
-}
-/* tile: equal tiles, icon over label, in one card */
-.chips {
+
+  /* tile: equal tiles, icon over label, in one card */
   &.-tile .row {
     flex-wrap: nowrap;
     gap: var(--space-1);
@@ -255,9 +228,8 @@ const toggle = (value: string) => {
   &.-tile .chip.-on {
     background: var(--chip-on-bg);
   }
-}
-/* small */
-.chips {
+
+  /* small */
   &.-small .chip {
     min-height: 1.85rem;
     padding: 0 var(--space-3);
@@ -266,6 +238,32 @@ const toggle = (value: string) => {
   &.-small.-tile .chip {
     min-height: 3.5rem;
   }
+}
+.legend.-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.chip:hover:not(:disabled),
+.chips.-hover .chip:not(.-on) {
+  border-color: var(--chip-ink);
+}
+.chip.-on {
+  border-color: var(--chip-on-bg);
+  background: var(--chip-on-bg);
+  color: var(--chip-on-ink);
+}
+.chip:focus-visible,
+.chips.-focus .chip.-on {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 @media (prefers-reduced-motion: reduce) {
   .chip {

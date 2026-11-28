@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// CHECK-01 · Checkbox: native input with a custom box. Checked and disabled are modifiers.
+// Checkbox: native input with a custom box. Checked and disabled are modifiers.
 defineProps<{ label: string; disabled?: boolean }>();
 const model = defineModel<boolean>({ default: false });
 </script>

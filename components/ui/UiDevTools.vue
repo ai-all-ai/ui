@@ -2,7 +2,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import { useUiDevTools } from '@ai.all/ui/dev-tools';
-// DEVTOOLS-01 · Developer tools over the page, for checking layout (from miluzsolar's grid):
+// Developer tools over the page, for checking layout:
 // - layout grid: 12 / 16 / 24 columns inside --content-width, a dashed line one base step (--grid-edge) outside (Alt+G);
 // - baseline rhythm: horizontal lines every --rhythm-step to check vertical spacing (Alt+R);
 // - outlines: a thin outline on every element to see boxes and overflow (Alt+O);
@@ -21,9 +21,17 @@ const KEY = 'ui-dev-tools';
 const next = () => {
   cols.value = STEPS[(STEPS.indexOf(cols.value) + 1) % STEPS.length] ?? 0;
 };
+// The kit breakpoints, the same numbers as the CSS media queries and as tokens/breakpoints.json (test/breakpoints.test.mjs keeps them equal).
+const BREAKPOINTS = [480, 768, 1024, 1280, 1440];
+const NAMES = ['phone', 'tablet narrow', 'tablet wide', 'laptop', 'desktop', 'wide'];
+// The band is read with matchMedia, so the label follows the same queries as the CSS.
+const band = () => {
+  const i = BREAKPOINTS.findIndex((n) => window.matchMedia(`(max-width: ${n}px)`).matches);
+  return NAMES[i === -1 ? NAMES.length - 1 : i];
+};
 const measureViewport = () => {
   const w = window.innerWidth;
-  viewport.value = `${w} × ${window.innerHeight} · ${w < 641 ? 'phone' : w < 1025 ? 'tablet' : 'desktop'}`;
+  viewport.value = `${w} × ${window.innerHeight} · ${band()}`;
 };
 // the grid follows the page's real content box (the element with data-dev-grid, else <main>), so it matches the
 // project's own container, not a fixed token width; re-measured on resize and on route change

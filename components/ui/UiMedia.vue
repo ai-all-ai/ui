@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// MEDIA-01 · Media frame: a photo cropped to a fixed ratio, or a grey placeholder with an icon until the photo exists.
+// Media frame: a photo cropped to a fixed ratio, or a grey placeholder with an icon until the photo exists.
 withDefaults(
   defineProps<{ src?: string; alt: string; ratio?: string; priority?: boolean; round?: boolean }>(),
   { src: undefined, ratio: '4 / 3', priority: false, round: false },

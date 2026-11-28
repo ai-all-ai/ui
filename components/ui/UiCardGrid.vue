@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// GRID-01 · Card grid: equal columns (2, 3 or 4) that collapse on tablets and phones. Cards go in the slot.
+// Card grid: equal columns (2, 3 or 4) that collapse on tablets and phones. Cards go in the slot.
 withDefaults(
   defineProps<{
     columns?: 2 | 3 | 4;
@@ -30,18 +30,18 @@ withDefaults(
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .cards,
   .cards.-cols-3 {
     grid-template-columns: minmax(0, 1fr);
   }
 }
-@media (max-width: 1000px) {
+@media (max-width: 1024px) {
   .cards.-cols-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-@media (max-width: 560px) {
+@media (max-width: 480px) {
   .cards.-cols-4 {
     grid-template-columns: minmax(0, 1fr);
   }

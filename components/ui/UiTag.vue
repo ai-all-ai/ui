@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// TAG-01 · Tag: a short label or category; small or medium. -hover and -focus force a state for the brandbook.
+// Tag: a short label or category; small or medium. -hover and -focus force a state for the brandbook.
 // Tag: Solid, outline or muted; a link when `href` is set; `onDark` for dark bands.
 withDefaults(
   defineProps<{

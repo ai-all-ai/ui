@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// STEPPER-01 · Stepper: numbered steps of a flow. Done steps show a check; the current step is filled.
+// Stepper: numbered steps of a flow. Done steps show a check; the current step is filled.
 defineProps<{ steps: string[]; current: number; label: string }>();
 </script>
 
@@ -87,7 +87,7 @@ defineProps<{ steps: string[]; current: number; label: string }>();
   background: var(--color-brand);
   color: var(--color-brand-contrast);
 }
-@media (max-width: 640px) {
+@media (max-width: 480px) {
   .step:not([aria-current='step']) .label {
     display: none;
   }

@@ -14,7 +14,7 @@ export default defineNuxtConfig({
 });
 ```
 
-- `folder` (default `ds`): the source folder, relative to the project root. Files are read from there, never from `public/`.
+- `folder` (default `ds`): the one folder the gallery reads, relative to the site's project root (`<project>/ds/`). To choose another folder, change `aiallUi.gallery.folder` in `nuxt.config.ts` and restart the dev server. Files are read from there, never from `public/`.
 - `git` (default `'ignore'`): `'ignore'` adds `/ds/` to the site's `.gitignore` once, so large originals stay out of the repository; `'track'` leaves git alone.
 
 The page is at `/ui/ds`. The brandbook’s Tools tab links to it, and the gallery header links back to Tools (`← Brandbook`).

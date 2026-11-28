@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, useId, watch } from 'vue';
 
-// MODAL-01 · Modal: native <dialog>, so focus stays inside, Escape and a click on the backdrop close it, and the page
+// Modal: native <dialog>, so focus stays inside, Escape and a click on the backdrop close it, and the page
 // behind is dimmed and blurred (--backdrop-blur) and does not scroll.
 // Types: size small (confirm), md (default), wide (forms), read (long text); placement center (default), side (a
 // panel from the right: filters, cart) or bottom (a sheet on phones); `image` puts a photo across the top.
@@ -177,10 +177,6 @@ onBeforeUnmount(() => {
 .close:hover {
   background: var(--color-accent-soft);
   color: var(--color-ink);
-}
-.close:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
 }
 .close svg {
   width: 1.1rem;

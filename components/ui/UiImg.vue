@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// IMG-01 · Image: width and height always set so the box is reserved before load (no layout shift).
+// Image: width and height always set so the box is reserved before load (no layout shift).
 // Lazy by default; `priority` loads it eagerly with high fetch priority for the first screen.
 withDefaults(
   defineProps<{

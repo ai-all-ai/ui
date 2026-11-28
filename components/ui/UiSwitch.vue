@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// SWITCH-01 · Switch: on/off toggle with role="switch". On and disabled are modifiers.
+// Switch: on/off toggle with role="switch". On and disabled are modifiers.
 defineProps<{ label: string; disabled?: boolean }>();
 const model = defineModel<boolean>({ default: false });
 </script>

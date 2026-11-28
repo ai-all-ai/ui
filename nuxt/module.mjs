@@ -1,3 +1,4 @@
+// Nuxt module: registers the brandbook, dev tools, the gallery and their routes.
 import {
   addComponent,
   addComponentsDir,
@@ -10,6 +11,7 @@ import {
 } from 'nuxt/kit';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { parseRoots } from '../gallery/lib/ds.js';
 
 const managedPage =
   /^\s*<script setup lang=["']ts["']>\s*import Brandbook from ['"]@ai\.all\/ui\/templates\/ui\.vue['"];?\s*<\/script>\s*<template>\s*<Brandbook\s*\/>\s*<\/template>\s*$/;
@@ -33,7 +35,7 @@ export default defineNuxtModule({
     if (existsSync(localUi)) {
       addComponentsDir({ path: localUi, pathPrefix: false, priority: 2 }, { prepend: true });
     }
-    // Remove the source scan used before the Nuxt module. Project overrides still win.
+    // Project overrides still win over the package components.
     nuxt.hook('components:dirs', (dirs) => {
       for (let i = dirs.length - 1; i >= 0; i--) {
         const dir = dirs[i];
@@ -64,17 +66,20 @@ export default defineNuxtModule({
         git: 'ignore',
         ...(typeof options.gallery === 'object' ? options.gallery : {}),
       };
+      config.folder = parseRoots(config.folder); // one folder or a comma-separated list, checked at build time
       nuxt.options.runtimeConfig.gallery ??= config;
       // git: 'ignore' (default) adds the source folder to the site's .gitignore once; 'track' leaves git alone.
       if (config.git !== 'track') {
         const gitignore = resolve(nuxt.options.rootDir, '.gitignore');
-        const line = `/${config.folder}/`;
         const text = existsSync(gitignore) ? readFileSync(gitignore, 'utf8') : '';
-        if (!text.split(/\r?\n/).includes(line)) {
+        const lines = config.folder
+          .map((folder) => `/${folder}/`)
+          .filter((line) => !text.split(/\r?\n/).includes(line));
+        if (lines.length) {
           const gap = text && !text.endsWith('\n') ? '\n' : '';
           writeFileSync(
             gitignore,
-            `${text}${gap}# Source files of the ui gallery (large originals; set gallery.git to 'track' to keep them in git)\n${line}\n`,
+            `${text}${gap}# Source files of the ui gallery (large originals; set gallery.git to 'track' to keep them in git)\n${lines.join('\n')}\n`,
           );
         }
       }

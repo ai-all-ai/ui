@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useId } from 'vue';
 
-// SELECT-01 · Select: native select with a label, a placeholder option and an error after the field is left.
+// Select: native select with a label, a placeholder option and an error after the field is left.
 const props = withDefaults(
   defineProps<{
     label: string;
@@ -87,10 +87,6 @@ const showError = computed(() => touched.value && props.required && !model.value
 }
 .input option {
   color: var(--color-ink);
-}
-.input:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
 }
 .select {
   .chevron {
