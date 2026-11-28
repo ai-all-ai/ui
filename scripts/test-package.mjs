@@ -159,7 +159,8 @@ const stock =
 const manifest = 'ui/.manifest.json';
 const css = 'app/assets/css/theme-base.css';
 const main = 'app/assets/css/main.css';
-const custom = ':root { --color-brand: #123456; --ui-test-brand: supported; }\n';
+const custom =
+  ':root { --color-brand: #123456; --ui-button-background: #123456; --ui-test-brand: supported; }\n';
 const read = (cwd, file) => readFileSync(join(cwd, file), 'utf8');
 const ui = (cwd, ...args) => run(cwd, [process.execPath, local('ui.js'), ...args]);
 const ecosystem = { '@ai.all/aiall': '1.0.0', '@ai.all/ds7': '2.6.0' };
@@ -248,7 +249,7 @@ try {
   assert.equal(served.headers.get('content-type'), 'image/png');
   assert.equal((await fetch(gallery.origin + '/api/ds/results')).status, 200);
   assert.match(read(app, '.gitignore'), /^\/ds\/$/m);
-  await html(gallery.origin, '/ui', /href="\/ui\/ds"/);
+  await html(gallery.origin, '/ui?tab=tools', /href="\/ui\/ds"/);
   await inspect(gallery.origin, 'Nuxt dev gallery', async (page) => {
     await page.goto(gallery.origin + '/ui/ds');
     await page.getByRole('heading', { name: 'Source files' }).waitFor();
@@ -319,17 +320,19 @@ try {
     NUXT_PUBLIC_UI_DEV_TOOLS: 'off',
   });
   await html(preview.origin, '/probe', /Package button[\s\S]*Local trail/);
-  await html(preview.origin, '/ui?tab=components', /data-local-breadcrumb/);
+  await html(preview.origin, '/ui?tab=components', /id="BTN-01"/);
   await inspect(preview.origin, 'Nuxt production preview', async (page) => {
     await page.goto(preview.origin + '/ui?tab=tools');
     await page.locator('#t-about p').filter({ hasText: 'uiDevTools is off' }).waitFor();
     assert.equal(await page.locator('.dev-grid').count(), 0);
     await page.goto(preview.origin + '/ui?tab=components');
     await page.locator('#CHIPS-01').waitFor();
-    await page.locator('[data-local-breadcrumb]').first().waitFor();
+    assert.equal(await page.locator('[data-local-breadcrumb]').count(), 0);
     await page.goto(preview.origin + '/probe');
     const button = page.getByRole('button', { name: 'Package button' });
     await button.waitFor();
+    assert.deepEqual(await button.evaluate((node) => [...node.classList]), ['btn']);
+    assert.equal(await button.evaluate((node) => getComputedStyle(node).minHeight), '44px');
     assert.equal(await button.evaluate((node) => getComputedStyle(node).display), 'inline-flex');
     assert.equal(
       await button.evaluate((node) => getComputedStyle(node).backgroundColor),
@@ -354,7 +357,7 @@ try {
       const firstToken = document.querySelector('#c-brand small');
       return firstToken?.textContent && firstToken.textContent !== '…';
     });
-    await page.getByRole('tab', { name: 'Dev tools', exact: true }).click();
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     await page.waitForURL('**/ui?tab=tools');
     await page.getByText('Show width × height and breakpoint', { exact: true }).click();
     await page.locator('.dev-grid .size').waitFor();

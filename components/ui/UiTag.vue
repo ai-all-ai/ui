@@ -16,7 +16,10 @@ withDefaults(
   <component
     :is="href ? 'a' : 'span'"
     class="tag"
-    :class="[`-${variant}`, { '-small': size === 'small', '-on-dark': onDark }]"
+    :class="[
+      variant === 'muted' ? '' : `-${variant}`,
+      { '-small': size === 'small', '-on-dark': onDark },
+    ]"
     :href="href"
   >
     <slot />
@@ -37,6 +40,8 @@ withDefaults(
   line-height: 1.4;
   text-decoration: none;
   white-space: nowrap;
+  background: var(--color-accent-soft);
+  color: var(--color-ink-700);
 }
 .tag {
   &.-solid {
@@ -44,12 +49,9 @@ withDefaults(
     color: var(--color-brand-contrast);
   }
   &.-outline {
+    background: transparent;
     border-color: var(--color-line-strong);
     color: var(--color-ink);
-  }
-  &.-muted {
-    background: var(--color-accent-soft);
-    color: var(--color-ink-700);
   }
   &.-solid.-on-dark {
     background: var(--color-inverse-ink);
@@ -59,7 +61,7 @@ withDefaults(
     border-color: var(--color-inverse-line);
     color: var(--color-inverse-ink);
   }
-  &.-muted.-on-dark {
+  &.-on-dark:not(.-solid, .-outline) {
     background: var(--color-inverse-soft);
     color: var(--color-inverse-ink);
   }

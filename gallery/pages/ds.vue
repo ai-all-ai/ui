@@ -13,12 +13,12 @@ useHead({ title: 'ds · source files', meta: [{ name: 'robots', content: 'noinde
 .gallery-page {
   width: min(100%, calc(var(--page-max) + var(--page-gutter) * 2));
   margin-inline: auto;
-  padding-inline: var(--page-gutter);
+  padding: var(--ui-page-top, var(--space-8)) var(--page-gutter) var(--space-16);
 }
 </style>
 
 <template>
-  <main class="gallery-page">
+  <main id="main" tabindex="-1" class="gallery-page">
     <UiGallery />
   </main>
 </template>

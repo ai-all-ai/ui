@@ -32,7 +32,10 @@ const move = (d: number) => {
   <div
     ref="list"
     class="tabs"
-    :class="[`-${variant}`, { '-small': size === 'small', '-on-dark': onDark }]"
+    :class="[
+      variant === 'underline' ? '' : `-${variant}`,
+      { '-small': size === 'small', '-on-dark': onDark },
+    ]"
     role="tablist"
     :aria-label="label"
     @keydown.right.prevent="move(1)"

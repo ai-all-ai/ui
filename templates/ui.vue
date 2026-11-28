@@ -1,10 +1,35 @@
 <!-- /ui brandbook: foundations, base HTML elements with their tags, every component with its ID, and a copyable catalog. -->
 <script setup lang="ts">
+import './kit-header.css';
+import baseTheme from '../tokens/theme-base.css?raw';
 import { computed, h, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import type { Component, Ref } from 'vue';
-import { useHead, useRoute, useRouter } from '#imports';
+import { useHead, useRoute, useRouter, useRuntimeConfig } from '#imports';
 import { useUiDevTools } from '@ai.all/ui/dev-tools';
-import { UiBreadcrumb, UiChips, UiCounter, UiSliderNav, UiTabs, UiTag } from '#components';
+import UiAccordion from '../components/ui/UiAccordion.vue';
+import UiAlert from '../components/ui/UiAlert.vue';
+import UiBreadcrumb from '../components/ui/UiBreadcrumb.vue';
+import UiButton from '../components/ui/UiButton.vue';
+import UiCardGrid from '../components/ui/UiCardGrid.vue';
+import UiCheckbox from '../components/ui/UiCheckbox.vue';
+import UiChips from '../components/ui/UiChips.vue';
+import UiCopyButton from '../components/ui/UiCopyButton.vue';
+import UiCounter from '../components/ui/UiCounter.vue';
+import UiField from '../components/ui/UiField.vue';
+import UiIcon from '../components/ui/UiIcon.vue';
+import UiImg from '../components/ui/UiImg.vue';
+import UiLightbox from '../components/ui/UiLightbox.vue';
+import UiMedia from '../components/ui/UiMedia.vue';
+import UiModal from '../components/ui/UiModal.vue';
+import UiPriceBox from '../components/ui/UiPriceBox.vue';
+import UiSelect from '../components/ui/UiSelect.vue';
+import UiSliderNav from '../components/ui/UiSliderNav.vue';
+import UiSpecs from '../components/ui/UiSpecs.vue';
+import UiStepper from '../components/ui/UiStepper.vue';
+import UiSwitch from '../components/ui/UiSwitch.vue';
+import UiTabs from '../components/ui/UiTabs.vue';
+import UiTag from '../components/ui/UiTag.vue';
+import UiTimeline from '../components/ui/UiTimeline.vue';
 
 useHead({
   title: 'Brandbook · /ui',
@@ -19,25 +44,185 @@ useHead({
 });
 
 // the gallery page exists on the dev server only
-const galleryLink = import.meta.dev;
+const galleryLink = useRuntimeConfig().public.aiallUiGallery === true;
 
 // Tabs: each tab is its own page of the brandbook, kept in the URL (?tab=) so it can be linked and reloaded.
-type Tab = 'foundations' | 'elements' | 'components' | 'catalog' | 'tools';
-const tabs: { id: Tab; name: string }[] = [
-  { id: 'foundations', name: 'Foundations' },
-  { id: 'elements', name: 'Base elements' },
+type BrandbookSection = { id: string; name: string };
+const props = defineProps<{
+  sections?: BrandbookSection[];
+  themeLabel?: string;
+  themeSource?: string;
+}>();
+const tokenQuery = ref('');
+const baseTokenProbe = ref<HTMLElement | null>(null);
+const liveBaseTokens = ref<Record<string, string>>({});
+const liveTokens = ref<Record<string, string>>({});
+function tokenDeclarations(source: string) {
+  const declarations = new Map<string, string>();
+  for (const [, name, value] of source
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .matchAll(/(--[\w-]+)\s*:\s*([^;{}]+);/g)) {
+    if (name && value && !declarations.has(name)) declarations.set(name, value.trim());
+  }
+  return declarations;
+}
+const uiTokens = tokenDeclarations(baseTheme);
+const projectTokens = computed(() => tokenDeclarations(props.themeSource ?? ''));
+const tokenNames = computed(() => [
+  ...new Set([...uiTokens.keys(), ...projectTokens.value.keys()]),
+]);
+const tokenRows = computed(() => {
+  const query = tokenQuery.value.trim().toLowerCase();
+  return tokenNames.value.flatMap((name) => {
+    const base = uiTokens.get(name);
+    const project = projectTokens.value.get(name);
+    const live = liveTokens.value[name];
+    const baseColor = previewTokenColor(liveBaseTokens.value[name]);
+    const liveColor = previewTokenColor(live);
+    return !query ||
+      [name, base, project, live].some((value) => value?.toLowerCase().includes(query))
+      ? [{ name, base, project, live, baseColor, liveColor }]
+      : [];
+  });
+});
+function previewTokenColor(value?: string) {
+  if (
+    !value ||
+    !import.meta.client ||
+    /^(initial|inherit|unset|revert(?:-layer)?|currentcolor)$/i.test(value)
+  )
+    return undefined;
+  return CSS.supports('color', value) ? value : undefined;
+}
+watch(
+  baseTokenProbe,
+  (probe) => {
+    if (!probe) return;
+    const css = getComputedStyle(probe);
+    liveBaseTokens.value = Object.fromEntries(
+      [...uiTokens.keys()].map((name) => [name, css.getPropertyValue(name).trim()]),
+    );
+  },
+  { flush: 'post' },
+);
+function readLiveTokens() {
+  const css = getComputedStyle(document.documentElement);
+  liveTokens.value = Object.fromEntries(
+    tokenNames.value.map((name) => [name, css.getPropertyValue(name).trim()]),
+  );
+}
+onMounted(() => {
+  readLiveTokens();
+  window.addEventListener('resize', readLiveTokens);
+});
+onBeforeUnmount(() => window.removeEventListener('resize', readLiveTokens));
+const buttonTheme = ref<'project' | 'base'>('project');
+const buttonBase = ref<HTMLElement | null>(null);
+const buttonProject = ref<HTMLElement | null>(null);
+const buttonRows = [
+  { name: '--ui-button-background', property: 'background' },
+  { name: '--ui-button-color', property: 'color' },
+  { name: '--control-height', property: 'min-height' },
+  { name: '--ui-button-padding-inline', property: 'padding-inline-start' },
+  { name: '--ui-button-font-size', property: 'font-size' },
+] as const;
+const buttonValues = ref<{ base: string[]; project: string[] }>({ base: [], project: [] });
+type ButtonToken = (typeof buttonRows)[number];
+const buttonOverrides = ref<Record<string, string>>({});
+const editingToken = ref<{ name: string; previous?: string }>();
+const tokenDraft = ref('');
+const tokenDraftInvalid = ref(false);
+const tokenInput = ref<HTMLInputElement | null>(null);
+async function editButtonToken(row: ButtonToken, index: number) {
+  buttonTheme.value = 'project';
+  const previous = buttonOverrides.value[row.name];
+  editingToken.value = { name: row.name, previous };
+  tokenDraft.value = previous ?? buttonValues.value.project[index] ?? '';
+  tokenDraftInvalid.value = false;
+  await nextTick();
+  tokenInput.value?.select();
+}
+function changeButtonToken(row: ButtonToken, value: string) {
+  tokenDraft.value = value;
+  const assignment = value.trim();
+  tokenDraftInvalid.value = Boolean(assignment && !CSS.supports(row.property, assignment));
+  if (tokenDraftInvalid.value) return;
+  setButtonToken(row.name, assignment || undefined);
+}
+function setButtonToken(name: string, value?: string) {
+  const overrides = { ...buttonOverrides.value };
+  if (value === undefined) delete overrides[name];
+  else overrides[name] = value;
+  buttonOverrides.value = overrides;
+}
+function finishButtonToken(cancel = false) {
+  const token = editingToken.value;
+  if (!token) return;
+  if (cancel || tokenDraftInvalid.value) setButtonToken(token.name, token.previous);
+  editingToken.value = undefined;
+}
+
+function readButtonPreview(root: HTMLElement) {
+  const button = root.querySelector('button');
+  if (!button) return [];
+  const css = getComputedStyle(button);
+  return buttonRows.map(({ property }) =>
+    property === 'background'
+      ? css.backgroundImage === 'none'
+        ? css.backgroundColor
+        : css.backgroundImage
+      : css.getPropertyValue(property),
+  );
+}
+watch(
+  [buttonBase, buttonProject, buttonOverrides],
+  ([base, project]) => {
+    if (!base || !project) return;
+    buttonValues.value = { base: readButtonPreview(base), project: readButtonPreview(project) };
+  },
+  { flush: 'post' },
+);
+useHead({
+  style: [
+    {
+      key: 'ui-button-base-preview',
+      textContent: baseTheme.replace(
+        ':root',
+        '[data-button-theme="base"], [data-token-values="base"]',
+      ),
+    },
+  ],
+});
+const baseTabs: BrandbookSection[] = [
+  { id: 'tools', name: 'Tools' },
+  { id: 'foundations', name: 'Base' },
+  { id: 'tokens', name: 'Tokens' },
+  { id: 'elements', name: 'Tags' },
   { id: 'components', name: 'Components' },
-  { id: 'catalog', name: 'Catalog' },
-  { id: 'tools', name: 'Dev tools' },
+  { id: 'catalog', name: 'Base List' },
+  { id: 'component-theme', name: 'Theme' },
 ];
+const extraTabs = computed(() => {
+  const ids = new Set(baseTabs.map(({ id }) => id));
+  return (props.sections ?? []).filter(({ id }) => {
+    if (!/^[a-z][a-z0-9-]*$/.test(id) || ids.has(id)) return false;
+    ids.add(id);
+    return true;
+  });
+});
+const tabs = computed(() => [...baseTabs, ...extraTabs.value]);
 const route = useRoute();
 const router = useRouter();
-const tab = computed<Tab>({
-  get: () => tabs.find((x) => x.id === route.query.tab)?.id ?? 'foundations',
-  set: (v) =>
-    void router.replace({ query: { ...route.query, tab: v === 'foundations' ? undefined : v } }),
+const tabLink = (id: string, hash = '') => ({
+  path: route.path,
+  query: { ...route.query, tab: id === 'foundations' ? undefined : id },
+  hash,
 });
-const visitedTabs = reactive(new Set<Tab>([tab.value]));
+const tab = computed<string>({
+  get: () => tabs.value.find((x) => x.id === route.query.tab)?.id ?? 'foundations',
+  set: (v) => void router.replace(tabLink(v)),
+});
+const visitedTabs = reactive(new Set<string>([tab.value]));
 watch(tab, (value) => {
   visitedTabs.add(value);
 });
@@ -361,6 +546,13 @@ const elementGroups: { id: string; title: string; note: string; items: Sample[] 
         ],
       },
       {
+        html: '<p>Reading annotation: <ruby lang="ja">自転車<rt>じてんしゃ</rt></ruby> means bicycle.</p>',
+        tags: [
+          ['ruby', 'Text with a reading annotation'],
+          ['rt', 'Reading or pronunciation for ruby text'],
+        ],
+      },
+      {
         html: '<p>Delivery on <time datetime="2026-05-01">1 May</time> at <time datetime="10:00">10:00</time>. Product <data value="SKU-100">Model 100</data>.</p>',
         tags: [
           ['time', 'Date or time, machine-readable'],
@@ -442,10 +634,12 @@ const elementGroups: { id: string; title: string; note: string; items: Sample[] 
         ],
       },
       {
-        html: '<figure><svg viewBox="0 0 24 24" width="56" height="56" role="img" aria-label="Square" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="2"/></svg><figcaption>A figure with an SVG and its caption.</figcaption></figure>',
+        html: '<figure><svg viewBox="0 0 24 24" width="56" height="56" role="img" aria-label="Circle inside a square" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="12" r="4"/></svg><figcaption>A figure with an SVG and its caption.</figcaption></figure>',
         tags: [
           ['figure', 'Figure'],
           ['svg', 'Vector graphic'],
+          ['rect', 'SVG rectangle'],
+          ['circle', 'SVG circle'],
           ['figcaption', 'Figure caption'],
         ],
       },
@@ -581,35 +775,41 @@ const tagRows = computed(() => {
     ? tagIndex.value.filter((r) => r.tag.includes(q) || r.desc.toLowerCase().includes(q))
     : tagIndex.value;
 });
-// "In use" page: each row lists the tags inside it, and every element gets a title with its tag and purpose.
+// Each example lists the documented tags after the tab content mounts.
 const usage = ref<HTMLElement | null>(null);
 const showTags = ref(false);
 const tagDesc = computed<Record<string, string>>(() =>
   Object.fromEntries(tagIndex.value.map((r) => [r.tag, r.desc])),
 );
 const usageTags = ref<string[][]>([]);
-onMounted(() => {
-  const rows = usage.value?.querySelectorAll<HTMLElement>('.tagged > .sample') ?? [];
-  usageTags.value = [...rows].map((row) => {
-    const els = [...row.querySelectorAll<HTMLElement>('*')];
-    for (const el of els) {
-      const tag = el.tagName.toLowerCase();
-      if (!el.title && tagDesc.value[tag]) el.title = `<${tag}> ${tagDesc.value[tag]}`;
-    }
-    return [...new Set(els.map((el) => el.tagName.toLowerCase()))].filter((t) => t !== 'path');
-  });
-});
+watch(
+  usage,
+  (root) => {
+    const rows = root?.querySelectorAll<HTMLElement>('.tagged > .sample') ?? [];
+    usageTags.value = [...rows].map((row) => {
+      const tags = [...row.querySelectorAll<HTMLElement>('*')].map((element) =>
+        element.tagName.toLowerCase(),
+      );
+      return [...new Set(tags)].filter((tag) => tag in tagDesc.value);
+    });
+  },
+  { flush: 'post' },
+);
 // Hovering a tag chip outlines the matching elements in its sample.
-const hlOn = (e: Event) => {
-  const chip = (e.target as HTMLElement).closest<HTMLElement>('[data-tag]');
+const hlOff = (event: Event) => {
+  (event.currentTarget as HTMLElement)
+    .querySelectorAll('.sample .-hl')
+    .forEach((element) => element.classList.remove('-hl'));
+};
+const hlOn = (event: Event) => {
+  hlOff(event);
+  const chip = (event.target as HTMLElement).closest<HTMLElement>('[data-tag]');
   if (!chip) return;
-  hlOff();
   chip
     .closest('.tagged')
     ?.querySelectorAll<HTMLElement>(`.sample ${chip.dataset.tag}`)
-    .forEach((el) => el.classList.add('-hl'));
+    .forEach((element) => element.classList.add('-hl'));
 };
-const hlOff = () => document.querySelectorAll('.-hl').forEach((el) => el.classList.remove('-hl'));
 
 // Components: one entry per pattern ID. Name, description, classes and usage are what the copy buttons give.
 type Level = 'atom' | 'molecule' | 'organism';
@@ -621,7 +821,7 @@ type Entry = {
   classes: string;
   description: string;
   usage: string;
-  btn?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'link';
+  btn?: 'default' | 'primary' | 'secondary' | 'bright' | 'light' | 'outline' | 'ghost' | 'link';
   matrix?: string;
 };
 const catalog: Entry[] = [
@@ -637,12 +837,22 @@ const catalog: Entry[] = [
   },
   {
     id: 'BTN-01',
+    name: 'Button',
+    level: 'atom',
+    component: 'UiButton',
+    classes: 'btn',
+    description: 'The ordinary button uses the theme’s base color and the shared control height.',
+    usage: '<UiButton>Continue</UiButton>',
+    btn: 'default',
+  },
+  {
+    id: 'BTN-07',
     name: 'Primary button',
     level: 'atom',
     component: 'UiButton',
     classes: 'btn -primary',
-    description: 'Main action of a block, one per block. Brand fill; white fill on dark.',
-    usage: '<UiButton>Get started</UiButton>',
+    description: 'Emphasizes the main action in a group.',
+    usage: '<UiButton variant="primary">Get started</UiButton>',
     btn: 'primary',
   },
   {
@@ -654,6 +864,26 @@ const catalog: Entry[] = [
     description: 'Second action of equal weight: a soft fill without a border.',
     usage: '<UiButton variant="secondary">Compare</UiButton>',
     btn: 'secondary',
+  },
+  {
+    id: 'BTN-08',
+    name: 'Bright button',
+    level: 'atom',
+    component: 'UiButton',
+    classes: 'btn -bright',
+    description: 'High-emphasis treatment using the theme’s bright button tokens.',
+    usage: '<UiButton variant="bright">See offer</UiButton>',
+    btn: 'bright',
+  },
+  {
+    id: 'BTN-09',
+    name: 'Light button',
+    level: 'atom',
+    component: 'UiButton',
+    classes: 'btn -light',
+    description: 'Light-surface treatment using the theme’s light button tokens.',
+    usage: '<UiButton variant="light">See details</UiButton>',
+    btn: 'light',
   },
   {
     id: 'BTN-03',
@@ -682,8 +912,18 @@ const catalog: Entry[] = [
     component: 'UiButton',
     classes: 'btn -link',
     description: 'Action that reads as a link inside text or under a card.',
-    usage: '<UiButton variant="link" href="/terms">Read the terms</UiButton>',
+    usage: '<UiButton variant="link" @click="showTerms">Read the terms</UiButton>',
     btn: 'link',
+  },
+  {
+    id: 'BTN-10',
+    name: 'Transparent button',
+    level: 'atom',
+    component: 'UiButton',
+    classes: 'btn -transparent',
+    description: 'Button-sized action without a resting fill; hover uses the theme surface token.',
+    usage: '<UiButton variant="transparent">More options</UiButton>',
+    btn: 'transparent',
   },
   {
     id: 'BTN-06',
@@ -700,7 +940,7 @@ const catalog: Entry[] = [
     name: 'Tag',
     level: 'atom',
     component: 'UiTag',
-    classes: 'tag -solid, -outline, -muted, -small, -on-dark',
+    classes: 'tag -solid, -outline, -small, -on-dark',
     description:
       'Short label or category: solid, outline or muted; small or medium; a link when href is set; on dark.',
     usage: '<UiTag variant="outline">New</UiTag>',
@@ -774,7 +1014,7 @@ const catalog: Entry[] = [
     name: 'Chips',
     level: 'molecule',
     component: 'UiChips',
-    classes: 'chips -pill, -soft, -segment, -tile, -small, -on-dark; chip -on',
+    classes: 'chips -soft, -segment, -tile, -small, -on-dark; chip -on',
     description:
       'Pick one or several options: pills, soft chips, a segmented track or icon tiles; small or medium; light or dark.',
     usage: '<UiChips v-model="size" legend="Size" :options="sizes" variant="segment" />',
@@ -785,7 +1025,7 @@ const catalog: Entry[] = [
     name: 'Alert',
     level: 'molecule',
     component: 'UiAlert',
-    classes: 'alert, -info, -success, -warning, -danger',
+    classes: 'alert -success, -warning, -danger',
     description: 'Feedback block; danger is announced as an alert, the rest as status.',
     usage: '<UiAlert tone="success" title="Saved">Your changes are saved.</UiAlert>',
   },
@@ -841,7 +1081,7 @@ const catalog: Entry[] = [
     name: 'Counter (− / +)',
     level: 'molecule',
     component: 'UiCounter',
-    classes: 'counter -outline, -inner, -small, -on-dark; btn, input',
+    classes: 'counter -inner, -small, -on-dark; btn, input',
     description:
       'A bounded number with − and +: guests, quantity, rooms. Arrow keys change it, typing is clamped to min and max.',
     usage: '<UiCounter v-model="guests" label="Guests" :min="0" :max="10" />',
@@ -852,7 +1092,7 @@ const catalog: Entry[] = [
     name: 'Tabs',
     level: 'molecule',
     component: 'UiTabs',
-    classes: 'tabs -underline, -pill, -small, -on-dark; tab',
+    classes: 'tabs -pill, -small, -on-dark; tab',
     description:
       'Switch between views of one block (plan, specs, photos). Arrow keys move between tabs; panels stay in the page.',
     usage: '<UiTabs v-model="view" :tabs="tabs" label="Product views" />',
@@ -863,7 +1103,7 @@ const catalog: Entry[] = [
     name: 'Breadcrumb',
     level: 'molecule',
     component: 'UiBreadcrumb',
-    classes: 'crumbs -plain, -pill, -on-dark; link',
+    classes: 'crumbs -pill, -on-dark; link',
     description:
       'Where the page sits in the site. The last item is the current page and not a link.',
     usage: "<UiBreadcrumb :items=\"[{ label: 'Home', href: '/' }, { label: 'Services' }]\" />",
@@ -924,9 +1164,9 @@ const levels: { id: Level; name: string; note: string }[] = [
 ];
 // Button system: sizes and every state, shown on a light surface and on a dark band.
 const btnSizes = [
-  { size: 'small', label: 'Small', note: '36 px high, text-sm' },
-  { size: 'md', label: 'Medium', note: '44 px high, default' },
-  { size: 'big', label: 'Big', note: '52 px high, text-lead' },
+  { size: 'small', label: 'Small', note: 'Uses --control-height-small' },
+  { size: 'md', label: 'Default', note: 'Uses --control-height' },
+  { size: 'big', label: 'Big', note: 'Uses --control-height-big' },
 ] as const;
 const btnStates = [
   { id: 'default', label: 'Default', cls: '', attrs: '', code: '', note: 'At rest.' },
@@ -975,9 +1215,9 @@ const btnStates = [
 const stateCopy = (variant: string, st: (typeof btnStates)[number], dark = false) =>
   st.attrs
     ? btnTag(variant, `${dark ? ' on-dark' : ''}${st.attrs}`)
-    : `.btn.-${variant}${dark ? '.-on-dark' : ''}${st.code}`;
+    : `.btn${variant === 'default' ? '' : `.-${variant}`}${dark ? '.-on-dark' : ''}${st.code}`;
 const btnTag = (variant: string, extra = '') =>
-  `<UiButton${variant === 'primary' ? '' : ` variant="${variant}"`}${extra}>Label</UiButton>`;
+  `<UiButton${variant === 'default' ? '' : ` variant="${variant}"`}${extra}>Label</UiButton>`;
 
 const card = (e: Entry) =>
   `${e.id} · ${e.name}\n${e.description}\nComponent: ${e.component}\nClasses: ${e.classes}\nUsage: ${e.usage}`;
@@ -991,6 +1231,42 @@ const catalogMarkdown = computed(
       )
       .join('\n'),
 );
+const quickQuery = ref('');
+const quickHover = ref(false);
+const quickFocus = ref(false);
+const quickRequested = ref(false);
+const quickInput = ref<HTMLInputElement | null>(null);
+const quickButton = ref<HTMLButtonElement | null>(null);
+const quickExpanded = computed(() => quickHover.value || quickFocus.value || quickRequested.value);
+const quickResults = computed(() => {
+  const q = quickQuery.value.trim().toLowerCase();
+  return q
+    ? catalog
+        .filter((entry) => `${entry.id} ${entry.name} ${entry.component}`.toLowerCase().includes(q))
+        .slice(0, 8)
+    : [];
+});
+function hoverQuick(event: PointerEvent) {
+  if (event.pointerType === 'mouse') quickHover.value = true;
+}
+async function openQuick() {
+  quickRequested.value = true;
+  await nextTick();
+  quickInput.value?.focus();
+}
+function closeQuick() {
+  quickFocus.value = false;
+  quickHover.value = false;
+  quickRequested.value = false;
+  quickQuery.value = '';
+  quickButton.value?.focus();
+}
+async function jumpToComponent(id: string) {
+  closeQuick();
+  await router.replace(tabLink('components', `#${id}`));
+  await nextTick();
+  document.getElementById(id)?.scrollIntoView();
+}
 const catalogQuery = ref('');
 const catalogRows = computed(() => {
   const q = catalogQuery.value.trim().toLowerCase();
@@ -1000,33 +1276,15 @@ const catalogRows = computed(() => {
 // Fixed menu (top right): the same tabs and on-page links, reachable from anywhere on the page.
 // Native popover: Escape and a click outside close it; picking a tab or a link closes it too.
 const menu = ref<HTMLElement | null>(null);
-// Anchor links land below the sticky bar: scroll-padding follows the bar's real height (it changes with width).
-const bar = ref<HTMLElement | null>(null);
-let barObserver: ResizeObserver | undefined;
-onMounted(() => {
-  const root = document.documentElement;
-  // A deep link (?tab=components#BTN-01) is scrolled before the tab is shown; scroll again once the padding is set.
-  let first = true;
-  barObserver = new ResizeObserver(([entry]) => {
-    root.style.scrollPaddingTop = `${Math.ceil(entry!.borderBoxSize[0]!.blockSize) + 16}px`;
-    if (first && location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
-    first = false;
-  });
-  if (bar.value) barObserver.observe(bar.value);
-});
-onBeforeUnmount(() => {
-  barObserver?.disconnect();
-  document.documentElement.style.scrollPaddingTop = '';
-});
 const closeMenu = () => menu.value?.hidePopover?.();
-const pick = (id: Tab) => {
+const pick = (id: string) => {
   tab.value = id;
   closeMenu();
   window.scrollTo({ top: 0 });
 };
 
 // How much to show, for people who only want to look: View (demos), Info (+ names, classes, code), Full (+ copy).
-const detail = ref<string | string[]>('Full');
+const detail = ref('Full');
 watch(detail, (v) => {
   try {
     localStorage.setItem('ui-bb-detail', String(v));
@@ -1115,7 +1373,7 @@ const cycleGrid = () => {
 };
 const gridColsLabel = computed({
   get: () => (gridCols.value ? String(gridCols.value) : 'Off'),
-  set: (v: string | string[]) => (gridCols.value = Number(v) || 0),
+  set: (v: string) => (gridCols.value = Number(v) || 0),
 });
 
 const toc = computed(() => {
@@ -1135,11 +1393,12 @@ const toc = computed(() => {
   if (tab.value === 'components') return levels.map((l) => ({ id: `lvl-${l.id}`, name: l.name }));
   if (tab.value === 'tools')
     return [
+      ...(galleryLink ? [{ id: 't-gallery', name: 'Source gallery' }] : []),
       { id: 't-about', name: 'About' },
       ...devTools.map((t) => ({ id: `t-${t.id}`, name: t.name })),
       { id: 't-settings', name: 'Setting and shortcuts' },
     ];
-  return [{ id: 'catalog', name: 'All components' }];
+  return tab.value === 'catalog' ? [{ id: 'catalog', name: 'Base List' }] : [];
 });
 
 // Live demo state.
@@ -1262,7 +1521,7 @@ const cellsFrom = (
     vue: vue(attrs),
   }));
 const standard = (sizes = true): CellSpec[] => [
-  ['Medium', 'Default size.', {}, ''],
+  ['Default', 'Default size.', {}, ''],
   ...(sizes
     ? ([
         ['Small', 'Compact size for dense blocks.', { size: 'small' }, ' size="small"'],
@@ -1286,7 +1545,7 @@ const chipMatrix: MVariant[] = chipVariants.map((v) => {
   return {
     id: v.id,
     name: v.name,
-    cls: `.chips.-${v.id}`,
+    cls: `.chips${v.id === 'pill' ? '' : `.-${v.id}`}`,
     note: v.note,
     comp: UiChips,
     model: true,
@@ -1307,7 +1566,7 @@ const chipMatrix: MVariant[] = chipVariants.map((v) => {
 const tagMatrix: MVariant[] = (['solid', 'outline', 'muted'] as const).map((id) => ({
   id,
   name: id[0]!.toUpperCase() + id.slice(1),
-  cls: `.tag.-${id}`,
+  cls: `.tag${id === 'muted' ? '' : `.-${id}`}`,
   note: {
     solid: 'strongest: status, “New”',
     outline: 'neutral: categories',
@@ -1338,7 +1597,7 @@ const tagMatrix: MVariant[] = (['solid', 'outline', 'muted'] as const).map((id) 
 const counterMatrix: MVariant[] = (['outline', 'inner'] as const).map((id) => ({
   id,
   name: id === 'outline' ? 'Outline' : 'Inner',
-  cls: `.counter.-${id}`,
+  cls: `.counter${id === 'outline' ? '' : `.-${id}`}`,
   note:
     id === 'outline'
       ? 'round − and + around the value'
@@ -1412,7 +1671,7 @@ const sliderMatrix: MVariant[] = [
 const tabsMatrix: MVariant[] = (['underline', 'pill'] as const).map((id) => ({
   id,
   name: id === 'underline' ? 'Underline' : 'Pill',
-  cls: `.tabs.-${id}`,
+  cls: `.tabs${id === 'underline' ? '' : `.-${id}`}`,
   note:
     id === 'underline'
       ? 'a line under the active tab, for content views'
@@ -1439,7 +1698,7 @@ const tabsMatrix: MVariant[] = (['underline', 'pill'] as const).map((id) => ({
 const crumbMatrix: MVariant[] = (['plain', 'pill'] as const).map((id) => ({
   id,
   name: id === 'plain' ? 'Plain' : 'Pill',
-  cls: `.crumbs.-${id}`,
+  cls: `.crumbs${id === 'plain' ? '' : `.-${id}`}`,
   note: id === 'plain' ? 'slashes, under the page header' : 'a frosted pill, over a hero photo',
   comp: UiBreadcrumb,
   wide: true,
@@ -1550,7 +1809,7 @@ const fieldDemos = [
     label: 'Name',
     kind: 'text',
     autocomplete: 'name',
-    placeholder: 'e.g. Anna Ruiz',
+    placeholder: 'Anna Ruiz',
     hint: undefined,
     required: true,
     error: 'Enter your name',
@@ -1590,7 +1849,7 @@ const fieldDemos = [
     label: 'Search',
     kind: 'search',
     autocomplete: 'off',
-    placeholder: 'Search services, e.g. brakes',
+    placeholder: 'e.g. brake repair',
     hint: undefined,
     required: false,
     error: 'Check this field',
@@ -1600,7 +1859,7 @@ const fieldDemos = [
     label: 'Message',
     kind: 'textarea',
     autocomplete: 'off',
-    placeholder: 'e.g. The brakes squeak when it rains',
+    placeholder: 'e.g. Brakes squeak in the rain',
     hint: 'A sentence or two is enough.',
     required: false,
     error: 'Check this field',
@@ -1681,81 +1940,144 @@ const icons = [
 
 <template>
   <main id="main" class="bb" :class="`-detail-${detail.toLowerCase()}`">
-    <header class="intro">
-      <p class="eyebrow">@ai.all/ui · DS7</p>
-      <h1 class="title">Brandbook</h1>
-      <p class="lead">
-        Foundations, base elements and every component with its ID. A block exists here, with all
-        its variants, before a page uses it. Every name, description, class and snippet can be
-        copied.
-      </p>
-    </header>
-
-    <div ref="bar" class="nav">
-      <div class="nav-main">
-        <div class="tabs" role="tablist" aria-label="Brandbook pages">
+    <header class="intro kithead">
+      <div class="heading">
+        <div
+          class="controls"
+          :class="{ '-searching': quickExpanded }"
+          role="group"
+          aria-label="Brandbook controls"
+        >
           <button
-            v-for="x in tabs"
-            :id="`tab-${x.id}`"
-            :key="x.id"
             type="button"
-            role="tab"
-            class="tab"
-            :aria-selected="tab === x.id"
-            :aria-controls="`panel-${x.id}`"
-            @click="tab = x.id"
+            class="control"
+            aria-label="Settings"
+            title="Settings"
+            popovertarget="bb-menu"
           >
-            {{ x.name }}
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path
+                d="M10 3h4l.5 2.4 1.7.9 2.3-.8 2 3.5-1.8 1.6v2l1.8 1.6-2 3.5-2.3-.8-1.7.9L14 20h-4l-.5-2.2-1.7-.9-2.3.8-2-3.5 1.8-1.6v-2L3.5 9l2-3.5 2.3.8 1.7-.9L10 3Z"
+              />
+              <circle cx="12" cy="11.5" r="2.5" />
+            </svg>
           </button>
-          <!-- the source gallery is a dev-server page of the ui app (see the gallery layer); a link tab, not a panel -->
-          <a v-if="galleryLink" class="tab" href="/ui/ds" role="tab">Source gallery</a>
-        </div>
-        <nav class="toc" aria-label="On this page">
-          <a v-for="x in toc" :key="x.id" :href="`#${x.id}`">{{ x.name }}</a>
-        </nav>
-      </div>
-      <div class="navend">
-        <div class="navctl">
           <div
-            class="navgrid"
-            title="How much to show: View (demos only), Info (+ names, classes, code), Full (+ copy buttons)"
+            class="finder"
+            :class="{ '-expanded': quickExpanded }"
+            @pointerenter="hoverQuick"
+            @pointerleave="quickHover = false"
+            @focusout="
+              (event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) {
+                  quickFocus = false;
+                  quickRequested = false;
+                  quickQuery = '';
+                }
+              }
+            "
+            @keydown.esc.stop="closeQuick"
           >
-            <span class="navgrid-label" aria-hidden="true">Info</span>
-            <UiChips
-              v-model="detail"
-              legend="How much information to show"
-              :options="['View', 'Info', 'Full']"
-              variant="segment"
-              size="small"
-              hide-legend
+            <button
+              ref="quickButton"
+              type="button"
+              class="control"
+              aria-label="Search"
+              title="Search"
+              aria-controls="brandbook-search"
+              :aria-expanded="quickExpanded"
+              @click="openQuick"
+            >
+              <UiIcon name="search" />
+            </button>
+            <input
+              id="brandbook-search"
+              ref="quickInput"
+              v-model="quickQuery"
+              class="quick"
+              type="search"
+              placeholder="Search components"
+              aria-label="Search components by name or ID"
+              :inert="!quickExpanded"
+              @focus="quickFocus = true"
+              @keydown.enter.prevent="quickResults[0] && jumpToComponent(quickResults[0].id)"
             />
-          </div>
-          <div v-if="gridOn" class="navgrid" title="Layout grid · Alt + G">
-            <span class="navgrid-label" aria-hidden="true">Grid</span>
-            <UiChips
-              v-model="gridColsLabel"
-              legend="Layout grid columns"
-              :options="['Off', '12', '16', '24']"
-              variant="segment"
-              size="small"
-              hide-legend
-            />
+            <div v-if="quickFocus && quickQuery.trim()" class="results">
+              <button
+                v-for="entry in quickResults"
+                :key="entry.id"
+                type="button"
+                @click="jumpToComponent(entry.id)"
+              >
+                <code>{{ entry.id }}</code> {{ entry.name }}
+              </button>
+              <p v-if="!quickResults.length" role="status">No matching components</p>
+            </div>
           </div>
         </div>
+        <p class="eyebrow">@ai.all/ui · DS7</p>
+        <h1 class="title">Brandbook</h1>
+      </div>
+      <nav class="links rail" role="tablist" aria-label="Brandbook pages">
+        <NuxtLink
+          v-for="x in tabs"
+          :id="`tab-${x.id}`"
+          :key="x.id"
+          :to="tabLink(x.id)"
+          replace
+          role="tab"
+          class="link"
+          :aria-selected="tab === x.id"
+          :aria-controls="`panel-${x.id}`"
+        >
+          {{ x.name }}
+        </NuxtLink>
+      </nav>
+    </header>
+    <nav id="bb-menu" ref="menu" popover class="menu kit-drawer" aria-label="Brandbook settings">
+      <div class="drawer-head">
+        <h2>Settings</h2>
         <button
           type="button"
-          class="fab"
+          class="drawer-close"
+          aria-label="Close settings"
           popovertarget="bb-menu"
-          aria-label="Brandbook menu"
-          title="Brandbook menu"
+          popovertargetaction="hide"
         >
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M4 7h16M4 12h16M4 17h16" />
-          </svg>
+          <UiIcon name="close" />
         </button>
       </div>
-    </div>
-    <nav id="bb-menu" ref="menu" popover class="menu" aria-label="Brandbook menu">
+      <div class="drawer-fields">
+        <label class="setting">
+          <span>Info</span>
+          <select v-model="detail" aria-label="How much information to show">
+            <option>View</option>
+            <option>Info</option>
+            <option>Full</option>
+          </select>
+        </label>
+        <label v-if="gridOn" class="setting">
+          <span>Grid</span>
+          <select v-model="gridColsLabel" aria-label="Layout grid columns">
+            <option>Off</option>
+            <option>12</option>
+            <option>16</option>
+            <option>24</option>
+          </select>
+        </label>
+        <UiSwitch v-if="gridOn" v-model="gridButton" label="Grid button on the page" />
+        <button
+          type="button"
+          class="menu-item"
+          @click="
+            closeMenu();
+            openQuick();
+          "
+        >
+          Search components
+        </button>
+        <button type="button" class="menu-item" @click="pick('tools')">Tools</button>
+      </div>
       <p class="label">Pages</p>
       <ul class="menu-list">
         <li v-for="x in tabs" :key="x.id">
@@ -1769,41 +2091,12 @@ const icons = [
           </button>
         </li>
       </ul>
-      <p class="label">On this page</p>
-      <ul class="menu-list">
+      <p v-if="toc.length" class="label">On this page</p>
+      <ul v-if="toc.length" class="menu-list">
         <li v-for="x in toc" :key="x.id">
           <a class="menu-item" :href="`#${x.id}`" @click="closeMenu">{{ x.name }}</a>
         </li>
       </ul>
-      <p class="label">Show</p>
-      <div class="gridset">
-        <UiChips
-          v-model="detail"
-          legend="How much information to show"
-          :options="['View', 'Info', 'Full']"
-          variant="segment"
-          size="small"
-          hide-legend
-        />
-        <p class="hint">View: demos only. Info: + names, classes, code. Full: + copy buttons.</p>
-      </div>
-      <p class="label">Developer</p>
-      <button type="button" class="menu-item" @click="pick('tools')">All dev tools</button>
-      <div v-if="gridOn" class="gridset">
-        <UiChips
-          v-model="gridColsLabel"
-          legend="Layout grid"
-          :options="['Off', '12', '16', '24']"
-          variant="segment"
-          size="small"
-        />
-        <UiSwitch v-model="gridButton" label="Grid button on the page" />
-        <p class="hint">Alt + G steps the columns. Site setting: <code>uiDevTools</code></p>
-      </div>
-      <p v-else class="hint">
-        Dev tools are off here: <code>uiDevTools</code> is <code>{{ gridMode }}</code
-        >.
-      </p>
       <a class="menu-item -top" href="#main" @click="closeMenu">Back to top</a>
     </nav>
 
@@ -1878,6 +2171,16 @@ const icons = [
           Font: <code>--font-sans</code> for text, <code>--font-display</code> for headings,
           <code>--font-mono</code> for code.
         </p>
+        <div class="font-pair">
+          <div>
+            <p class="font-display">Workshop and care</p>
+            <p>Regular maintenance keeps your bike ready for the next ride.</p>
+          </div>
+          <div>
+            <p class="font-display">Book a service</p>
+            <p>Choose a time and tell us what your bike needs.</p>
+          </div>
+        </div>
         <div v-for="t in typeScale" :key="t.token" class="type">
           <p
             class="type-sample"
@@ -1962,7 +2265,7 @@ const icons = [
                 </ol>
               </nav>
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[0]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -1984,7 +2287,7 @@ const icons = [
                 </p>
               </hgroup>
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[1]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -2013,7 +2316,7 @@ const icons = [
                 <mark>Booking a day ahead</mark> usually gets you a same-day slot.
               </p>
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[2]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -2043,7 +2346,7 @@ const icons = [
                 >
               </p>
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[3]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -2063,7 +2366,7 @@ const icons = [
                 >
               </p>
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[4]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -2098,7 +2401,7 @@ const icons = [
                 </ul>
               </section>
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[5]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -2119,7 +2422,7 @@ const icons = [
                 <li>Pick it up the same day.</li>
               </ol>
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[6]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -2138,7 +2441,7 @@ const icons = [
                 <figcaption>A figure: the photo with its caption.</figcaption>
               </figure>
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[7]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -2182,7 +2485,7 @@ const icons = [
                 </tbody>
               </table>
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[8]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -2204,7 +2507,7 @@ const icons = [
                 <cite>Anna R., customer since 2024</cite>
               </blockquote>
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[9]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -2230,7 +2533,7 @@ const icons = [
                 <p>Yes, the express service takes under an hour.</p>
               </details>
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[10]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -2253,7 +2556,7 @@ const icons = [
                 <dd>3 months</dd>
               </dl>
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[11]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -2272,7 +2575,7 @@ const icons = [
                 <samp>OK</samp>
               </p>
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[12]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -2288,7 +2591,7 @@ const icons = [
             <div class="sample">
               <hr />
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[13]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -2328,7 +2631,7 @@ const icons = [
                 <p><button type="submit">Book</button> <output>Estimated: $80</output></p>
               </form>
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[14]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -2350,7 +2653,7 @@ const icons = [
                 </address>
               </footer>
             </div>
-            <div class="tags">
+            <div class="tag-list">
               <span v-for="t in usageTags[15]" :key="t" class="tagline"
                 ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ tagDesc[t] }}</span
               >
@@ -2373,7 +2676,7 @@ const icons = [
           <pre v-if="it.code" class="sample -code"><code>{{ it.html }}</code></pre>
           <!-- eslint-disable-next-line vue/no-v-html -- static markup written in this file -->
           <div v-else class="sample" v-html="it.html" />
-          <div class="tags">
+          <div class="tag-list">
             <span v-for="[t, d] in it.tags" :key="t" class="tagline"
               ><code :data-tag="t" tabindex="0">&lt;{{ t }}&gt;</code> {{ d }}</span
             >
@@ -2497,7 +2800,11 @@ const icons = [
                     :title="z.note"
                     :data-html="`btn-${e.btn}-${z.size}`"
                   >
-                    <UiButton :variant="e.btn" :size="z.size">{{ z.label }}</UiButton>
+                    <UiButton
+                      :variant="e.btn === 'default' ? undefined : e.btn"
+                      :size="z.size === 'md' ? undefined : z.size"
+                      >{{ z.label }}</UiButton
+                    >
                     <figcaption class="row">
                       <code>{{ rendered[`btn-${e.btn}-${z.size}`]?.cls }}</code>
                       <span>{{ z.note.split(',')[0] }}</span>
@@ -2519,6 +2826,21 @@ const icons = [
                     </figcaption>
                   </figure>
                 </div>
+                <template v-if="e.id === 'BTN-01'">
+                  <h4 class="label">Element and appearance</h4>
+                  <div class="cells -matrix">
+                    <figure class="cell">
+                      <UiButton href="#BTN-01">Link styled as a button</UiButton>
+                      <figcaption class="row"><code>&lt;a class="btn"&gt;</code></figcaption>
+                    </figure>
+                    <figure class="cell">
+                      <UiButton variant="link">Button styled as a link</UiButton>
+                      <figcaption class="row">
+                        <code>&lt;button class="btn -link"&gt;</code>
+                      </figcaption>
+                    </figure>
+                  </div>
+                </template>
                 <h4 class="label">
                   States on light
                   <span class="hint"
@@ -2528,14 +2850,14 @@ const icons = [
                 <div class="cells -matrix">
                   <figure v-for="st in btnStates" :key="st.id" class="cell" :title="st.note">
                     <UiButton
-                      :variant="e.btn"
+                      :variant="e.btn === 'default' ? undefined : e.btn"
                       :class="st.cls"
                       :disabled="st.id === 'disabled'"
                       :loading="st.id === 'loading'"
                       >{{ st.label }}</UiButton
                     >
                     <figcaption class="row">
-                      <code>{{ st.code || `.-${e.btn}` }}</code>
+                      <code>{{ st.code || (e.btn === 'default' ? '.btn' : `.-${e.btn}`) }}</code>
                       <UiCopyButton
                         :value="stateCopy(e.btn, st)"
                         :label="`${st.label} ${e.name}`"
@@ -2547,7 +2869,7 @@ const icons = [
                 <div class="cells -matrix dark">
                   <figure v-for="st in btnStates" :key="st.id" class="cell" :title="st.note">
                     <UiButton
-                      :variant="e.btn"
+                      :variant="e.btn === 'default' ? undefined : e.btn"
                       on-dark
                       :class="st.cls"
                       :disabled="st.id === 'disabled'"
@@ -2710,31 +3032,33 @@ const icons = [
                   Placeholders
                   <span class="hint">· an example of the format, never the label</span>
                 </h4>
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th scope="col">Field</th>
-                      <th scope="col">Placeholder</th>
-                      <th scope="col">Why</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="f in fieldDemos" :key="f.label">
-                      <td>
-                        {{ f.label }} <code>{{ f.kind }}</code>
-                      </td>
-                      <td>
-                        <span class="row"
-                          ><code>{{ f.placeholder }}</code
-                          ><UiCopyButton
-                            :value="f.placeholder"
-                            :label="`placeholder of ${f.label}`"
-                        /></span>
-                      </td>
-                      <td class="muted">{{ f.why }}</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div class="table-wrap">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Field</th>
+                        <th scope="col">Placeholder</th>
+                        <th scope="col">Why</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="f in fieldDemos" :key="f.label">
+                        <td>
+                          {{ f.label }} <code>{{ f.kind }}</code>
+                        </td>
+                        <td>
+                          <span class="row"
+                            ><code>{{ f.placeholder }}</code
+                            ><UiCopyButton
+                              :value="f.placeholder"
+                              :label="`placeholder of ${f.label}`"
+                          /></span>
+                        </td>
+                        <td class="muted">{{ f.why }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
                 <p class="note">
                   The label stays visible above the field; the placeholder disappears as soon as the
                   user types, so it only shows an example. Placeholder colour is
@@ -2986,6 +3310,12 @@ const icons = [
       role="tabpanel"
       aria-labelledby="tab-tools"
     >
+      <section v-if="galleryLink" id="t-gallery" class="sec">
+        <h2 class="h">Source gallery</h2>
+        <p class="note">Browse and manage the project’s source images.</p>
+        <UiButton href="/ui/ds" variant="outline">Open source gallery</UiButton>
+      </section>
+
       <section id="t-about" class="sec">
         <h2 class="h">Developer tools <code class="id">DEVTOOLS-01</code></h2>
         <p class="note">
@@ -3019,12 +3349,15 @@ const icons = [
               Grid{{ gridColsShared ? ` ${gridColsShared}` : '' }}
             </button>
             <UiSwitch v-model="gridButton" label="Show the red button" />
-            <UiChips
-              v-model="gridColsLabel"
-              legend="Columns"
-              :options="['Off', '12', '16', '24']"
-              variant="segment"
-            />
+            <label class="setting">
+              <span>Columns</span>
+              <select v-model="gridColsLabel" aria-label="Layout grid columns">
+                <option>Off</option>
+                <option>12</option>
+                <option>16</option>
+                <option>24</option>
+              </select>
+            </label>
           </div>
           <UiSwitch v-else v-model="toolState[t.id]!.value" :label="t.switch" />
         </div>
@@ -3061,6 +3394,77 @@ const icons = [
       </section>
     </div>
 
+    <div
+      v-if="visitedTabs.has('tokens')"
+      v-show="tab === 'tokens'"
+      id="panel-tokens"
+      role="tabpanel"
+      aria-labelledby="tab-tokens"
+    >
+      <section class="sec">
+        <h2 class="h">Theme tokens</h2>
+        <p class="note">
+          Base declarations, project assignments, and the current value on this page.
+        </p>
+        <label class="search">
+          <span class="sr">Filter theme tokens</span>
+          <input v-model="tokenQuery" type="search" placeholder="Filter tokens…" />
+        </label>
+        <div ref="baseTokenProbe" data-token-values="base" hidden />
+        <div class="table-wrap">
+          <table class="table tokens">
+            <thead>
+              <tr>
+                <th scope="col">Variable</th>
+                <th scope="col">Base UI</th>
+                <th v-if="themeSource" scope="col">{{ themeLabel || 'Project' }}</th>
+                <th scope="col">Current value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in tokenRows" :key="row.name">
+                <th scope="row" class="token-name">
+                  <div class="token-value">
+                    <code>{{ row.name }}</code>
+                    <UiCopyButton :value="row.name" :label="`Copy ${row.name}`" />
+                  </div>
+                </th>
+                <td>
+                  <div class="token-value">
+                    <span
+                      v-if="row.baseColor"
+                      class="token-swatch"
+                      :style="{ backgroundColor: row.baseColor }"
+                      aria-hidden="true"
+                    />
+                    <code v-if="row.base">{{ row.base }}</code
+                    ><span v-else>—</span>
+                  </div>
+                </td>
+                <td v-if="themeSource">
+                  <code v-if="row.project">{{ row.project }}</code
+                  ><span v-else>Inherited</span>
+                </td>
+                <td>
+                  <div class="token-value">
+                    <span
+                      v-if="row.liveColor"
+                      class="token-swatch"
+                      :style="{ backgroundColor: row.liveColor }"
+                      aria-hidden="true"
+                    />
+                    <code v-if="row.live">{{ row.live }}</code
+                    ><span v-else>—</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p v-if="!tokenRows.length" class="note" role="status">No matching tokens.</p>
+      </section>
+    </div>
+
     <!-- Catalog -->
     <div
       v-if="visitedTabs.has('catalog')"
@@ -3070,7 +3474,7 @@ const icons = [
       aria-labelledby="tab-catalog"
     >
       <section id="catalog" class="sec">
-        <h2 class="h">All components</h2>
+        <h2 class="h">Base List</h2>
         <p class="note">
           One row per pattern ID. Copy a single cell, a whole row, or the full table as Markdown for
           a task or a pull request.
@@ -3086,7 +3490,7 @@ const icons = [
           </label>
           <UiCopyButton :value="catalogMarkdown" label="catalog as Markdown" text="Copy table" />
         </div>
-        <div class="scroll">
+        <div class="table-wrap">
           <table class="table">
             <thead>
               <tr>
@@ -3131,6 +3535,109 @@ const icons = [
         </div>
       </section>
     </div>
+    <div
+      v-if="visitedTabs.has('component-theme')"
+      v-show="tab === 'component-theme'"
+      id="panel-component-theme"
+      role="tabpanel"
+      aria-labelledby="tab-component-theme"
+    >
+      <section class="sec theme-preview" aria-label="Compare shared control themes">
+        <h2 class="h">Shared controls <code class="id">BTN-01 · FIELD-01 · SELECT-01</code></h2>
+        <p class="note">
+          Click a theme value to edit the preview. Clear it to restore the theme value.
+        </p>
+        <label class="theme-picker">
+          <span>Preview theme</span>
+          <select v-model="buttonTheme">
+            <option value="project">{{ themeLabel || 'Current theme' }}</option>
+            <option value="base">Base UI</option>
+          </select>
+        </label>
+        <div
+          class="stage theme-samples"
+          :data-button-theme="buttonTheme"
+          :style="buttonTheme === 'project' ? buttonOverrides : undefined"
+        >
+          <div v-for="size in btnSizes" :key="size.size" class="theme-controls">
+            <strong>{{ size.label }}</strong>
+            <UiButton :size="size.size === 'md' ? undefined : size.size">Continue</UiButton>
+            <UiField
+              :size="size.size === 'md' ? undefined : size.size"
+              label="Name"
+              placeholder="Anna Ruiz"
+            />
+            <UiSelect
+              :size="size.size === 'md' ? undefined : size.size"
+              label="City"
+              :options="cities"
+            />
+          </div>
+        </div>
+        <div class="theme-probes" aria-hidden="true" inert>
+          <div ref="buttonBase" data-button-theme="base"><UiButton>Continue</UiButton></div>
+          <div ref="buttonProject" :style="buttonOverrides"><UiButton>Continue</UiButton></div>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Token</th>
+                <th scope="col">Base UI</th>
+                <th scope="col">{{ themeLabel || 'Current theme' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, index) in buttonRows" :key="row.name">
+                <th scope="row">
+                  <code>{{ row.name }}</code>
+                </th>
+                <td>{{ buttonValues.base[index] || '—' }}</td>
+                <td>
+                  <template v-if="editingToken?.name === row.name">
+                    <input
+                      :ref="(element) => (tokenInput = element as HTMLInputElement | null)"
+                      class="token-input"
+                      type="text"
+                      :value="tokenDraft"
+                      :aria-label="`Edit ${row.name}`"
+                      :aria-invalid="tokenDraftInvalid || undefined"
+                      @input="changeButtonToken(row, ($event.target as HTMLInputElement).value)"
+                      @keydown.enter.prevent="!tokenDraftInvalid && finishButtonToken()"
+                      @keydown.esc.prevent="finishButtonToken(true)"
+                      @blur="finishButtonToken()"
+                    />
+                    <small v-if="tokenDraftInvalid" class="token-error" role="status"
+                      >Enter a valid CSS value.</small
+                    >
+                  </template>
+                  <button
+                    v-else
+                    type="button"
+                    class="token-edit"
+                    :aria-label="`Edit ${row.name}`"
+                    @click="editButtonToken(row, index)"
+                  >
+                    {{ buttonValues.project[index] || '—' }}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div
+      v-for="section in extraTabs.filter((entry) => visitedTabs.has(entry.id))"
+      v-show="tab === section.id"
+      :id="`panel-${section.id}`"
+      :key="section.id"
+      role="tabpanel"
+      :aria-labelledby="`tab-${section.id}`"
+    >
+      <slot :name="section.id" />
+    </div>
   </main>
 </template>
 
@@ -3138,184 +3645,128 @@ const icons = [
 .bb {
   max-width: calc(var(--page-max) + var(--page-gutter) * 2);
   margin: 0 auto;
-  padding: var(--space-8) var(--page-gutter) var(--space-16);
+  padding: var(--ui-page-top, var(--space-8)) var(--page-gutter) var(--space-16);
 }
-.bb {
-  .intro {
-    display: grid;
-    gap: var(--space-3);
-    padding-bottom: var(--space-6);
-  }
-  .eyebrow {
-    margin: 0;
-    color: var(--color-ink-500);
-    font-size: var(--text-xs);
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .title {
-    margin: 0;
-  }
+.bb .intro {
+  padding-bottom: var(--space-3);
 }
-.intro .lead {
-  max-width: 48rem;
-  margin: 0;
+.bb .controls {
+  --icon-size: 1.25rem;
+  z-index: 21;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: 100%;
 }
-.bb {
-  .tabs {
-    display: flex;
-    gap: var(--space-1);
-    max-width: 100%;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: var(--space-1);
-    border-radius: var(--radius-pill);
-    background: var(--color-accent-soft);
-    justify-self: start;
-  }
-  .tab {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    text-decoration: none;
-    color: var(--color-ink-600);
-    flex: none;
-    min-height: 2.5rem;
-    padding: 0 var(--space-6);
-    white-space: nowrap;
-    border: 0;
-    border-radius: var(--radius-pill);
-    background: transparent;
-    color: var(--color-ink-600);
-    font-weight: 600;
-    cursor: pointer;
-  }
+.bb .control {
+  display: grid;
+  --icon-size: 1.25rem;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
 }
-.tab[aria-selected='true'] {
+.bb .control:hover {
+  background: var(--color-accent-soft);
+}
+.bb .control svg {
+  display: block;
+  width: var(--icon-size);
+  height: var(--icon-size);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+.bb .finder {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+.bb .quick {
+  width: 0;
+  min-width: 0;
+  min-height: 0;
+  height: 0;
+  padding: 0;
+  border: 0;
+  visibility: hidden;
+  transition:
+    width 180ms ease,
+    padding 180ms ease;
+}
+.bb .finder.-expanded .quick {
+  height: var(--controls-height);
+  box-sizing: border-box;
+  width: min(13rem, 43vw);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  visibility: visible;
+}
+.bb .results {
+  position: absolute;
+  inset: 100% 0 auto;
+  max-height: 45vh;
+  overflow: auto;
+  padding: var(--space-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
   color: var(--color-ink);
   box-shadow: var(--shadow-card);
 }
+.bb .results button {
+  display: block;
+  width: 100%;
+  padding: var(--space-2);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.bb .results button:hover {
+  background: var(--color-accent-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bb .quick {
+    transition: none;
+  }
+}
 .bb {
-  .nav {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-3);
-    margin: 0 calc(var(--page-gutter) * -1);
-    padding: var(--space-3) var(--page-gutter);
-    border-bottom: 1px solid var(--color-line);
-    background: var(--color-glass);
-    backdrop-filter: blur(12px);
-  }
-  .nav-main {
-    display: grid;
-    flex: 1;
-    gap: var(--space-2);
-    min-width: 0;
-  }
   &.-detail-view :deep(.copy-button),
   &.-detail-info :deep(.copy-button),
-  &.-detail-view .copies,
-  &.-detail-view .specs,
-  &.-detail-view .codes,
-  &.-detail-view .spec-line,
-  &.-detail-view .cell figcaption,
-  &.-detail-view .tags,
-  &.-detail-view .hint,
-  &.-detail-view .icons code {
+  &.-detail-view .codes {
     display: none;
   }
-  &.-detail-view .tagged {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  &.-detail-view .menu .hint,
-  &.-detail-view .menu :deep(.copy-button) {
-    display: revert;
-  }
-  .navend {
-    display: flex;
-    flex: none;
-    align-items: center;
-    gap: var(--space-3);
-    min-height: 3rem; /* the height of the tab row, so both line up */
-  }
-  .navctl {
-    display: grid;
-    gap: 0.15rem;
-  }
-  .navgrid {
-    display: grid;
-    grid-template-columns: 2.25rem auto;
-    align-items: center;
-    gap: var(--space-1);
-  }
 }
-.navgrid :deep(.row) {
-  padding: 0.1rem;
-}
-.navgrid :deep(.chip) {
-  min-height: 1.35rem;
-  padding: 0 0.55rem;
-  font-size: 0.6875rem;
-}
-.bb {
-  .navgrid-label {
-    color: var(--color-ink-500);
-    font-size: 0.625rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .fab {
-    display: grid;
-    flex: none;
-    width: 2.75rem;
-    height: 2.75rem;
-    place-items: center;
-    padding: 0;
-    border: 1px solid var(--color-line-strong);
-    border-radius: 50%;
-    background: var(--color-surface);
-    color: var(--color-ink);
-    box-shadow: var(--shadow-card);
-    cursor: pointer;
-  }
-}
-.fab:hover {
-  border-color: var(--color-ink);
-}
-.fab:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-}
-.fab svg {
-  width: 1.2rem;
-  height: 1.2rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-}
-.bb {
-  .menu {
-    position: fixed;
-    inset: 4.5rem var(--space-4) auto auto;
-    width: min(18rem, calc(100vw - 2rem));
-    max-height: calc(100dvh - 6rem);
-    margin: 0;
-    padding: var(--space-3);
-    overflow-y: auto;
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-lg);
-    background: var(--color-surface);
-    color: var(--color-ink);
-    box-shadow: var(--shadow-modal);
-  }
+.bb
+  > :is(
+    #panel-foundations,
+    #panel-elements,
+    #panel-components,
+    #panel-tools,
+    #panel-catalog,
+    #panel-tokens,
+    #panel-component-theme
+  ) {
+  --brandbook-step: 0.25rem;
+  --space-1: var(--brandbook-step);
+  --space-2: calc(2 * var(--brandbook-step));
+  --space-3: calc(3 * var(--brandbook-step));
+  --space-4: calc(4 * var(--brandbook-step));
+  --space-6: calc(6 * var(--brandbook-step));
+  --space-8: calc(8 * var(--brandbook-step));
+  --space-12: calc(12 * var(--brandbook-step));
+  --space-16: calc(16 * var(--brandbook-step));
 }
 .menu .label {
   margin: var(--space-2) var(--space-2) var(--space-1);
@@ -3352,13 +3803,6 @@ const icons = [
 }
 .menu-item[aria-current='page'] {
   font-weight: 600;
-}
-.bb {
-  .gridset {
-    display: grid;
-    gap: var(--space-2);
-    padding: 0 var(--space-2) var(--space-2);
-  }
 }
 .menu .hint {
   display: block;
@@ -3405,17 +3849,6 @@ const icons = [
   color: var(--color-ink-600);
 }
 .bb {
-  .toc {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2) var(--space-4);
-    font-size: var(--text-sm);
-  }
-}
-.toc a {
-  color: var(--color-ink-600);
-}
-.bb {
   .sec {
     padding-top: var(--space-12);
   }
@@ -3424,7 +3857,11 @@ const icons = [
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-3);
+    margin: 0 0 var(--space-3);
     font-size: var(--text-2xl);
+  }
+  .sec > .note {
+    margin: 0 0 var(--space-4);
   }
   .h3 {
     margin: 0;
@@ -3663,7 +4100,7 @@ const icons = [
   margin: 0;
 }
 .bb {
-  .scroll {
+  .table-wrap {
     position: relative;
     margin-top: var(--space-4);
     overflow-x: auto;
@@ -3690,12 +4127,125 @@ const icons = [
     margin-top: var(--space-6);
   }
 }
-.usage .sample :where(*):hover,
 .usage.-tags .sample :where(*) {
   outline: 1px dashed var(--color-line-strong);
   outline-offset: 2px;
 }
-.table td {
+.font-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--space-4);
+  margin-block: var(--space-4);
+  font-family: var(--font-sans);
+}
+.font-pair > div {
+  padding: var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.font-pair p {
+  margin: 0;
+}
+.font-pair .font-display {
+  margin-bottom: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+}
+.theme-samples {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+.theme-controls {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+}
+.theme-controls > .btn {
+  justify-self: start;
+}
+.theme-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.theme-probes {
+  display: none;
+}
+.theme-preview .table td {
+  min-width: 8rem;
+  overflow-wrap: anywhere;
+}
+.token-edit {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+  cursor: text;
+}
+.token-input {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+}
+.token-error {
+  display: block;
+  color: var(--color-danger);
+}
+[data-button-theme='base'] {
+  --ui-button-background: initial;
+  --ui-button-color: initial;
+  --ui-button-hover-background: initial;
+  --ui-button-hover-color: initial;
+  --ui-button-padding-inline: initial;
+  --ui-button-font-size: initial;
+  --ui-button-small-padding-inline: initial;
+  --ui-button-small-font-size: initial;
+  --ui-button-big-padding-inline: initial;
+  --ui-button-big-font-size: initial;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+.bb .tokens .token-name {
+  min-width: 16rem;
+  width: 32%;
+}
+.token-value {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.token-value code {
+  min-width: 0;
+}
+.token-swatch {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
+}
+.bb .tokens code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.bb .table {
+  width: 100%;
+}
+.bb .table :is(th, td) {
+  padding: var(--space-2) var(--space-3);
+  border-block-end: 1px solid var(--color-line);
+  text-align: start;
   vertical-align: top;
 }
 .bb {
@@ -3725,7 +4275,7 @@ const icons = [
   border-radius: var(--radius-sm);
 }
 .bb {
-  .tags {
+  .tag-list {
     display: grid;
     justify-items: start;
     gap: 0.15rem;
@@ -3735,7 +4285,7 @@ const icons = [
     line-height: 1.6;
   }
 }
-.tags code {
+.tag-list code {
   font-size: inherit;
   color: var(--color-ink);
   cursor: help;
@@ -3745,8 +4295,8 @@ const icons = [
     line-height: 1.45;
   }
 }
-.tags code:hover,
-.tags code:focus-visible {
+.tag-list code:hover,
+.tag-list code:focus-visible {
   background: var(--color-brand);
   color: var(--color-brand-contrast);
 }
@@ -3762,7 +4312,7 @@ const icons = [
   }
   .plate {
     display: grid;
-    gap: var(--space-1);
+    gap: var(--space-2);
     padding: var(--space-3) var(--space-4);
     border-bottom: 1px solid var(--color-line);
   }
@@ -3847,7 +4397,7 @@ const icons = [
     padding: 0;
     list-style: none;
   }
-  .icon {
+  .icons > .icon {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: 4rem auto;
@@ -3941,16 +4491,7 @@ const icons = [
     cursor: zoom-in;
   }
 }
-@media (max-width: 900px) {
-  .bb .navgrid-label {
-    display: none;
-  }
-}
 @media (max-width: 640px) {
-  .bb .toc,
-  .bb .navgrid {
-    display: none;
-  }
   .bb .tagged {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-2);

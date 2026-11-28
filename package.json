@@ -1,6 +1,6 @@
 {
   "name": "@ai.all/ui",
-  "version": "0.4.0-beta.1",
+  "version": "0.4.0-beta.2",
   "description": "Universal monochrome UI foundation, design tokens, and living pattern catalog for DS7 web projects",
   "keywords": [
     "design-system",
@@ -80,7 +80,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "dev": "npm run build && nuxt dev --port 3333",
+    "dev": "npm run build && nuxt dev --port 4700",
     "test": "node scripts/test.mjs",
     "test:package": "node scripts/test-package.mjs",
     "test:one": "node --test",

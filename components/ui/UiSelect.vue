@@ -5,6 +5,7 @@ import { computed, ref, useId } from 'vue';
 const props = withDefaults(
   defineProps<{
     label: string;
+    size?: 'small' | 'md' | 'big';
     options: { value: string; label: string }[];
     required?: boolean;
     placeholder?: string;
@@ -19,7 +20,10 @@ const showError = computed(() => touched.value && props.required && !model.value
 </script>
 
 <template>
-  <div class="select" :class="{ '-error': showError }">
+  <div
+    class="select"
+    :class="{ '-error': showError, '-small': size === 'small', '-big': size === 'big' }"
+  >
     <label class="label" :for="uid">
       {{ label }}<span v-if="required" class="req" aria-hidden="true"> *</span>
     </label>
@@ -47,6 +51,7 @@ const showError = computed(() => touched.value && props.required && !model.value
 
 <style scoped>
 .select {
+  --field-height: var(--control-height);
   display: grid;
   gap: var(--space-1);
   min-width: 0;
@@ -66,7 +71,7 @@ const showError = computed(() => touched.value && props.required && !model.value
   }
   .input {
     width: 100%;
-    min-height: var(--control-height);
+    min-height: var(--field-height);
     padding: 0 calc(var(--space-2) + 2.25rem) 0 var(--control-pad-x);
     border: 1px solid var(--color-line-strong);
     border-radius: var(--radius-ui);
@@ -124,5 +129,11 @@ const showError = computed(() => touched.value && props.required && !model.value
     font-size: var(--text-xs);
     font-weight: 600;
   }
+}
+.select.-small {
+  --field-height: var(--control-height-small, 2.25rem);
+}
+.select.-big {
+  --field-height: var(--control-height-big, 3.25rem);
 }
 </style>

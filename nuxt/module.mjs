@@ -16,7 +16,7 @@ const managedPage =
 
 export default defineNuxtModule({
   meta: { name: '@ai.all/ui', configKey: 'aiallUi', compatibility: { nuxt: '^4.0.0' } },
-  defaults: { brandbook: 'dev', devTools: 'dev', css: true, gallery: false },
+  defaults: { brandbook: 'dev', devTools: 'dev', css: true, gallery: true },
   setup(options, nuxt) {
     const { resolve: fromPackage } = createResolver(import.meta.url);
     const localUi = resolve(nuxt.options.srcDir, 'components/ui');
@@ -56,7 +56,9 @@ export default defineNuxtModule({
     }
     // Source gallery (gallery: { folder: 'ds' } in aiallUi): dev only, see gallery/ in the package.
     // A production build gets no route, no API and no .gitignore line, so `nuxt build` and `nuxt generate` never see it.
-    if (options.gallery && nuxt.options.dev) {
+    const includeGallery = Boolean(options.gallery && nuxt.options.dev);
+    nuxt.options.runtimeConfig.public.aiallUiGallery = includeGallery;
+    if (includeGallery) {
       const config = {
         folder: 'ds',
         git: 'ignore',
@@ -117,8 +119,6 @@ export default defineNuxtModule({
             name: 'aiall-ui-gallery',
             path: '/ui/ds',
             file: fromPackage('../gallery/pages/ds.vue'),
-            // a tool page: the site's header, footer and floating buttons stay out of it
-            meta: { layout: false },
           });
         }
       });

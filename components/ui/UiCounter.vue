@@ -46,7 +46,7 @@ const onChange = (e: Event) => {
   <div
     class="counter"
     :class="[
-      `-${variant}`,
+      variant === 'outline' ? '' : `-${variant}`,
       { '-small': size === 'small', '-on-dark': onDark, '-disabled': disabled },
     ]"
   >

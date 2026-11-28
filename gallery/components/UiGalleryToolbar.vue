@@ -39,7 +39,7 @@ const folderOptions = computed(() => props.folders.map((f) => ({ value: f, label
       >
       <UiButton variant="outline" size="small" @click="emit('all')">Select all</UiButton>
       <UiButton variant="outline" size="small" :disabled="!count" @click="emit('clear')"
-        >Clear</UiButton
+        >Clear selection</UiButton
       >
       <UiButton variant="outline" size="small" :disabled="off" @click="emit('copy')">Copy</UiButton>
       <template v-if="isDev">

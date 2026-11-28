@@ -48,7 +48,7 @@
   --color-danger: #dc2626;
 
   /* Typography */
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-display: var(--font-sans);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-weight-heading: 600;
@@ -63,21 +63,29 @@
   --heading-h3: clamp(1.35rem, 2vw, 1.75rem);
 
   /* Spacing */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
+  --space-1: 0.25rem; /* base spacing step */
+  --space-2: calc(2 * var(--space-1));
+  --space-3: calc(3 * var(--space-1));
+  --space-4: calc(4 * var(--space-1));
+  --space-6: calc(6 * var(--space-1));
+  --space-8: calc(8 * var(--space-1));
+  --space-12: calc(12 * var(--space-1));
+  --space-16: calc(16 * var(--space-1));
 
   /* Layout: page container and its column grid (UiDevTools draws it) */
   --content-width: 73rem;
-  --page-gutter: calc(var(--rhythm-step) * 4); /* side margins: four base steps (32 px) on both sides */
+  --page-gutter: calc(
+    var(--rhythm-step) * 4
+  ); /* side margins: four base steps (32 px) on both sides */
   --grid-gutter: var(--space-4);
-  --page-max: var(--content-width); /* the page width is the site's content width (set in its theme.css) */
-  --grid-edge: clamp(0.5rem, 2vw, 1.5rem); /* the dashed line of the dev grid, kept on screen on phones */
+  --page-max: var(
+    --content-width
+  ); /* the page width is the site's content width (set in its theme.css) */
+  --grid-edge: clamp(
+    0.5rem,
+    2vw,
+    1.5rem
+  ); /* the dashed line of the dev grid, kept on screen on phones */
   --rhythm-step: var(--space-2); /* baseline rhythm lines of UiDevTools */
   /* Baseline leading: every line box is a multiple of the base step, so text sits on the rhythm lines */
   --leading-text: calc(var(--rhythm-step) * 3); /* 24 px */
@@ -100,9 +108,44 @@
   /* Controls and focus */
   --focus-ring: var(--color-ink);
   --control-height: 2.75rem;
+  --control-height-small: 2.25rem;
+  --control-height-big: 3.25rem;
   --control-pad-x: 0.9rem;
   --control-font: var(--text-base);
   --control-placeholder: var(--color-ink-500);
   --icon-size: 1.5rem;
-}
 
+  /* Buttons */
+  --ui-button-background: var(--color-ink);
+  --ui-button-color: var(--color-paper);
+  --ui-button-hover-background: var(--color-ink-700);
+  --ui-button-hover-color: var(--ui-button-color);
+  --ui-button-primary-background: var(--color-brand);
+  --ui-button-primary-color: var(--color-brand-contrast);
+  --ui-button-primary-hover-background: var(--color-brand-hover);
+  --ui-button-primary-hover-color: var(--color-brand-contrast);
+  --ui-button-secondary-background: var(--color-accent-soft);
+  --ui-button-secondary-color: var(--color-ink);
+  --ui-button-secondary-hover-background: var(--color-line);
+  --ui-button-secondary-hover-color: var(--ui-button-secondary-color);
+  --ui-button-bright-background: var(--color-ink-700);
+  --ui-button-bright-color: var(--color-surface);
+  --ui-button-bright-hover-background: var(--color-ink);
+  --ui-button-bright-hover-color: var(--ui-button-bright-color);
+  --ui-button-light-background: var(--color-surface);
+  --ui-button-light-color: var(--color-ink);
+  --ui-button-light-hover-background: var(--color-surface-muted);
+  --ui-button-light-hover-color: var(--ui-button-light-color);
+  --ui-button-transparent-color: var(--color-ink);
+  --ui-button-transparent-hover-background: var(--color-accent-soft);
+  --ui-button-transparent-hover-color: var(--ui-button-transparent-color);
+  --ui-button-inverse-background: var(--color-inverse-ink);
+  --ui-button-inverse-color: var(--color-inverse);
+  --ui-button-inverse-hover-background: var(--color-inverse-ink-600);
+  --ui-button-padding-inline: var(--space-6);
+  --ui-button-font-size: var(--text-base);
+  --ui-button-small-padding-inline: var(--space-4);
+  --ui-button-small-font-size: var(--text-sm);
+  --ui-button-big-padding-inline: var(--space-8);
+  --ui-button-big-font-size: var(--text-lead);
+}

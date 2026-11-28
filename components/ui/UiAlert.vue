@@ -7,7 +7,11 @@ withDefaults(defineProps<{ tone?: 'info' | 'success' | 'warning' | 'danger'; tit
 </script>
 
 <template>
-  <div class="alert" :class="`-${tone}`" :role="tone === 'danger' ? 'alert' : 'status'">
+  <div
+    class="alert"
+    :class="tone === 'info' ? undefined : `-${tone}`"
+    :role="tone === 'danger' ? 'alert' : 'status'"
+  >
     <p v-if="title" class="title">{{ title }}</p>
     <div class="body"><slot /></div>
   </div>
@@ -19,7 +23,7 @@ withDefaults(defineProps<{ tone?: 'info' | 'success' | 'warning' | 'danger'; tit
   gap: 0.25rem;
   padding: 0.9rem 1rem;
   border: 1px solid var(--color-line);
-  border-left: 4px solid var(--color-ink-500);
+  border-left: 4px solid var(--color-info);
   border-radius: var(--radius-ui);
   background: var(--color-surface);
   color: var(--color-ink);
@@ -33,9 +37,6 @@ withDefaults(defineProps<{ tone?: 'info' | 'success' | 'warning' | 'danger'; tit
   .body {
     margin: 0;
     color: var(--color-ink-700);
-  }
-  &.-info {
-    border-left-color: var(--color-info);
   }
   &.-success {
     border-left-color: var(--color-success);
